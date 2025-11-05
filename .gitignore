@@ -3,3 +3,6 @@ plan_docs/
 
 # Ignore macOS system files
 .DS_Store
+
+# Ignore API key configuration
+config.js
