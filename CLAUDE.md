@@ -24,6 +24,7 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
 - **Extended Thinking:** Enabled with configurable token budget (default: 1024 tokens)
 - **Streaming:** Real-time SSE (Server-Sent Events) streaming via Fetch API
 - **Multi-turn Conversations:** Full conversation history preserved, including thinking blocks with signatures
+- **System Prompt:** Specialized pension analyst prompt with prompt caching for cost optimization
 
 ### Key Components
 
@@ -34,11 +35,13 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
   - `prism.js` for syntax highlighting
 - State management via `ChatApp` object pattern
 - Streaming event handler processes: `content_block_start`, `content_block_delta`, `content_block_stop`, `message_stop`
+- Full-width responsive design
 
 **API Integration:**
 - Direct browser-to-Anthropic API calls (requires `anthropic-dangerous-direct-browser-access: true` CORS header)
 - Thinking blocks include `signature` field required for multi-turn conversations
 - Messages format: Array of `{role, content}` where content can include `{type: 'thinking', thinking: '...', signature: '...'}` blocks
+- System prompt with prompt caching enabled (90% cost reduction on subsequent requests)
 
 **Configuration:**
 - `config.js` (gitignored) contains actual API key
@@ -49,11 +52,13 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
 
 ```
 /
-├── index.html           # Main chat interface
-├── config.js            # API key configuration (gitignored)
-├── config.example.js    # Config template
-├── plan_docs/           # PDF files (gitignored)
-├── requirements/        # Business requirements
+├── index.html             # Main chat interface
+├── config.js              # API key configuration (gitignored)
+├── config.example.js      # Config template
+├── plan_docs/             # PDF files (gitignored)
+├── requirements/
+│   ├── requirements.md    # Business requirements
+│   └── system_prompt.md   # Specialized analyst system prompt
 └── README.md
 ```
 
@@ -67,6 +72,25 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
 No build process, server, or dependencies installation required.
 
 ## Implementation Notes
+
+**System Prompt Integration:**
+- 437-line specialized pension plan analyst prompt embedded in `index.html`
+- Defines ERISA expertise, extraction methodology, XML output formats
+- Uses structured array format with `cache_control: {type: "ephemeral"}`
+- Enables prompt caching: First request caches prompt, subsequent requests get 90% cost reduction + 85% latency improvement
+- Cache duration: 5 minutes default
+- Source: `requirements/system_prompt.md`
+
+**Initial Workflow - Compare Documents Button:**
+- First interaction shows prominent "Compare Documents" button instead of chat input
+- Button disabled until files uploaded with dynamic helper text states:
+  - No files: "Upload plan documents above to begin comparison"
+  - Files uploading: "Waiting for files to finish uploading..." (warning color)
+  - Ready: "Click to compare uploaded plan documents"
+- Clicking button automatically sends: "Compare the attached plan documents."
+- After first response, UI transitions to normal chat interface (textarea + Send button)
+- Error handling: If first request fails, reverts to Compare button with retry instructions
+- State detection: `isInitialState()` checks `messages.length === 0`
 
 **Extended Thinking:**
 - Thinking blocks stream in real-time during generation
@@ -102,6 +126,7 @@ Collapsible "Plan Docs" section enables drag-and-drop upload of PDF files for do
 3. FileReader converts to base64 string
 4. File object stored with metadata: `{id, filename, size, mimeType, status, base64Data}`
 5. Status updates: `uploading` → `uploaded` or `error`
+6. `renderInputArea()` called to update Compare button state
 
 **Message Format:**
 ```javascript
