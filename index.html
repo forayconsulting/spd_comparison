@@ -328,6 +328,213 @@
       font-size: 14px;
     }
 
+    /* Plan Docs File Upload Section */
+    .files-section {
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .files-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    .files-header:hover {
+      background: #edf2f7;
+    }
+
+    .files-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .files-icon {
+      font-size: 18px;
+    }
+
+    .files-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .files-toggle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+
+    .files-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .files-content {
+      padding: 16px 20px 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    }
+
+    .files-content.collapsed {
+      max-height: 0;
+      padding: 0 20px;
+      overflow: hidden;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.02);
+    }
+
+    .drop-zone.dragging {
+      border-color: var(--accent);
+      background: var(--user-bg);
+      border-width: 3px;
+    }
+
+    .drop-zone-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+      opacity: 0.6;
+    }
+
+    .drop-zone-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .drop-zone-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .files-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .file-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .file-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .file-card.uploading {
+      opacity: 0.7;
+    }
+
+    .file-card.error {
+      border-color: var(--error);
+      background: #fef2f2;
+    }
+
+    .file-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 2px;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    .file-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .file-size {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .file-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .file-status.uploaded {
+      color: #10b981;
+    }
+
+    .file-status.uploading {
+      color: var(--accent);
+    }
+
+    .file-status.error {
+      color: var(--error);
+    }
+
+    .file-remove {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .file-remove:hover {
+      background: var(--error);
+      color: white;
+      border-color: var(--error);
+    }
+
     @media (max-width: 768px) {
       .chat-header {
         padding: 16px;
@@ -335,6 +542,26 @@
 
       .chat-header h1 {
         font-size: 20px;
+      }
+
+      .files-header {
+        padding: 12px 16px;
+      }
+
+      .files-content {
+        padding: 12px 16px 16px;
+      }
+
+      .drop-zone {
+        padding: 24px 16px;
+      }
+
+      .file-card {
+        padding: 10px 12px;
+      }
+
+      .file-name {
+        font-size: 13px;
       }
 
       .messages-container {
@@ -355,6 +582,33 @@
         <span class="thinking-indicator-badge">Extended Thinking</span>
       </div>
     </header>
+
+    <!-- Plan Docs File Upload Section -->
+    <section class="files-section" id="files-section">
+      <div class="files-header" onclick="ChatApp.toggleFilesPanel()">
+        <div class="files-title">
+          <span class="files-icon">📁</span>
+          <span>Plan Docs</span>
+          <span class="files-count" id="files-count">(0 files)</span>
+        </div>
+        <span class="files-toggle" id="files-toggle">▼</span>
+      </div>
+
+      <div class="files-content" id="files-content">
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" multiple accept=".pdf,.txt,.docx,.doc,.csv,.xlsx,.xls,image/*" hidden>
+          <div class="drop-zone-content">
+            <div class="drop-zone-icon">📄</div>
+            <div class="drop-zone-text">Drop files here or click to browse</div>
+            <div class="drop-zone-hint">Supports PDF, DOCX, TXT, CSV, Excel, and images • Max 32 MB per file</div>
+          </div>
+        </div>
+
+        <div class="files-list" id="files-list">
+          <!-- File cards will be dynamically added here -->
+        </div>
+      </div>
+    </section>
 
     <div class="messages-container" id="messages">
       <div class="empty-state">
@@ -402,12 +656,15 @@
         currentResponse: '',
         currentSignature: '',
         currentBlockType: null,
-        abortController: null
+        abortController: null,
+        uploadedFiles: [],
+        filesPanelExpanded: true
       },
 
       init() {
         this.setupEventListeners();
         this.autoResizeTextarea();
+        this.initFileUpload();
       },
 
       setupEventListeners() {
@@ -454,6 +711,13 @@
       },
 
       async sendMessage(userMessage) {
+        // Check if any files are still uploading
+        const uploadingFiles = this.state.uploadedFiles.filter(f => f.status === 'uploading');
+        if (uploadingFiles.length > 0) {
+          alert('Please wait for all files to finish uploading before sending a message.');
+          return;
+        }
+
         // Clear empty state
         const messagesContainer = document.getElementById('messages');
         const emptyState = messagesContainer.querySelector('.empty-state');
@@ -467,7 +731,31 @@
         // Prepare messages for API
         const apiMessages = this.state.messages.map(msg => {
           if (msg.role === 'user') {
-            return { role: 'user', content: msg.content[0].text };
+            // Build content array with files + text
+            const content = [];
+
+            // Add all uploaded files as document blocks (only for successfully uploaded files)
+            const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+            uploadedFiles.forEach(file => {
+              content.push({
+                type: 'document',
+                source: {
+                  type: 'base64',
+                  media_type: file.mimeType,
+                  data: file.base64Data
+                },
+                title: file.filename,
+                citations: { enabled: true }
+              });
+            });
+
+            // Add user text
+            content.push({
+              type: 'text',
+              text: msg.content[0].text
+            });
+
+            return { role: 'user', content };
           } else {
             // For assistant messages, include thinking block if present
             const content = [];
@@ -779,6 +1067,214 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+      },
+
+      // File Upload Functions
+      initFileUpload() {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        // Click to browse
+        dropZone.addEventListener('click', () => {
+          fileInput.click();
+        });
+
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+          this.handleFileSelect(e.target.files);
+          fileInput.value = ''; // Reset input
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => this.handleDragOver(e));
+        dropZone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        dropZone.addEventListener('drop', (e) => this.handleDrop(e));
+      },
+
+      toggleFilesPanel() {
+        this.state.filesPanelExpanded = !this.state.filesPanelExpanded;
+        const content = document.getElementById('files-content');
+        const toggle = document.getElementById('files-toggle');
+
+        if (this.state.filesPanelExpanded) {
+          content.classList.remove('collapsed');
+          toggle.classList.remove('collapsed');
+          toggle.textContent = '▼';
+        } else {
+          content.classList.add('collapsed');
+          toggle.classList.add('collapsed');
+          toggle.textContent = '▶';
+        }
+      },
+
+      handleFileSelect(files) {
+        if (files.length === 0) return;
+
+        Array.from(files).forEach(file => {
+          this.uploadFile(file);
+        });
+      },
+
+      handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.classList.add('dragging');
+      },
+
+      handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropZone = document.getElementById('drop-zone');
+        if (e.target === dropZone) {
+          dropZone.classList.remove('dragging');
+        }
+      },
+
+      handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.classList.remove('dragging');
+
+        const files = e.dataTransfer.files;
+        this.handleFileSelect(files);
+      },
+
+      async uploadFile(file) {
+        // Validate file size (32 MB limit for API requests)
+        const maxSize = 32 * 1024 * 1024; // 32 MB in bytes
+        if (file.size > maxSize) {
+          alert(`File "${file.name}" is too large. Maximum size is 32 MB per file for direct upload.`);
+          return;
+        }
+
+        // Create temporary file card
+        const tempId = 'file-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        const fileObj = {
+          id: tempId,
+          filename: file.name,
+          size: file.size,
+          mimeType: file.type || 'application/pdf',
+          status: 'uploading',
+          uploadedAt: new Date().toISOString(),
+          base64Data: null
+        };
+
+        this.state.uploadedFiles.push(fileObj);
+        this.renderFilesList();
+        this.updateFilesCount();
+
+        try {
+          // Read file as base64
+          const base64Data = await this.readFileAsBase64(file);
+
+          // Update file object with base64 data
+          const fileIndex = this.state.uploadedFiles.findIndex(f => f.id === tempId);
+          if (fileIndex !== -1) {
+            this.state.uploadedFiles[fileIndex].base64Data = base64Data;
+            this.state.uploadedFiles[fileIndex].status = 'uploaded';
+          }
+
+          this.renderFilesList();
+
+        } catch (error) {
+          console.error('Upload error:', error);
+
+          // Mark file as error
+          const fileIndex = this.state.uploadedFiles.findIndex(f => f.id === tempId);
+          if (fileIndex !== -1) {
+            this.state.uploadedFiles[fileIndex].status = 'error';
+            this.state.uploadedFiles[fileIndex].error = error.message;
+          }
+
+          this.renderFilesList();
+          alert(`Failed to load "${file.name}": ${error.message}`);
+        }
+      },
+
+      readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          reader.onload = () => {
+            // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
+            const base64String = reader.result.split(',')[1];
+            resolve(base64String);
+          };
+
+          reader.onerror = () => {
+            reject(new Error('Failed to read file'));
+          };
+
+          reader.readAsDataURL(file);
+        });
+      },
+
+      removeFile(fileId) {
+        // Remove from state (base64 data is stored locally, no API cleanup needed)
+        this.state.uploadedFiles = this.state.uploadedFiles.filter(f => f.id !== fileId);
+        this.renderFilesList();
+        this.updateFilesCount();
+      },
+
+      renderFilesList() {
+        const filesList = document.getElementById('files-list');
+
+        if (this.state.uploadedFiles.length === 0) {
+          filesList.innerHTML = '';
+          return;
+        }
+
+        filesList.innerHTML = this.state.uploadedFiles.map(file => {
+          const icon = this.getFileIcon(file.mimeType);
+          const statusClass = file.status;
+          const statusText = file.status === 'uploading' ? 'Uploading...' :
+                            file.status === 'uploaded' ? '✓ Uploaded' :
+                            '✗ Error';
+
+          return `
+            <div class="file-card ${statusClass}">
+              <div class="file-icon">${icon}</div>
+              <div class="file-info">
+                <div class="file-name">${this.escapeHtml(file.filename)}</div>
+                <div class="file-meta">
+                  <span class="file-size">${this.formatFileSize(file.size)}</span>
+                  <span class="file-status ${statusClass}">${statusText}</span>
+                </div>
+              </div>
+              <button class="file-remove" onclick="ChatApp.removeFile('${file.id}')" title="Remove file">
+                ×
+              </button>
+            </div>
+          `;
+        }).join('');
+      },
+
+      updateFilesCount() {
+        const count = this.state.uploadedFiles.length;
+        const filesCount = document.getElementById('files-count');
+        filesCount.textContent = `(${count} ${count === 1 ? 'file' : 'files'})`;
+      },
+
+      formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 10) / 10 + ' ' + sizes[i];
+      },
+
+      getFileIcon(mimeType) {
+        if (!mimeType) return '📄';
+
+        if (mimeType.includes('pdf')) return '📕';
+        if (mimeType.includes('image')) return '🖼️';
+        if (mimeType.includes('word') || mimeType.includes('document')) return '📘';
+        if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return '📊';
+        if (mimeType.includes('text')) return '📝';
+
+        return '📄';
       }
     };
 
