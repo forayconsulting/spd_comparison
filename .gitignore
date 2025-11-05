@@ -1,0 +1,5 @@
+# Ignore plan documents directory
+plan_docs/
+
+# Ignore macOS system files
+.DS_Store
