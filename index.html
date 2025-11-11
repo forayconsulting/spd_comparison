@@ -11,6 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
 
+  <!-- Excel Generation Library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <!-- Modern Tech-Forward Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1008,6 +1011,262 @@
       font-weight: 600;
     }
 
+    /* Tab Interface for Three Outputs */
+    .output-tabs {
+      display: none; /* Hidden until comparison completes */
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .output-tabs.active {
+      display: flex;
+    }
+
+    .tabs-header {
+      display: flex;
+      border-bottom: 2px solid var(--border-medium);
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      padding: 0 32px;
+      gap: 8px;
+    }
+
+    .tab-button {
+      padding: 16px 24px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Space Grotesk', sans-serif;
+      position: relative;
+    }
+
+    .tab-button:hover {
+      color: var(--text-primary);
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .tab-button.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--text-primary);
+    }
+
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .tab-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .tab-content::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    .tab-content::-webkit-scrollbar-thumb {
+      background: var(--surface-elevated);
+      border-radius: 4px;
+    }
+
+    /* Output Specific Styles */
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border-medium);
+    }
+
+    .output-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .download-button {
+      padding: 12px 24px;
+      background: var(--text-primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Space Grotesk', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .download-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: var(--text-secondary);
+    }
+
+    /* Summary Output Styles */
+    .summary-content {
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .summary-content h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 24px 0 12px 0;
+      color: var(--text-primary);
+    }
+
+    .summary-content h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0 10px 0;
+      color: var(--text-secondary);
+    }
+
+    .summary-content ul {
+      margin-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    .summary-content li {
+      margin-bottom: 8px;
+    }
+
+    /* Table Styles for Spreadsheet Outputs */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-primary);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      margin-top: 16px;
+    }
+
+    .comparison-table thead {
+      background: var(--gradient-primary);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .comparison-table th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .comparison-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    .comparison-table tbody tr:hover {
+      background: var(--bg-secondary);
+    }
+
+    .comparison-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* First column (procedure element) styling */
+    .comparison-table td:first-child {
+      font-weight: 600;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      position: sticky;
+      left: 0;
+      z-index: 5;
+    }
+
+    /* Language Comparison Specific Styles */
+    .language-row {
+      margin-bottom: 40px;
+      padding: 24px;
+      background: var(--surface-glass);
+      border-radius: 12px;
+      border: 1px solid var(--border-medium);
+    }
+
+    .language-row-header {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-medium);
+    }
+
+    .plan-language {
+      margin-bottom: 24px;
+      padding: 16px;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      border-left: 3px solid var(--text-primary);
+    }
+
+    .plan-language:last-child {
+      margin-bottom: 0;
+    }
+
+    .plan-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .plan-summary {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+
+    .plan-full-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .plan-citation {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
     /* Responsive Design - Mobile & Tablet */
     @media (max-width: 768px) {
       .chat-header {
@@ -1207,6 +1466,54 @@
       </div>
     </div>
 
+    <!-- Three-Output Tab Interface (shown after comparison) -->
+    <div class="output-tabs" id="output-tabs">
+      <div class="tabs-header">
+        <button class="tab-button active" onclick="ChatApp.switchTab('summary')">
+          Summary
+        </button>
+        <button class="tab-button" onclick="ChatApp.switchTab('comparison')">
+          Comparison Spreadsheet
+        </button>
+        <button class="tab-button" onclick="ChatApp.switchTab('language')">
+          Language Comparison
+        </button>
+      </div>
+
+      <!-- Tab 1: Summary -->
+      <div class="tab-content active" id="tab-summary">
+        <div class="output-header">
+          <h2 class="output-title">Summary</h2>
+          <button class="download-button" onclick="ChatApp.downloadSummary()">
+            📄 Download Summary.md
+          </button>
+        </div>
+        <div class="summary-content" id="summary-output"></div>
+      </div>
+
+      <!-- Tab 2: Comparison Spreadsheet -->
+      <div class="tab-content" id="tab-comparison">
+        <div class="output-header">
+          <h2 class="output-title">Comparison Spreadsheet</h2>
+          <button class="download-button" onclick="ChatApp.downloadComparisonSpreadsheet()">
+            📊 Download Comparison.xlsx
+          </button>
+        </div>
+        <div id="comparison-output"></div>
+      </div>
+
+      <!-- Tab 3: Language Comparison -->
+      <div class="tab-content" id="tab-language">
+        <div class="output-header">
+          <h2 class="output-title">Language Comparison</h2>
+          <button class="download-button" onclick="ChatApp.downloadLanguageComparison()">
+            📋 Download Language.xlsx
+          </button>
+        </div>
+        <div id="language-output"></div>
+      </div>
+    </div>
+
     <div class="input-container">
       <form class="input-form" id="chat-form">
         <textarea
@@ -1237,174 +1544,307 @@
       }
     });
 
-    // System Prompt (kept identical, just stored for Gemini format)
-    const SYSTEM_PROMPT_TEXT = `You are a specialized pension plan document analyst with deep expertise in ERISA-regulated multiemployer pension plans, particularly those affiliated with UNITE-HERE and other hospitality industry unions. Your primary function is to extract, compare, and analyze claims and appeals procedures across multiple plan units from PDF documents provided in context.
+    // System Prompt - Three-Output Generation
+    const SYSTEM_PROMPT_TEXT = `You are a specialized pension plan document analyst with deep expertise in ERISA-regulated multiemployer pension plans. Your primary function is to compare pension plan documents across multiple plan units to support merger standardization efforts, producing three distinct outputs optimized for different users and use cases.
 
-CORE COMPETENCIES
+## Context and Users
+
+**Project Context:**
+You are supporting pension plan document comparison for merger implementation, plan standardization, or policy analysis. Users need to understand differences across multiple plan units to make informed decisions. The specific number of plans and types of provisions being compared will vary based on what documents are uploaded.
+
+**Primary Users:**
+- **Attorneys**: Need exact legal language with precise citations for drafting standardized language
+- **Actuaries**: Need structured comparison of plan provisions for policy decisions
+- **Plan Administrators**: Need to understand provision differences across plans
+- **Project Leads**: Need executive summaries for status tracking and stakeholder communication
+
+**Critical Success Factors:**
+1. **Content-Driven Analysis**: Extract and compare what's ACTUALLY in the documents, not predetermined topics
+2. **Citation Accuracy**: Attorneys must be able to verify every quote - errors destroy trust
+3. **Complete Coverage**: All detected plan units must appear in every output
+4. **Flexible Comparison Elements**: Define comparison topics based on document content
+5. **Actionable Insights**: Focus on material differences that require decisions
+
+---
+
+## Core Competencies
+
 <expertise>
-- ERISA pension plan regulations and compliance requirements
+- ERISA pension plan regulations and compliance requirements (29 CFR 2560, DOL regulations)
 - Multiemployer pension fund structures and governance
-- Claims and appeals procedures under DOL regulations (29 CFR 2560)
-- Qualified Domestic Relations Orders (QDROs)
-- Summary Plan Descriptions (SPDs) and Summary of Material Modifications (SMMs)
-- Pension benefit calculation methodologies
+- Claims and appeals procedures under ERISA Section 503
+- Document hierarchy: SPDs (base documents) and SMMs (modifications that layer on top)
+- Pension benefit calculations, vesting rules, and break-in-service provisions
 - Arbitration and dispute resolution procedures in pension contexts
-- Comparative regulatory analysis across jurisdictions
+- Comparative analysis identifying material vs. immaterial differences
 </expertise>
 
 <analytical_approach>
-You approach document analysis systematically:
-
-Think step-by-step through complex comparisons before responding
-Acknowledge uncertainty when information is missing or ambiguous rather than making assumptions
-Flag variability in terminology and structure across documents explicitly
-Prioritize critical differences that materially affect participant rights
-Maintain precision in extracting dates, timeframes, and procedural requirements
-Preserve context when comparing similar-but-different provisions
+- Think step-by-step through complex document hierarchies before extracting
+- Auto-detect plan unit, document type (SPD/SMM), and effective dates from document content
+- Distinguish between missing information vs. information present but ambiguous
+- Prioritize critical differences that materially affect participant rights
+- Maintain precision in dates, timeframes, and procedural requirements
+- Preserve exact legal language without paraphrasing
 </analytical_approach>
 
-DOCUMENT HANDLING PROTOCOLS
-<document_structure_assumptions>
-The documents you receive will be PDF pension plan materials with potentially HIGH variability:
-Expected document types:
+---
 
-Summary Plan Descriptions (SPDs)
-Summary of Material Modifications (SMMs)
-Plan Documents (formal legal text)
-Trustee notices and announcements
-Benefit calculation guides
+## Three-Phase Analysis Process
 
-Expected variability:
+### Phase 1: Document Intelligence and Inventory
 
-Terminology: Different plans may use different terms for identical concepts (e.g., "plan units" vs. "local plans" vs. "participating employers")
-Organization: Some SPDs have indexed sections; others are narrative; some mix both
-Completeness: Some documents may be excerpts or appendices rather than complete SPDs
-Effective dates: Documents may reflect different amendment histories
-Format quality: PDFs may be scanned images, text-native, or mixed
+**Objectives:**
+- Identify and catalog all uploaded documents
+- Auto-detect metadata: plan unit name, document type (SPD/SMM), effective date
+- Build document hierarchy (understand SMM modifications to base SPDs)
+- Assess completeness and flag gaps
 
-You must adapt dynamically to the structure and quality of each document provided.
-</document_structure_assumptions>
+**Detection Strategy:**
 
-<extraction_methodology>
-When extracting claims and appeals information, use this systematic approach:
+For **Plan Unit Identification**, look for:
+- Plan name in header/footer or first pages
+- Geographic indicators (city names, regional descriptors)
+- Union local numbers
+- Employer Identification Number (EIN)
+- Contributing employer associations
+- **Note**: Plan unit names vary by merger - detect whatever names are present in uploaded documents
 
-1. Identify the plan unit first:
-   - Look for plan name, EIN, geographic jurisdiction, union local number
-   - Note contributing employer associations
-   - Flag if plan identity is unclear or if document covers multiple plans
+For **Document Type** (SPD vs. SMM), look for:
+- Document title: "Summary Plan Description" vs. "Summary of Material Modifications"
+- First page headings
+- Purpose statements (SMMs typically state "This SMM modifies the SPD effective...")
 
-2. Locate claims/appeals sections using multiple search strategies:
-   - Table of contents references (if available)
-   - Section headers containing: "claims", "appeals", "benefits application", "dispute resolution", "review procedure", "denial"
-   - ERISA rights statements (required section often near end)
-   - Search for regulatory citations: "29 CFR", "ERISA Section 503"
+For **Effective Dates**, look for:
+- "Effective Date:" statements
+- "Amended as of:" dates
+- Date on cover page or in document metadata
+- Amendment history sections
 
-3. Extract complete procedural elements systematically:
-<required_data_points>
-INITIAL CLAIMS PROCEDURES:
-- Who may file a claim (participant, beneficiary, authorized representative)
-- How to file (forms, methods: mail/email/online portal)
-- Where to file (plan office address, online submission)
-- Required documentation with claim
-- Filing deadlines or time limits (if any)
-- Plan's decision timeframe (typically 90 days for pension, 45 days for disability)
-- Extension provisions (additional time allowed, notification requirements)
-- Deemed denied if no timely response (yes/no)
-- Content requirements for denial notices
+**Document Hierarchy Rules:**
+1. SPDs are base documents containing complete plan provisions
+2. SMMs modify specific sections of the SPD - they layer on top
+3. When comparing provisions, later SMMs override earlier SMMs and original SPD language
+4. If only SMMs provided without base SPD, flag this as incomplete documentation
 
-APPEALS PROCEDURES:
-- Appeal filing deadline (typically 60 or 180 days after denial)
-- Required form/format for appeals
-- Who reviews appeals (full board, committee, independent fiduciary)
-- Claimant rights during appeal (document review, representation, hearing)
-- Decision timeframe for appeals
-- Extension provisions for appeals
-- Required content of appeal decision
-- Finality of decision (binding/non-binding language)
+**Completeness Assessment:**
+- Identify which plan units have complete documentation (SPD + all relevant SMMs)
+- Flag plan units with only SMMs (missing base SPD)
+- Flag if any of the 5 required plans are missing entirely
+- Note if specific procedure sections are absent or unclear
 
-POST-APPEAL PROCEDURES:
-- Mandatory arbitration (yes/no/voluntary)
-- Arbitration rules/forum (AAA, JAMS, other)
-- Cost allocation for arbitration
-- Class action waiver (yes/no)
-- Lawsuit filing deadline (statute of limitations)
-- Exhaustion requirements before litigation
+### Phase 2: Content-Driven Extraction
 
-SPECIAL PROVISIONS:
-- COVID-19 or other emergency tolling rules
-- Enhanced requirements for disability claims
-- Special expedited procedures (if any)
-- Language access provisions
-- Representation rights
-</required_data_points>
+**Analyze documents to identify what provisions ARE present, then extract systematically across all plan units.**
 
-4. Handle missing information gracefully:
-   - Explicitly state "Not specified in documents provided" rather than inferring
-   - Note if information may exist elsewhere (e.g., "May be in master plan document")
-   - Flag if omission is unusual or potentially non-compliant
-   - Distinguish between "not mentioned" vs. "explicitly states not required"
-</extraction_methodology>
+**Step 1: Identify Actual Content**
 
-OUTPUT REQUIREMENTS
-<structured_output_format>
-Unless otherwise instructed, produce your analysis using this XML-based structure:
-[XML structure content truncated for brevity - same as Claude version]
-</structured_output_format>
+Read through all documents and identify what plan provisions are actually present. Common content areas in pension documents include:
 
-<response_style_guidelines>
-Be direct and precise:
+- **Benefit Provisions**: Calculation formulas, accrual rates, benefit amounts, pension credit
+- **Eligibility**: Participation requirements, service requirements, covered employment
+- **Vesting**: Vesting schedules, break-in-service rules, forfeiture provisions
+- **Claims and Appeals**: Filing procedures, deadlines, review processes, appeals rights
+- **Arbitration/Dispute Resolution**: Mandatory arbitration, class action waivers, litigation rules
+- **Plan Amendments**: Benefit increases, rule changes, COVID assistance, special provisions
+- **Payment Options**: Forms of payment, survivor benefits, early retirement reductions
+- **QDRO Procedures**: Domestic relations order handling
+- **Plan Administration**: Trustee powers, amendment rights, fiduciary information
+- **ERISA Rights**: Participant rights statements, enforcement provisions
+
+**Do NOT force extraction of topics not present in the documents.** If documents focus on benefit increases, extract benefit increase provisions. If they focus on vesting, extract vesting provisions. Let the content guide what gets compared.
+
+**Step 2: Define Comparison Elements from Content**
+
+Based on what you found in Step 1, create comparison elements (procedure_element names) that describe the actual provisions present. Examples:
+
+- If documents contain benefit increases: "Pension Benefit Increase Amount", "Benefit Increase Effective Date", "Eligible Participants for Increase"
+- If documents contain vesting rules: "Years Required for Full Vesting", "Break in Service Rules", "Partial Vesting Schedule"
+- If documents contain claims procedures: "Initial Claim Filing Deadline", "Appeals Filing Deadline", "Appeal Review Process"
+- If documents contain COVID assistance: "COVID-19 Pandemic Relief Provisions", "Temporary Rule Modifications", "Deadline Extensions"
+
+**Step 3: Extract Four Components for Each Element**
+
+For each comparison element you defined, extract across all plan units:
+
+1. **Summary Statement** (concise, scannable)
+   - Brief description of the provision
+   - Example: "60 days after receipt of written denial notice" OR "Monthly benefit increased by $50"
+   - Use consistent terminology even if plans use different words
+
+2. **Full Quoted Text** (verbatim legal language)
+   - Complete paragraph(s) containing the provision
+   - Do NOT paraphrase, summarize, or edit
+   - Include full sentences for context
+   - If provision spans multiple paragraphs, include all relevant paragraphs
+
+3. **Page Citation** (precise page number)
+   - Format: "SPD Page 47" or "SMM Page 3"
+   - Use page numbers as printed on the document
+   - If SMM modifies SPD, cite SMM page (more current)
+
+4. **Paragraph Reference** (location within page)
+   - Format: "Paragraph 3" or "Section 8.2.4"
+   - Use document's own numbering if available
+   - If no explicit numbering, use "First paragraph", "Second paragraph", etc.
+
+**Handling Missing Information:**
+- If a provision exists in some plans but not others, use "Not specified in documents provided" for missing plans
+- Distinguish from "Explicitly states not required" (plan affirmatively says something isn't needed)
+- Note "Unclear from document" if language is ambiguous
+- If ALL plans lack information on a topic, simply don't create a comparison element for it
+
+**Citation Accuracy is Critical:**
+- Double-check page numbers before including in output
+- Verify paragraph references match actual document structure
+- If page numbers are ambiguous (cover pages, TOC), be explicit about numbering system used
+- Attorneys will verify citations - errors destroy tool credibility
+
+### Phase 3: Three-Output Generation
+
+**Generate outputs as a JSON structure.** The UI will parse this JSON and render three tabs.
+
+**IMPORTANT: Your ENTIRE response must be ONLY valid JSON. No other text before or after.**
+
+Example structure (plan names are illustrative - detect actual names from documents):
+
+\`\`\`json
+{
+  "plan_units": ["Plan A", "Plan B", "Plan C"],
+  "summary": {
+    "document_inventory": [
+      {
+        "plan_unit": "Plan A",
+        "documents": [
+          {"type": "SPD", "effective_date": "2020-12-01", "filename": "planA_SPD.pdf"}
+        ]
+      },
+      {
+        "plan_unit": "Plan B",
+        "documents": [
+          {"type": "SPD", "effective_date": "2019-06-01", "filename": "planB_SPD.pdf"},
+          {"type": "SMM", "effective_date": "2022-03-15", "filename": "planB_SMM.pdf"}
+        ]
+      }
+    ],
+    "key_findings": [
+      "Two plans provide $50/month benefit increase while one provides $75/month",
+      "Effective dates vary: two plans effective January 1, one effective July 1",
+      "All documents are SMMs modifying existing SPDs - base SPD comparison would require additional documents"
+    ],
+    "completeness_assessment": "Assessment text here...",
+    "recommendations": [
+      "Recommendation 1...",
+      "Recommendation 2..."
+    ]
+  },
+  "comparison_spreadsheet": {
+    "rows": [
+      {
+        "procedure_element": "Pension Benefit Increase Amount",
+        "plan_values": ["$50 per month increase", "$75 per month increase", "$50 per month increase"]
+      },
+      {
+        "procedure_element": "Benefit Increase Effective Date",
+        "plan_values": ["January 1, 2021", "July 1, 2021", "January 1, 2021"]
+      }
+    ]
+  },
+  "language_comparison": {
+    "rows": [
+      {
+        "procedure_element": "Pension Benefit Increase Amount",
+        "plan_details": [
+          {
+            "summary": "$50 per month increase",
+            "full_text": "Effective January 1, 2021, the monthly pension benefit for all retirees shall be increased by fifty dollars ($50) per month...",
+            "citation": "SMM Page 2, Paragraph 1"
+          },
+          {
+            "summary": "$75 per month increase",
+            "full_text": "All participants receiving monthly pension benefits shall have their benefit amount increased by seventy-five dollars ($75) effective July 1, 2021...",
+            "citation": "SMM Page 3, Paragraph 2"
+          },
+          {
+            "summary": "$50 per month increase",
+            "full_text": "The Board of Trustees has approved a benefit increase of fifty dollars ($50) per month for all retirees...",
+            "citation": "SMM Page 1, Paragraph 4"
+          }
+        ]
+      }
+    ]
+  }
+}
+\`\`\`
+
+**JSON Output Requirements:**
+1. **Valid JSON Syntax**: Must be parseable by standard JSON parsers
+2. **Complete Coverage**: All detected plan units must appear in every output
+3. **Consistent Ordering**: plan_units array defines order; all other arrays follow same order
+4. **Array Correspondence**: plan_values and plan_details arrays must have same length and order as plan_units
+5. **No Missing Data**: Use "Not specified in documents provided" if information unavailable
+6. **Escape Special Characters**: Properly escape quotes, newlines
+7. **NO TEXT OUTSIDE JSON**: Response must be ONLY the JSON object (no markdown, no explanations)
+
+---
+
+## Response Style Guidelines
+
+**Be Direct and Precise:**
 - Lead with findings, not process descriptions
-- Use specific numbers and dates, not vague language ("60 days" not "short period")
+- Use specific numbers and dates: "60 days" not "short period"
 - State facts without hedging unless genuinely uncertain
 
-Flag critical items clearly:
-- Use "⚠️ CRITICAL:" prefix for provisions that substantially restrict participant rights
-- Use "✓ FAVORABLE:" prefix for unusually participant-friendly provisions
-- Use "❓ UNCLEAR:" prefix when documentation is ambiguous
+**Flag Critical Items:**
+- Use clear indicators for material differences in summary
+- Prioritize provisions that restrict participant rights
+- Note unusually favorable or restrictive provisions
 
-Maintain professional tone:
-- Analytical and neutral, not advocacy or judgmental
+**Maintain Professional Tone:**
+- Analytical and neutral, not advocacy
 - Acknowledge legitimate policy trade-offs
-- Note when variations may reflect different plan demographics or funding situations
+- Note when variations may reflect different plan demographics
 
-Handle ambiguity transparently:
-- Explicitly state when information is "Not specified in documents provided"
-- Distinguish between "unclear from document" vs. "plan is silent on this"
+**Handle Ambiguity Transparently:**
+- Explicitly state when information is missing or unclear
+- Distinguish between "not mentioned" vs. "explicitly not required"
 - Suggest what additional documents would clarify uncertainties
 
-Prioritize actionability:
-- Emphasize differences that affect participant rights or plan compliance
-- De-emphasize immaterial formatting or organizational differences
-- Always provide "so what" analysis - why a difference matters
-</response_style_guidelines>
+**Prioritize Actionability:**
+- Emphasize differences requiring decisions
+- De-emphasize immaterial formatting differences
+- Always explain why differences matter (impact on participants)
 
-THINKING APPROACH FOR COMPLEX ANALYSIS
-<extended_thinking_guidance>
-For complex comparative analysis tasks involving multiple documents and cross-plan comparisons:
-Use extended thinking by starting your analysis with: "Let me think through this systematically" or "I'll analyze this step-by-step"
-Structure your thinking process systematically, working through document inventory, terminology mapping, extraction, comparison, and synthesis.
-</extended_thinking_guidance>
+---
 
-CRITICAL REMINDERS
-<do_not_do>
-❌ Never fabricate information not present in documents
-❌ Never assume two plans are identical because they're in the same union family
-❌ Never provide legal advice or definitive compliance opinions
-❌ Never ignore participant-protective provisions even if unusual
-❌ Never recommend reducing participant protections without explicit justification
-❌ Never conflate "not mentioned" with "prohibited" or "not provided"
-</do_not_do>
+## Critical Reminders
 
-<always_do>
-✓ Always cite specific page numbers or section references when available
-✓ Always flag when you're uncertain rather than guessing
-✓ Always note when a provision is unusually favorable OR unusually restrictive
-✓ Always consider the participant perspective, not just administrative efficiency
-✓ Always distinguish between federal law requirements and plan-specific choices
-✓ Always update your analysis if provided additional or corrected information
-</always_do>
+**DO:**
+- ✓ Auto-detect plan unit names, document types, and effective dates from content
+- ✓ Build document hierarchy (SMMs override SPDs)
+- ✓ Extract complete verbatim legal language for language_comparison
+- ✓ Provide precise page and paragraph citations
+- ✓ Include ALL detected plan units in plan_units array and all outputs
+- ✓ Maintain consistent ordering (plan_units defines order for all arrays)
+- ✓ Use standardized procedure element names for consistency
+- ✓ Flag when uncertain rather than guessing
+- ✓ Output ONLY valid, parseable JSON (no other text)
 
-You are ready to analyze pension plan documents. Await document provision and specific user instructions.`;
+**DO NOT:**
+- ❌ Hardcode plan names - detect actual names from documents
+- ❌ Assume specific plan units exist - only include what's actually uploaded
+- ❌ Paraphrase or summarize legal language in language_comparison (must be verbatim)
+- ❌ Fabricate information not present in documents
+- ❌ Assume plans are identical because they're in same organization
+- ❌ Provide legal advice or definitive compliance opinions
+- ❌ Omit any detected plan units from outputs
+- ❌ Use inconsistent array ordering (must match plan_units array)
+- ❌ Include syntax errors in JSON output
+- ❌ Include any text, markdown formatting, or explanations outside the JSON object
+
+---
+
+When the user clicks "Compare Documents", begin your three-phase analysis and respond with ONLY the JSON output.`;
 
     // Chat Application
     const ChatApp = {
@@ -1416,7 +1856,9 @@ You are ready to analyze pension plan documents. Await document provision and sp
         currentBlockType: null,
         abortController: null,
         uploadedFiles: [],
-        filesPanelExpanded: true
+        filesPanelExpanded: true,
+        comparisonData: null, // Stores parsed JSON from comparison
+        activeTab: 'summary' // Current active tab
       },
 
       init() {
@@ -1778,8 +2220,15 @@ You are ready to analyze pension plan documents. Await document provision and sp
           streamingMessage.remove();
         }
 
-        // Add finalized message to state
-        this.addMessage('model', this.state.currentResponse, this.state.currentThinking);
+        // Try to parse as JSON and render outputs
+        try {
+          this.parseAndRenderOutputs(this.state.currentResponse);
+        } catch (error) {
+          // If JSON parsing fails, fall back to regular message display
+          console.error('Not JSON response, falling back to message display:', error);
+          this.addMessage('model', this.state.currentResponse, this.state.currentThinking);
+          this.render();
+        }
 
         // Reset streaming state
         this.state.currentThinking = '';
@@ -2110,6 +2559,294 @@ You are ready to analyze pension plan documents. Await document provision and sp
         if (mimeType.includes('text')) return '📝';
 
         return '📄';
+      },
+
+      // ===== NEW: Three-Output Tab System =====
+
+      switchTab(tabName) {
+        // Update active tab state
+        this.state.activeTab = tabName;
+
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+      },
+
+      parseAndRenderOutputs(jsonResponse) {
+        try {
+          // Clean and extract JSON from response
+          let cleanJson = jsonResponse.trim();
+
+          // Remove markdown code fences if present
+          if (cleanJson.startsWith('```json')) {
+            cleanJson = cleanJson.replace(/^```json\s*/i, '').replace(/\s*```\s*$/, '');
+          } else if (cleanJson.startsWith('```')) {
+            cleanJson = cleanJson.replace(/^```\s*/, '').replace(/\s*```\s*$/, '');
+          }
+
+          // Try to extract JSON object if there's extra text
+          const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            cleanJson = jsonMatch[0];
+          }
+
+          console.log('Attempting to parse JSON:', cleanJson.substring(0, 200) + '...');
+
+          // Parse JSON response
+          const data = JSON.parse(cleanJson);
+          this.state.comparisonData = data;
+
+          // Hide messages container, show output tabs
+          document.getElementById('messages').style.display = 'none';
+          document.getElementById('output-tabs').classList.add('active');
+
+          // Render each output
+          this.renderSummary(data.summary);
+          this.renderComparisonSpreadsheet(data.comparison_spreadsheet, data.plan_units);
+          this.renderLanguageComparison(data.language_comparison, data.plan_units);
+
+        } catch (error) {
+          console.error('Failed to parse JSON response:', error);
+          console.error('Raw response:', jsonResponse.substring(0, 500));
+          this.handleError(new Error('Failed to parse comparison results. Please try again.'));
+        }
+      },
+
+      renderSummary(summaryData) {
+        const output = document.getElementById('summary-output');
+
+        let markdown = '## Document Inventory\n\n';
+        summaryData.document_inventory.forEach(unit => {
+          markdown += `### ${unit.plan_unit}\n`;
+          unit.documents.forEach(doc => {
+            markdown += `- **${doc.type}** (Effective: ${doc.effective_date}) - ${doc.filename}\n`;
+          });
+          markdown += '\n';
+        });
+
+        markdown += '## Key Findings\n\n';
+        summaryData.key_findings.forEach(finding => {
+          markdown += `- ${finding}\n`;
+        });
+
+        markdown += '\n## Completeness Assessment\n\n';
+        markdown += summaryData.completeness_assessment + '\n\n';
+
+        markdown += '## Recommendations\n\n';
+        summaryData.recommendations.forEach(rec => {
+          markdown += `- ${rec}\n`;
+        });
+
+        output.innerHTML = marked.parse(markdown);
+      },
+
+      renderComparisonSpreadsheet(spreadsheetData, planUnits) {
+        const output = document.getElementById('comparison-output');
+
+        let html = '<table class="comparison-table"><thead><tr>';
+
+        // Headers: Procedure Element + all plan units
+        html += '<th>Procedure Element</th>';
+        planUnits.forEach(planName => {
+          html += `<th>${this.escapeHtml(planName)}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+
+        // Rows: Iterate through procedure elements
+        spreadsheetData.rows.forEach(row => {
+          html += '<tr>';
+          html += `<td>${this.escapeHtml(row.procedure_element)}</td>`;
+
+          // Add value for each plan (should match planUnits array order)
+          row.plan_values.forEach(value => {
+            html += `<td>${this.escapeHtml(value || 'Not specified')}</td>`;
+          });
+
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        output.innerHTML = html;
+      },
+
+      renderLanguageComparison(languageData, planUnits) {
+        const output = document.getElementById('language-output');
+
+        let html = '';
+        languageData.rows.forEach(row => {
+          html += `<div class="language-row">`;
+          html += `<div class="language-row-header">${this.escapeHtml(row.procedure_element)}</div>`;
+
+          // Iterate through plan_details array, using planUnits for names
+          row.plan_details.forEach((details, index) => {
+            const planName = planUnits[index] || `Plan ${index + 1}`;
+
+            html += `<div class="plan-language">`;
+            html += `<div class="plan-name">${this.escapeHtml(planName)}</div>`;
+            html += `<div class="plan-summary">${this.escapeHtml(details.summary)}</div>`;
+            html += `<div class="plan-full-text">${this.escapeHtml(details.full_text)}</div>`;
+            html += `<div class="plan-citation">${this.escapeHtml(details.citation)}</div>`;
+            html += `</div>`;
+          });
+
+          html += `</div>`;
+        });
+
+        output.innerHTML = html;
+      },
+
+      // ===== Excel Download Functions =====
+
+      downloadSummary() {
+        if (!this.state.comparisonData) return;
+
+        const summaryData = this.state.comparisonData.summary;
+        let markdown = '# SPD Comparison Summary\n\n';
+
+        markdown += '## Document Inventory\n\n';
+        summaryData.document_inventory.forEach(unit => {
+          markdown += `### ${unit.plan_unit}\n`;
+          unit.documents.forEach(doc => {
+            markdown += `- **${doc.type}** (Effective: ${doc.effective_date}) - ${doc.filename}\n`;
+          });
+          markdown += '\n';
+        });
+
+        markdown += '## Key Findings\n\n';
+        summaryData.key_findings.forEach(finding => {
+          markdown += `- ${finding}\n`;
+        });
+
+        markdown += '\n## Completeness Assessment\n\n';
+        markdown += summaryData.completeness_assessment + '\n\n';
+
+        markdown += '## Recommendations\n\n';
+        summaryData.recommendations.forEach(rec => {
+          markdown += `- ${rec}\n`;
+        });
+
+        // Download as .md file
+        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'SPD_Comparison_Summary.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+
+      downloadComparisonSpreadsheet() {
+        if (!this.state.comparisonData) return;
+
+        const data = this.state.comparisonData.comparison_spreadsheet;
+        const planUnits = this.state.comparisonData.plan_units;
+
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+
+        // Convert to array format for XLSX
+        const wsData = [];
+
+        // Add headers: Procedure Element + all plan units
+        const headers = ['Procedure Element', ...planUnits];
+        wsData.push(headers);
+
+        // Add data rows
+        data.rows.forEach(row => {
+          const rowData = [row.procedure_element, ...row.plan_values.map(v => v || 'Not specified')];
+          wsData.push(rowData);
+        });
+
+        // Create worksheet
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+        // Set column widths dynamically
+        const colWidths = [{ wch: 30 }]; // Procedure Element
+        planUnits.forEach(() => colWidths.push({ wch: 25 })); // Each plan
+        ws['!cols'] = colWidths;
+
+        // Freeze first row
+        ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Procedure Comparison');
+
+        // Download
+        XLSX.writeFile(wb, 'SPD_Comparison_Spreadsheet.xlsx');
+      },
+
+      downloadLanguageComparison() {
+        if (!this.state.comparisonData) return;
+
+        const data = this.state.comparisonData.language_comparison;
+        const planUnits = this.state.comparisonData.plan_units;
+
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+
+        // Convert to array format
+        const wsData = [];
+
+        // Add headers
+        wsData.push(['Procedure Element', 'Plan Unit', 'Summary', 'Full Text', 'Citation']);
+
+        // Add data rows
+        data.rows.forEach(row => {
+          row.plan_details.forEach((details, index) => {
+            const planName = planUnits[index] || `Plan ${index + 1}`;
+
+            wsData.push([
+              row.procedure_element,
+              planName,
+              details.summary,
+              details.full_text,
+              details.citation
+            ]);
+          });
+          // Add empty row between procedure elements
+          wsData.push(['', '', '', '', '']);
+        });
+
+        // Create worksheet
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+        // Set column widths
+        ws['!cols'] = [
+          { wch: 30 }, // Procedure Element
+          { wch: 20 }, // Plan Unit
+          { wch: 30 }, // Summary
+          { wch: 80 }, // Full Text (wide for legal language)
+          { wch: 25 }  // Citation
+        ];
+
+        // Freeze first row
+        ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+        // Enable text wrapping for full text column
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        for (let R = 1; R <= range.e.r; ++R) {
+          const cellAddress = XLSX.utils.encode_cell({ r: R, c: 3 }); // Column D (Full Text)
+          if (ws[cellAddress]) {
+            if (!ws[cellAddress].s) ws[cellAddress].s = {};
+            ws[cellAddress].s.alignment = { wrapText: true, vertical: 'top' };
+          }
+        }
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Language Comparison');
+
+        // Download
+        XLSX.writeFile(wb, 'SPD_Language_Comparison.xlsx');
       }
     };
 

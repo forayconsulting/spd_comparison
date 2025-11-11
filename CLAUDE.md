@@ -4,27 +4,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an SPD (Summary Plan Description) comparison tool proof of concept for Western Pension Fund. The goal is to compare pension plan documents across multiple plan units to identify differences and facilitate standardization following a merger.
+This is an SPD (Summary Plan Description) comparison tool for Western Pension Fund merger implementation. The goal is to compare pension plan documents across 5 plan units to support standardization efforts, producing three distinct outputs optimized for different user needs (attorneys, actuaries, project leads).
 
-**Client Requirements:**
-- Compare 10 PDF SPD files to identify policy differences (claims procedures, appeals, arbitration, etc.)
-- Deliver actionable comparison results more cost-effectively than law firm associates ($500/hour benchmark)
-- Budget: $3,000-$4,000 target
-- Deliverable: Comparison table/matrix in CSV or structured format
+**Current Requirements:**
+- Compare SPD/SMM documents from 5 plan units (San Diego, Vegas, Sacramento, Plan 4, San Francisco)
+- Focus on Claims and Appeals Procedures (initial scope)
+- Produce three coordinated outputs: Summary (markdown), Comparison Spreadsheet (Excel), Language Comparison (Excel)
+- Support multi-session analysis as merger progresses
+- Demo target: November 18, 2pm ET
 
-See `requirements/requirements.md` for full business requirements.
+See `requirements/new-requirements.md` for detailed business requirements.
 
 ## Architecture
 
-### Single-Page Chat Application
+### Single-Page Three-Output Application
 
-The project uses a browser-based chat interface (`index.html`) that integrates with Google's Gemini API:
+The project uses a browser-based application (`index.html`) that integrates with Google's Gemini API to produce three coordinated outputs:
 
-- **Model:** Gemini 2.0 Flash Experimental (or Gemini 2.5 Pro)
+- **Model:** Gemini 2.5 Pro (gemini-2.0-flash-exp fallback)
 - **Context Window:** 1 million tokens (~750,000 words or ~1,500 pages)
 - **Streaming:** Real-time SSE (Server-Sent Events) streaming via Fetch API
-- **Multi-turn Conversations:** Full conversation history preserved with `contents` array
-- **System Prompt:** Specialized pension analyst prompt embedded as `systemInstruction`
+- **Output Format:** JSON structure parsed and rendered into three tabs
+- **System Prompt:** Specialized three-output generation prompt with JSON schema requirements
+- **UI:** Tabbed interface with preview + download for each output
 
 ### Key Components
 
@@ -33,15 +35,20 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
 - Dependencies loaded via CDN:
   - `marked.js` for markdown rendering
   - `prism.js` for syntax highlighting
+  - `xlsx.js` for Excel file generation
 - State management via `ChatApp` object pattern
-- Simple SSE streaming: parses `data: {JSON}` format
-- Full-width responsive design with modern monochrome aesthetic
+- SSE streaming: parses `data: {JSON}` format, accumulates full response
+- Three-tab UI: Summary, Comparison Spreadsheet, Language Comparison
+- Excel generation: Client-side using SheetJS (xlsx.js)
+- Modern monochrome aesthetic with glassmorphism effects
 
 **API Integration:**
 - Direct browser-to-Gemini API calls (CORS supported natively, no special headers needed)
 - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse`
 - Authentication: `x-goog-api-key` header
-- Message format: `contents` array with `parts[]` structure
+- Message format: `contents` array with `parts[]` structure (PDFs as inline base64)
+- System prompt sent as `systemInstruction: {parts: [{text: SYSTEM_PROMPT_TEXT}]}`
+- Response format: JSON only (no markdown wrapping, no additional text)
 - Implicit prompt caching (75% cost reduction on repeated context, automatic)
 
 **Configuration:**
@@ -53,17 +60,21 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
 
 ```
 /
-├── index.html             # Main chat interface (Gemini-powered)
-├── config.js              # API key configuration (gitignored)
-├── config.example.js      # Config template
-├── plan_docs/             # PDF files (gitignored)
-├── legacy/                # Legacy Claude implementation
-│   ├── index.html         # Original Claude version
-│   └── config.example.js  # Claude config template
+├── index.html                      # Main three-output interface (Gemini-powered)
+├── config.js                       # API key configuration (gitignored)
+├── config.example.js               # Config template
+├── plan_docs/                      # PDF files (gitignored)
+├── legacy/                         # Legacy implementations
+│   ├── index.html                  # Original single-output Claude version
+│   ├── config.example.js           # Claude config template
+│   └── requirements.md             # Original POC requirements
 ├── requirements/
-│   ├── requirements.md    # Business requirements
-│   └── system_prompt.md   # Specialized analyst system prompt
-├── test-gemini.html       # CORS/API testing tool
+│   ├── new-requirements.md         # Current merger implementation requirements
+│   ├── system_prompt.md            # Three-output JSON generation system prompt
+│   ├── output_schema.json          # JSON schema for three outputs
+│   └── procedure_elements.md       # Standard procedure element list
+├── tests/
+│   └── test-gemini.html            # CORS/API testing tool
 └── README.md
 ```
 
@@ -75,6 +86,17 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
 3. Open `index.html` in a web browser
 
 No build process, server, or dependencies installation required.
+
+**Usage:**
+1. Click "Plan Docs" section to expand file upload
+2. Upload SPD/SMM PDFs for all 5 plan units
+3. Click "Compare Documents" button
+4. Wait for streaming JSON response (model analyzes all documents)
+5. View three-tab output interface:
+   - **Tab 1: Summary** - Executive overview, document inventory, key findings
+   - **Tab 2: Comparison Spreadsheet** - Summary-level side-by-side comparison table
+   - **Tab 3: Language Comparison** - Full quoted legal text with citations
+6. Download any output using the download buttons in each tab
 
 ## Implementation Notes
 
