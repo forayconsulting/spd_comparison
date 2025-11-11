@@ -1267,6 +1267,64 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    /* Loading Indicator for Comparison (in messages area) */
+    .comparison-loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 32px;
+      gap: 24px;
+      min-height: 300px;
+    }
+
+    .comparison-loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--border-subtle);
+      border-top-color: var(--text-primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .comparison-loading-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .comparison-loading-phase {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 500px;
+    }
+
+    .comparison-progress-dots {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .progress-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-subtle);
+      transition: all 0.3s ease;
+    }
+
+    .progress-dot.active {
+      background: var(--text-primary);
+      transform: scale(1.3);
+    }
+
     /* Responsive Design - Mobile & Tablet */
     @media (max-width: 768px) {
       .chat-header {
@@ -1858,7 +1916,8 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         uploadedFiles: [],
         filesPanelExpanded: true,
         comparisonData: null, // Stores parsed JSON from comparison
-        activeTab: 'summary' // Current active tab
+        activeTab: 'summary', // Current active tab
+        isComparisonRequest: false // Track if this is a comparison vs. regular chat
       },
 
       init() {
@@ -1911,21 +1970,8 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
 
           this.attachCompareButtonHandler();
         } else {
-          // Normal chat input
-          inputContainer.innerHTML = `
-            <form class="input-form" id="chat-form">
-              <textarea
-                id="user-input"
-                placeholder="Ask anything..."
-                rows="1"
-                autofocus
-              ></textarea>
-              <button type="submit" id="send-button">Send</button>
-            </form>
-          `;
-
-          this.setupEventListeners();
-          this.autoResizeTextarea();
+          // Hide input area after comparison starts - workflow uses Compare Documents button only
+          inputContainer.style.display = 'none';
         }
       },
 
@@ -1934,6 +1980,12 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         if (compareButton) {
           compareButton.addEventListener('click', () => {
             if (!this.state.isStreaming && !compareButton.disabled) {
+              // Auto-collapse Plan Docs section
+              if (this.state.filesPanelExpanded) {
+                this.toggleFilesPanel();
+              }
+              // Mark this as a comparison request (not regular chat)
+              this.state.isComparisonRequest = true;
               this.sendMessage('Compare the attached plan documents.');
             }
           });
@@ -2067,6 +2119,30 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
 
       createStreamingMessage() {
         const messagesContainer = document.getElementById('messages');
+
+        // For comparison requests, show smart loading indicator
+        if (this.state.isComparisonRequest) {
+          const loadingDiv = document.createElement('div');
+          loadingDiv.id = 'comparison-loading';
+          loadingDiv.className = 'comparison-loading-container';
+          loadingDiv.innerHTML = `
+            <div class="comparison-loading-spinner"></div>
+            <div class="comparison-loading-text">Analyzing Documents</div>
+            <div class="comparison-loading-phase" id="comparison-phase">
+              Reading and identifying document structure...
+            </div>
+            <div class="comparison-progress-dots">
+              <div class="progress-dot active" id="progress-dot-1"></div>
+              <div class="progress-dot" id="progress-dot-2"></div>
+              <div class="progress-dot" id="progress-dot-3"></div>
+            </div>
+          `;
+          messagesContainer.appendChild(loadingDiv);
+          this.scrollToBottom();
+          return;
+        }
+
+        // Regular chat: show normal streaming message
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message assistant streaming';
         messageDiv.id = 'streaming-message';
@@ -2179,6 +2255,9 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
       },
 
       updateStreamingThinking() {
+        // Skip DOM updates for comparison requests (no streaming message to update)
+        if (this.state.isComparisonRequest) return;
+
         const thinkingDiv = document.getElementById('streaming-thinking');
         if (thinkingDiv && this.state.currentThinking) {
           thinkingDiv.style.display = 'block';
@@ -2207,6 +2286,12 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
       },
 
       updateStreamingResponse() {
+        // For comparison requests, update progress phase instead of showing JSON
+        if (this.state.isComparisonRequest) {
+          this.updateComparisonProgress();
+          return;
+        }
+
         const responseDiv = document.getElementById('streaming-response');
         if (responseDiv) {
           responseDiv.innerHTML = marked.parse(this.state.currentResponse);
@@ -2214,7 +2299,55 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         }
       },
 
+      updateComparisonProgress() {
+        const phaseDiv = document.getElementById('comparison-phase');
+        if (!phaseDiv) return;
+
+        const response = this.state.currentResponse;
+
+        // Detect which phase based on JSON structure
+        let phase = 1;
+        let phaseText = 'Reading and identifying document structure...';
+
+        if (response.includes('"document_inventory"')) {
+          phase = 1;
+          phaseText = 'Phase 1: Building document inventory and assessing completeness...';
+        }
+
+        if (response.includes('"comparison_spreadsheet"') || response.includes('"rows"')) {
+          phase = 2;
+          phaseText = 'Phase 2: Extracting and comparing provisions across plans...';
+        }
+
+        if (response.includes('"language_comparison"') || response.includes('"plan_details"')) {
+          phase = 3;
+          phaseText = 'Phase 3: Generating detailed language comparison with citations...';
+        }
+
+        // Update phase text
+        phaseDiv.textContent = phaseText;
+
+        // Update progress dots
+        for (let i = 1; i <= 3; i++) {
+          const dot = document.getElementById(`progress-dot-${i}`);
+          if (dot) {
+            if (i <= phase) {
+              dot.classList.add('active');
+            } else {
+              dot.classList.remove('active');
+            }
+          }
+        }
+      },
+
       finalizeStreamingMessage() {
+        // Remove loading indicator for comparison requests
+        const comparisonLoading = document.getElementById('comparison-loading');
+        if (comparisonLoading) {
+          comparisonLoading.remove();
+        }
+
+        // Remove regular streaming message for chat
         const streamingMessage = document.getElementById('streaming-message');
         if (streamingMessage) {
           streamingMessage.remove();
@@ -2234,6 +2367,7 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         this.state.currentThinking = '';
         this.state.currentResponse = '';
         this.state.thinkingCollapsed = false;
+        this.state.isComparisonRequest = false; // Reset comparison flag
       },
 
       toggleThinking(id) {
