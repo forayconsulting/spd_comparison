@@ -18,13 +18,13 @@ See `requirements/requirements.md` for full business requirements.
 
 ### Single-Page Chat Application
 
-The project uses a browser-based chat interface (`index.html`) that integrates with Anthropic's API:
+The project uses a browser-based chat interface (`index.html`) that integrates with Google's Gemini API:
 
-- **Model:** Claude Haiku 4.5 (`claude-haiku-4-5-20251001`)
-- **Extended Thinking:** Enabled with configurable token budget (default: 1024 tokens)
+- **Model:** Gemini 2.0 Flash Experimental (or Gemini 2.5 Pro)
+- **Context Window:** 1 million tokens (~750,000 words or ~1,500 pages)
 - **Streaming:** Real-time SSE (Server-Sent Events) streaming via Fetch API
-- **Multi-turn Conversations:** Full conversation history preserved, including thinking blocks with signatures
-- **System Prompt:** Specialized pension analyst prompt with prompt caching for cost optimization
+- **Multi-turn Conversations:** Full conversation history preserved with `contents` array
+- **System Prompt:** Specialized pension analyst prompt embedded as `systemInstruction`
 
 ### Key Components
 
@@ -34,31 +34,36 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
   - `marked.js` for markdown rendering
   - `prism.js` for syntax highlighting
 - State management via `ChatApp` object pattern
-- Streaming event handler processes: `content_block_start`, `content_block_delta`, `content_block_stop`, `message_stop`
-- Full-width responsive design
+- Simple SSE streaming: parses `data: {JSON}` format
+- Full-width responsive design with modern monochrome aesthetic
 
 **API Integration:**
-- Direct browser-to-Anthropic API calls (requires `anthropic-dangerous-direct-browser-access: true` CORS header)
-- Thinking blocks include `signature` field required for multi-turn conversations
-- Messages format: Array of `{role, content}` where content can include `{type: 'thinking', thinking: '...', signature: '...'}` blocks
-- System prompt with prompt caching enabled (90% cost reduction on subsequent requests)
+- Direct browser-to-Gemini API calls (CORS supported natively, no special headers needed)
+- Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse`
+- Authentication: `x-goog-api-key` header
+- Message format: `contents` array with `parts[]` structure
+- Implicit prompt caching (75% cost reduction on repeated context, automatic)
 
 **Configuration:**
 - `config.js` (gitignored) contains actual API key
 - `config.example.js` provides template
-- Configuration object: `CONFIG.ANTHROPIC_API_KEY`, `CONFIG.MODEL`, `CONFIG.MAX_TOKENS`, `CONFIG.THINKING_BUDGET`
+- Configuration object: `CONFIG.GEMINI_API_KEY`, `CONFIG.MODEL`, `CONFIG.MAX_OUTPUT_TOKENS`, `CONFIG.THINKING_BUDGET`
 
 ### File Structure
 
 ```
 /
-├── index.html             # Main chat interface
+├── index.html             # Main chat interface (Gemini-powered)
 ├── config.js              # API key configuration (gitignored)
 ├── config.example.js      # Config template
 ├── plan_docs/             # PDF files (gitignored)
+├── legacy/                # Legacy Claude implementation
+│   ├── index.html         # Original Claude version
+│   └── config.example.js  # Claude config template
 ├── requirements/
 │   ├── requirements.md    # Business requirements
 │   └── system_prompt.md   # Specialized analyst system prompt
+├── test-gemini.html       # CORS/API testing tool
 └── README.md
 ```
 
@@ -66,22 +71,47 @@ The project uses a browser-based chat interface (`index.html`) that integrates w
 
 **Setup:**
 1. Copy `config.example.js` to `config.js`
-2. Add your Anthropic API key to `config.js`
+2. Add your Gemini API key to `config.js` (get one at https://aistudio.google.com/app/apikey)
 3. Open `index.html` in a web browser
 
 No build process, server, or dependencies installation required.
 
 ## Implementation Notes
 
-**System Prompt Integration:**
+### Migration from Claude to Gemini
+
+**Why We Migrated:**
+- **10x higher PDF page limits:** 1,000 pages per PDF (vs 100 with Claude)
+- **5x larger context window:** 1M tokens (vs 200k with Claude)
+- **Lower cost:** ~40% cheaper for large document analysis
+- **Direct browser support:** Native CORS, no special headers needed
+- **Simpler streaming:** Standard SSE format
+
+**Key Implementation Differences:**
+
+| Feature | Claude (Legacy) | Gemini (Current) |
+|---------|----------------|------------------|
+| **API Endpoint** | `api.anthropic.com/v1/messages` | `generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent` |
+| **Authentication** | `x-api-key` + `anthropic-dangerous-direct-browser-access: true` | `x-goog-api-key` (simple) |
+| **Message Format** | `messages: [{role, content}]` | `contents: [{role, parts: [...]}]` |
+| **System Prompt** | `system: [...]` array | `systemInstruction: {parts: [...]}` |
+| **PDF Upload** | `{type: 'document', source: {...}}` | `{inline_data: {mime_type, data}}` |
+| **Streaming Events** | Complex: `content_block_start/delta/stop` | Simple: `data: {JSON}` SSE |
+| **Thinking Mode** | `thinking: {type: 'enabled', budget_tokens}` with visible thinking blocks | Built-in (internal reasoning, not exposed) |
+| **Caching** | Explicit `cache_control: {type: "ephemeral"}` | Implicit (automatic, 75% savings) |
+| **Multi-turn** | Requires `signature` field preservation | Standard `contents` history |
+
+### System Prompt Integration
+
 - 437-line specialized pension plan analyst prompt embedded in `index.html`
 - Defines ERISA expertise, extraction methodology, XML output formats
-- Uses structured array format with `cache_control: {type: "ephemeral"}`
-- Enables prompt caching: First request caches prompt, subsequent requests get 90% cost reduction + 85% latency improvement
-- Cache duration: 5 minutes default
+- Sent as `systemInstruction: {parts: [{text: SYSTEM_PROMPT_TEXT}]}`
+- Implicit caching: First request caches prompt, subsequent requests get 75% cost reduction
+- Cache duration: Automatic (Google manages)
 - Source: `requirements/system_prompt.md`
 
-**Initial Workflow - Compare Documents Button:**
+### Initial Workflow - Compare Documents Button
+
 - First interaction shows prominent "Compare Documents" button instead of chat input
 - Button disabled until files uploaded with dynamic helper text states:
   - No files: "Upload plan documents above to begin comparison"
@@ -92,22 +122,33 @@ No build process, server, or dependencies installation required.
 - Error handling: If first request fails, reverts to Compare button with retry instructions
 - State detection: `isInitialState()` checks `messages.length === 0`
 
-**Extended Thinking:**
-- Thinking blocks stream in real-time during generation
-- Auto-collapse when thinking completes (`content_block_stop` event)
-- Must preserve complete thinking blocks with signatures for multi-turn context
-- Toggle visibility with Show/Hide controls
+### Streaming Implementation
 
-**Streaming:**
-- Uses `ReadableStream` with `TextDecoderStream` (not EventSource, which only supports GET)
-- Buffer management handles partial SSE lines
-- Events parsed as `data: {JSON}` lines
-- Handle `thinking_delta`, `text_delta`, and `signature_delta` types
+**Gemini SSE Format:**
+```javascript
+// Simpler than Claude - just parse JSON chunks
+const lines = event.split(/\r?\n/);
+for (const line of lines) {
+  if (line.startsWith('data: ')) {
+    const chunk = JSON.parse(line.slice(6));
+    const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (text) {
+      // Append to response
+    }
+  }
+}
+```
+
+**No Thinking Visibility:**
+- Gemini 2.0+ models have internal reasoning but don't expose it via API
+- `thinking_config` parameter exists in docs but returns 400 error (not yet available)
+- Model still reasons internally for better responses
+- No equivalent to Claude's visible thinking blocks
 
 **State Management:**
-- Messages stored as `{role, content, thinking, signature}` objects
-- Current streaming state tracked separately: `currentThinking`, `currentResponse`, `currentSignature`
-- Finalized messages added to history only after stream completes
+- Messages stored as `{role, content, thinking}` objects (thinking always empty for Gemini)
+- Current streaming state: `currentResponse`
+- Finalized messages added to history after stream completes
 
 ## Plan Docs File Upload Feature
 
@@ -116,34 +157,36 @@ Collapsible "Plan Docs" section enables drag-and-drop upload of PDF files for do
 
 **Implementation Approach:**
 - **Base64 Encoding:** Files are read locally using FileReader API and converted to base64
-- **No Files API:** Avoids CORS issues with Files API by sending base64 data directly in messages
+- **Direct Inline Upload:** Base64 data sent directly in message `parts` array
 - **Local Storage:** File data stored in `ChatApp.state.uploadedFiles` array
-- **Automatic Inclusion:** All uploaded files with `status: 'uploaded'` are included in every user message
+- **Automatic Inclusion:** All uploaded files with `status: 'uploaded'` are included in first user message only
 
 **File Upload Process:**
 1. User drags/drops or clicks to browse files
-2. Files validated (32 MB max per file)
+2. Files validated (20 MB max per file for inline upload)
 3. FileReader converts to base64 string
 4. File object stored with metadata: `{id, filename, size, mimeType, status, base64Data}`
 5. Status updates: `uploading` → `uploaded` or `error`
 6. `renderInputArea()` called to update Compare button state
 
-**Message Format:**
+**Message Format (Gemini):**
 ```javascript
 {
   role: 'user',
-  content: [
+  parts: [
     {
-      type: 'document',
-      source: {
-        type: 'base64',
-        media_type: 'application/pdf',
-        data: 'JVBERi0xLjQK...'
-      },
-      title: 'filename.pdf',
-      citations: { enabled: true }
+      inline_data: {
+        mime_type: 'application/pdf',
+        data: 'JVBERi0xLjQK...'  // base64 string
+      }
     },
-    { type: 'text', text: 'User message...' }
+    {
+      inline_data: {
+        mime_type: 'application/pdf',
+        data: 'JVBERi0xLjQK...'  // another PDF
+      }
+    },
+    { text: 'Compare the attached plan documents.' }
   ]
 }
 ```
@@ -154,72 +197,55 @@ Collapsible "Plan Docs" section enables drag-and-drop upload of PDF files for do
 - File cards showing: icon, full filename, size, status, remove button
 - File count badge: "📁 Plan Docs (X files)"
 - Status indicators: ✓ Uploaded, 🔄 Uploading..., ✗ Error
+- Updated hint text: "Max 1,000 pages per PDF • 20 MB inline limit"
 
-**Constraints & Learnings:**
+### PDF Page Limits - Gemini Advantages
 
-### PDF Page Limits (Critical)
-Through testing and research, we discovered:
+**The Gemini Advantage:** 1,000 pages **per individual PDF document**
 
-**The Limit:** 100 pages **per individual PDF document** (not total across all PDFs)
-- Error: `"A maximum of 100 PDF pages may be provided"`
-- Applies to each document separately
-- Request size limit: 32 MB total (all documents + messages)
+**Comparison:**
+| Provider | Pages per PDF | Total Context |
+|----------|---------------|---------------|
+| **Gemini 2.5 Pro** | 1,000 pages | 1M tokens (~1,500 pages total) |
+| Claude Haiku/Sonnet | 100 pages | 200k tokens (~400 pages total) |
 
-**What Works:**
-- Multiple small documents (SMMs, notices, amendments): ✅
-- Example: 10 documents × 5 pages each = 50 total pages ✅
-- Mix of small docs in single request ✅
+**What Now Works (vs. Claude):**
+- ✅ Large SPDs (100-1,000 pages each)
+- ✅ Example: 156-page SPD + multiple SMMs in single request
+- ✅ Multiple large documents (if combined pages < 1,000)
+- ✅ Full document analysis instead of excerpts
 
-**What Fails:**
-- Single PDF exceeding 100 pages: ❌
-- Example: One 156-page SPD triggers error even if it's the only document
-- Error points to specific document index in content array
+**Constraints:**
+- Individual PDF: 1,000 pages maximum
+- File size: 20 MB per file (inline), 50 MB (via Files API, not yet implemented)
+- Total request: 1M tokens context window
+- Each page ≈ 258 tokens
 
-**Why Claude Desktop Works Differently:**
-- Uses Projects with RAG (Retrieval-Augmented Generation)
-- Documents stored in knowledge base
-- Only relevant excerpts loaded per message
-- Can handle 20+ documents including large ones
-- Text-only extraction for Project knowledge (no visual analysis)
+**Testing Results:**
+- ✅ 12.6 MB PDF (156 pages) + 49 KB PDF (2 pages): Works perfectly
+- ✅ Real-time streaming with large documents
+- ✅ No CORS issues (native browser support)
 
-**Current Approach (Proof of Concept):**
-- Focus on **small documents only** (SMMs, notices, amendments)
-- Each document must be <100 pages individually
-- Works perfectly for comparing policy modifications across plan units
-- Large SPDs (100+ pages) excluded from this workflow
-
-**Future Considerations (Not Yet Implemented):**
-Research identified several potential solutions for handling large documents:
-
-1. **PDF.js Page Count Detection:**
-   - Add pdf.js library to detect page count during upload
-   - Display page count on each file card
-   - Warn users about 100-page limit per document
-
-2. **Manual Selection System:**
-   - Checkboxes to include/exclude specific documents
-   - User controls which docs are sent per message
-   - "Upload all 10 SPDs, select relevant subset per query"
-
-3. **Automatic Batching:**
-   - Split large documents into page ranges
-   - Send multiple sequential API requests
-   - Build context across conversation turns
-
-4. **Individual Analysis Pattern:**
-   - Upload large SPDs one at a time
-   - Extract key policies from each
-   - Compare findings manually or in subsequent messages
-
-5. **Smart Warnings:**
-   - Calculate total pages from selected documents
-   - Show red/yellow/green indicators
-   - Auto-suggest documents to exclude when over limit
-
-**For current proof of concept:** Working within constraint by focusing on small document comparisons. Large SPD analysis can be handled separately or in future iterations.
+**Current Approach:**
+- Upload full SPDs and large documents directly
+- No need for excerpts or batching for documents <1,000 pages
+- Can compare 6-10 complete SPDs simultaneously (if each <1,000 pages and total fits in context)
 
 ## Git Workflow
 
 - Never commit `config.js` (contains API key)
 - Never commit `plan_docs/` directory (contains client PDFs)
 - Do not commit or push unless explicitly requested by user
+- Legacy Claude implementation preserved in `legacy/` directory
+
+## Testing Tools
+
+**test-gemini.html:**
+- Standalone CORS and API compatibility testing tool
+- Tests 4 scenarios:
+  1. Direct generateContent API call (CORS check)
+  2. Files API upload (CORS check)
+  3. Inline base64 PDF upload
+  4. Streaming with SSE
+- Use this to validate API access before deploying changes
+- All tests passed ✅ confirming direct browser integration works

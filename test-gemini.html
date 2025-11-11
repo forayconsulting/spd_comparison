@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API CORS Test</title>
+    <style>
+        body {
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #ffffff;
+        }
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+        }
+        button {
+            background: #1a1a1a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #333;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gemini API CORS & Browser Compatibility Test</h1>
+
+    <div class="instructions">
+        <strong>Instructions:</strong> Enter your Gemini API key below and run each test to determine which approach works from the browser.
+        Get your API key from: <a href="https://aistudio.google.com/app/apikey" target="_blank">https://aistudio.google.com/app/apikey</a>
+    </div>
+
+    <div class="test-section">
+        <input type="text" id="apiKey" placeholder="Enter your Gemini API key (e.g., AIza...)" />
+    </div>
+
+    <!-- Test 1: Direct Generate Content -->
+    <div class="test-section">
+        <h2>Test 1: Direct generateContent API Call</h2>
+        <p>Tests if we can call the Gemini API directly from the browser (CORS check)</p>
+        <button onclick="testDirectGenerate()">Run Test 1</button>
+        <div id="test1Result"></div>
+    </div>
+
+    <!-- Test 2: Files API Upload -->
+    <div class="test-section">
+        <h2>Test 2: Files API Upload</h2>
+        <p>Tests if we can upload files directly via Files API from browser</p>
+        <input type="file" id="fileInput" accept="application/pdf" />
+        <button onclick="testFilesAPI()">Run Test 2</button>
+        <div id="test2Result"></div>
+    </div>
+
+    <!-- Test 3: Inline Base64 PDF -->
+    <div class="test-section">
+        <h2>Test 3: Inline Base64 PDF Upload</h2>
+        <p>Tests if we can send PDF as base64 inline data</p>
+        <input type="file" id="base64Input" accept="application/pdf" />
+        <button onclick="testInlineBase64()">Run Test 3</button>
+        <div id="test3Result"></div>
+    </div>
+
+    <!-- Test 4: Streaming with SSE -->
+    <div class="test-section">
+        <h2>Test 4: Streaming with SSE</h2>
+        <p>Tests if streaming works from browser with ?alt=sse parameter</p>
+        <button onclick="testStreaming()">Run Test 4</button>
+        <div id="test4Result"></div>
+    </div>
+
+    <script>
+        function getApiKey() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                alert('Please enter your Gemini API key');
+                return null;
+            }
+            return apiKey;
+        }
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `result ${type}`;
+        }
+
+        // Test 1: Direct API call
+        async function testDirectGenerate() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            showResult('test1Result', 'Testing direct API call...', 'info');
+
+            try {
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{ text: 'Hello! Respond with just the word SUCCESS.' }]
+                            }]
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    showResult('test1Result', `❌ HTTP Error ${response.status}\n\n${error}`, 'error');
+                    return;
+                }
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response text';
+
+                showResult('test1Result',
+                    `✅ SUCCESS! Direct API call works!\n\nResponse: ${text}\n\nFull response:\n${JSON.stringify(data, null, 2)}`,
+                    'success'
+                );
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    showResult('test1Result',
+                        `❌ CORS BLOCKED\n\nError: ${error.message}\n\nConclusion: Direct browser-to-Gemini API calls are NOT supported.\nYou will need a backend proxy server.`,
+                        'error'
+                    );
+                } else {
+                    showResult('test1Result', `❌ Error: ${error.message}\n\n${error.stack}`, 'error');
+                }
+            }
+        }
+
+        // Test 2: Files API
+        async function testFilesAPI() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a PDF file first');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            showResult('test2Result', `Testing Files API upload for: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`, 'info');
+
+            try {
+                // First, initiate resumable upload
+                const initResponse = await fetch(
+                    `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'X-Goog-Upload-Protocol': 'resumable',
+                            'X-Goog-Upload-Command': 'start',
+                            'X-Goog-Upload-Header-Content-Length': file.size.toString(),
+                            'X-Goog-Upload-Header-Content-Type': file.type,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            file: {
+                                display_name: file.name
+                            }
+                        })
+                    }
+                );
+
+                if (!initResponse.ok) {
+                    const error = await initResponse.text();
+                    showResult('test2Result', `❌ Upload init failed (${initResponse.status})\n\n${error}`, 'error');
+                    return;
+                }
+
+                const uploadUrl = initResponse.headers.get('X-Goog-Upload-URL');
+                if (!uploadUrl) {
+                    showResult('test2Result', '❌ No upload URL received', 'error');
+                    return;
+                }
+
+                // Upload the actual file
+                const uploadResponse = await fetch(uploadUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Length': file.size.toString(),
+                        'X-Goog-Upload-Offset': '0',
+                        'X-Goog-Upload-Command': 'upload, finalize',
+                    },
+                    body: file
+                });
+
+                if (!uploadResponse.ok) {
+                    const error = await uploadResponse.text();
+                    showResult('test2Result', `❌ File upload failed (${uploadResponse.status})\n\n${error}`, 'error');
+                    return;
+                }
+
+                const uploadData = await uploadResponse.json();
+                showResult('test2Result',
+                    `✅ SUCCESS! Files API works from browser!\n\nFile URI: ${uploadData.file?.uri}\n\nFull response:\n${JSON.stringify(uploadData, null, 2)}`,
+                    'success'
+                );
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    showResult('test2Result',
+                        `❌ CORS BLOCKED on Files API\n\nError: ${error.message}\n\nConclusion: Files API cannot be called directly from browser.`,
+                        'error'
+                    );
+                } else {
+                    showResult('test2Result', `❌ Error: ${error.message}\n\n${error.stack}`, 'error');
+                }
+            }
+        }
+
+        // Test 3: Inline Base64
+        async function testInlineBase64() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            const fileInput = document.getElementById('base64Input');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a PDF file first');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            showResult('test3Result', `Reading file: ${file.name} (${(file.size / 1024).toFixed(1)} KB)...`, 'info');
+
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+                try {
+                    // Remove data URL prefix to get pure base64
+                    const base64Data = e.target.result.split(',')[1];
+
+                    showResult('test3Result', `Testing inline base64 upload (${base64Data.length} chars)...`, 'info');
+
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [
+                                        {
+                                            inline_data: {
+                                                mime_type: 'application/pdf',
+                                                data: base64Data
+                                            }
+                                        },
+                                        {
+                                            text: 'What is the title of this document? Respond with just the title.'
+                                        }
+                                    ]
+                                }]
+                            })
+                        }
+                    );
+
+                    if (!response.ok) {
+                        const error = await response.text();
+                        showResult('test3Result', `❌ API Error ${response.status}\n\n${error}`, 'error');
+                        return;
+                    }
+
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+
+                    showResult('test3Result',
+                        `✅ SUCCESS! Inline base64 PDF works!\n\nResponse: ${text}\n\nUsage:\n${JSON.stringify(data.usageMetadata, null, 2)}`,
+                        'success'
+                    );
+                } catch (error) {
+                    if (error.message.includes('CORS')) {
+                        showResult('test3Result',
+                            `❌ CORS BLOCKED\n\nError: ${error.message}`,
+                            'error'
+                        );
+                    } else {
+                        showResult('test3Result', `❌ Error: ${error.message}\n\n${error.stack}`, 'error');
+                    }
+                }
+            };
+
+            reader.onerror = () => {
+                showResult('test3Result', `❌ Failed to read file: ${reader.error}`, 'error');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Test 4: Streaming
+        async function testStreaming() {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            showResult('test4Result', 'Testing streaming with SSE...', 'info');
+
+            try {
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?alt=sse&key=${apiKey}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{ text: 'Count from 1 to 5, with one number per line.' }]
+                            }]
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    showResult('test4Result', `❌ Streaming Error ${response.status}\n\n${error}`, 'error');
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let chunks = [];
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const events = buffer.split(/\r?\n\r?\n/);
+                    buffer = events.pop() || '';
+
+                    for (const event of events) {
+                        if (!event.trim()) continue;
+
+                        const lines = event.split(/\r?\n/);
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const jsonData = line.slice(6);
+                                    const chunk = JSON.parse(jsonData);
+                                    const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+                                    if (text) {
+                                        chunks.push(text);
+                                    }
+                                } catch (e) {
+                                    console.error('Parse error:', e);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const fullText = chunks.join('');
+                showResult('test4Result',
+                    `✅ SUCCESS! Streaming works!\n\nReceived ${chunks.length} chunks\n\nFull text:\n${fullText}`,
+                    'success'
+                );
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    showResult('test4Result',
+                        `❌ CORS BLOCKED on streaming\n\nError: ${error.message}`,
+                        'error'
+                    );
+                } else {
+                    showResult('test4Result', `❌ Error: ${error.message}\n\n${error.stack}`, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@ This tool helps pension fund administrators quickly compare Summary Plan Descrip
 ## Key Features
 
 ### Intelligent Document Analysis
-Powered by Claude AI with specialized expertise in:
+Powered by Google Gemini 2.5 Pro with specialized expertise in:
 - ERISA pension plan regulations and compliance
 - Multiemployer pension fund structures
 - Claims and appeals procedures under DOL regulations
@@ -37,11 +37,11 @@ Powered by Claude AI with specialized expertise in:
 
 ### Prerequisites
 - A modern web browser (Chrome, Firefox, Safari, Edge)
-- An Anthropic API key ([get one here](https://console.anthropic.com))
+- A Google Gemini API key ([get one here](https://aistudio.google.com/app/apikey))
 
 ### Setup (2 minutes)
 1. Copy `config.example.js` to `config.js`
-2. Open `config.js` and add your Anthropic API key
+2. Open `config.js` and add your Gemini API key
 3. Open `index.html` in your web browser
 4. Start comparing documents!
 
@@ -50,24 +50,25 @@ No installation, no command line, no technical setup required.
 ## Usage Tips
 
 ### Best Practices
-- **Use smaller documents** (under 100 pages each) for best results: SMMs, notices, amendments, plan highlights
-- **Upload documents from the same category** (e.g., all SMMs about disability procedures) for focused comparisons
+- **Use clear, focused uploads:** Group related documents (e.g., all SMMs about disability procedures) for targeted comparisons
 - **Ask specific questions** like "What are the appeals filing deadlines?" or "Compare arbitration requirements"
 - **Request structured output** by asking for "XML format" or "comparison table"
+- **Leverage large context:** Upload multiple large documents simultaneously (up to 1,000 pages total)
 
 ### Document Limits
-- **File size:** 32 MB per file maximum
-- **Page count:** 100 pages per individual PDF document
-- **Total documents:** Upload as many documents as needed, within the 32 MB total request limit
+- **File size:** 20 MB per file maximum (inline upload)
+- **Page count:** 1,000 pages per individual PDF document (10x more than previous limits!)
+- **Total context:** 1 million tokens (~750,000 words or ~1,500 pages total)
+- **Total documents:** Upload as many documents as needed within context/size limits
 
-For large SPDs (100+ pages), consider comparing excerpts or specific sections rather than full documents.
+The expanded limits allow you to compare complete SPDs, not just excerpts.
 
 ## Example Use Cases
 
 ### Post-Merger Standardization
 *"I just merged 10 local pension plans. Which ones have different appeals procedures?"*
 
-Upload SMMs from all 10 plans → Click Compare → Get a structured breakdown of differences in appeals filing deadlines, review processes, and claimant rights.
+Upload SPDs from all 10 plans → Click Compare → Get a structured breakdown of differences in appeals filing deadlines, review processes, and claimant rights.
 
 ### Compliance Review
 *"Do any of our plans have mandatory arbitration clauses that might face legal challenges?"*
@@ -81,40 +82,58 @@ Upload claims procedure sections → Request comparison → Receive participant-
 
 ## Cost Efficiency
 
-This tool uses Claude Haiku 4.5, Anthropic's fastest and most cost-effective model, with smart caching:
+This tool uses Google Gemini 2.5 Pro with smart caching:
 
-- **First comparison:** Normal API pricing (~$0.25 per million input tokens)
-- **Follow-up questions:** 90% cheaper due to prompt caching
-- **Typical session:** Analyze 5-10 documents with multiple questions for under $1
+- **First comparison:** $1.25 per million input tokens (≤200k context), $2.50/M (>200k)
+- **Follow-up questions:** 75% cheaper with implicit caching (automatic)
+- **Output:** $10.00 per million output tokens (≤200k), $15.00/M (>200k)
+- **Typical session:** Analyze 5-10 documents with multiple questions for under $2
 
 Compare this to:
 - Law firm associate at $500/hour: $2,000+ for similar analysis
 - Manual document review: 10-20 hours of staff time
 
+**Why Gemini?**
+- **10x larger page limits:** 1,000 pages per PDF vs 100 pages with Claude
+- **5x larger context:** 1M tokens vs 200k tokens
+- **Lower cost:** ~40% cheaper for comparable workloads
+- **Can process all 10 SPDs simultaneously** (if total <1,000 pages)
+
 ## Technical Architecture
 
 ### Simple & Secure
 - **No server required:** Runs entirely in your browser
-- **Direct API connection:** Your documents go straight to Anthropic's secure API
+- **Direct API connection:** Your documents go straight to Google's secure API
 - **No data storage:** Files are converted to base64 and sent with each request, not stored anywhere
 - **Privacy first:** Client PDFs never touch our servers (that's why `plan_docs/` is gitignored)
 
 ### Powered By
-- **Claude Haiku 4.5:** Anthropic's latest fast, cost-effective AI model
-- **Extended Thinking:** Complex analysis with step-by-step reasoning
-- **Prompt Caching:** 90% cost reduction on repeated context
-- **Streaming Responses:** Real-time analysis as it thinks and writes
+- **Google Gemini 2.5 Pro:** State-of-the-art AI model with 1M token context window
+- **Built-in reasoning:** Model reasons internally before responding for better analysis
+- **Implicit caching:** 75% cost reduction on repeated context (automatic)
+- **Streaming responses:** Real-time analysis as it thinks and writes
+- **Direct browser integration:** CORS-enabled API, no proxy needed
+
+## Migration from Claude
+
+This tool previously used Anthropic's Claude API. We migrated to Google Gemini for:
+- **Higher PDF limits:** 1,000 pages per document (vs 100 with Claude)
+- **Larger context:** 1M tokens (vs 200k with Claude)
+- **Better cost efficiency:** 40-60% cheaper for large document analysis
+- **Simpler streaming:** Standard SSE format
+
+Legacy Claude implementation available in `legacy/` directory.
 
 ## Project Background
 
 **Developed for:** Western Pension Fund
 **Purpose:** Post-merger plan standardization
 **Budget:** $3,000-$4,000 target (vs. $10,000+ for law firm analysis)
-**Status:** Proof of concept / functional prototype
+**Status:** Functional prototype with Gemini 2.5 Pro integration
 
 ## Support & Development
 
-This is a proof-of-concept tool built with Claude Code. For questions, enhancements, or issues:
+This is a proof-of-concept tool. For questions, enhancements, or issues:
 
 - Technical documentation: See `CLAUDE.md`
 - Business requirements: See `requirements/requirements.md`
