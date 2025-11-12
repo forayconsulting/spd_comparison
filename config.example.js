@@ -7,15 +7,16 @@ const CONFIG = {
 
   // Model to use (see https://ai.google.dev/gemini-api/docs/models)
   // Options:
+  // - gemini-2.5-pro (most capable, best for document analysis)
   // - gemini-2.0-flash-exp (fast, cost-effective, experimental)
-  // - gemini-2.5-pro-preview-06-05 (most capable, larger context)
   // - gemini-2.5-flash (balanced performance and cost)
-  MODEL: 'gemini-2.0-flash-exp',
+  MODEL: 'gemini-2.5-pro',
 
   // Maximum output tokens (response length)
-  MAX_OUTPUT_TOKENS: 4096,
+  MAX_OUTPUT_TOKENS: 8192,
 
-  // Thinking budget for internal reasoning (0-32768)
-  // -1 = dynamic (model decides), 0 = disabled, 1024+ = explicit budget
-  THINKING_BUDGET: 1024
+  // Thinking budget for internal reasoning (reserved for future use)
+  // Note: thinking_config not yet available in Gemini API
+  // Model performs internal reasoning automatically
+  THINKING_BUDGET: 32768
 };

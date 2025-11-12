@@ -17,16 +17,17 @@ See `requirements/new-requirements.md` for detailed business requirements.
 
 ## Architecture
 
-### Single-Page Three-Output Application
+### Three-Phase Sequential Analysis Application
 
-The project uses a browser-based application (`index.html`) that integrates with Google's Gemini API to produce three coordinated outputs:
+The project uses a browser-based application (`index.html`) that integrates with Google's Gemini API using **three sequential API calls** with progressive context engineering:
 
-- **Model:** Gemini 2.5 Pro (gemini-2.0-flash-exp fallback)
+- **Model:** Gemini 2.5 Pro (best for comprehensive document analysis)
 - **Context Window:** 1 million tokens (~750,000 words or ~1,500 pages)
 - **Streaming:** Real-time SSE (Server-Sent Events) streaming via Fetch API
-- **Output Format:** JSON structure parsed and rendered into three tabs
-- **System Prompt:** Specialized three-output generation prompt with JSON schema requirements
-- **UI:** Tabbed interface with preview + download for each output
+- **Workflow:** Three sequential phases, each re-uploading PDFs for fresh analysis
+- **Output Format:** Markdown/text responses parsed and rendered into three tabs
+- **Prompts:** Three focused, simple prompts (no complex system instruction)
+- **UI:** Tabbed interface that populates progressively as each phase completes
 
 ### Key Components
 
@@ -47,14 +48,44 @@ The project uses a browser-based application (`index.html`) that integrates with
 - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse`
 - Authentication: `x-goog-api-key` header
 - Message format: `contents` array with `parts[]` structure (PDFs as inline base64)
-- System prompt sent as `systemInstruction: {parts: [{text: SYSTEM_PROMPT_TEXT}]}`
-- Response format: JSON only (no markdown wrapping, no additional text)
-- Implicit prompt caching (75% cost reduction on repeated context, automatic)
+- **Vanilla system instruction:** "You are a helpful assistant." (minimal, replicates manual Gemini UI experience)
+- **No prompt caching:** PDFs re-uploaded in each phase for fresh analysis
+- **Thinking:** Model performs internal reasoning automatically (API config not yet available)
+- **Output directives:**
+  - Phase 1: "Be as concise as possible without oversimplifying. Maximum 500 words response."
+  - Phase 2 & 3: "Return ONLY the table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible."
+- Response format: Plain text/markdown (rendered directly via marked.js)
+- **Table styling:** Subtle borders added to all tables for better cell visibility
+
+**Three-Phase Workflow:**
+1. **Phase 1: Document Summary**
+   - Prompt: "Comprehensively read all attached documents. Return an organized overview... Be as concise as possible without oversimplifying. Maximum 500 words response."
+   - Uploads: All PDF files
+   - Output: Concise markdown summary (max 500 words) of document structure, relationships, domain
+   - Populates: Summary tab
+
+2. **Phase 2: Comparison Table**
+   - Prompt: "Read all attached documents. Here is a summary: <summary>...</summary>. Return a detailed comparison table... Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible."
+   - Uploads: All PDF files (fresh)
+   - Input: Phase 1 summary embedded in prompt
+   - Output: Markdown table comparing procedural elements across plans (table only, no preamble)
+   - Populates: Comparison tab
+
+3. **Phase 3: Language Comparison**
+   - Prompt: "Read all attached documents. Summary: <summary>...</summary>. Comparison: <comparison>...</comparison>. Create detailed version with full quotes and citations... (filename, page_number, paragraph_number)... Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible."
+   - Uploads: All PDF files (fresh)
+   - Input: Phase 1 summary + Phase 2 comparison embedded in prompt
+   - Output: Markdown table with full legal text and citations in format: (filename, page_number, paragraph_number) - table only, no preamble
+   - Populates: Language tab
 
 **Configuration:**
 - `config.js` (gitignored) contains actual API key
 - `config.example.js` provides template
-- Configuration object: `CONFIG.GEMINI_API_KEY`, `CONFIG.MODEL`, `CONFIG.MAX_OUTPUT_TOKENS`, `CONFIG.THINKING_BUDGET`
+- Configuration object:
+  - `CONFIG.GEMINI_API_KEY`: API key from Google AI Studio
+  - `CONFIG.MODEL`: Model to use (default: gemini-2.0-flash-exp)
+  - `CONFIG.MAX_OUTPUT_TOKENS`: 8192 (increased for longer responses)
+  - `CONFIG.THINKING_BUDGET`: Reserved for future use (thinking_config not yet available in API)
 
 ### File Structure
 
@@ -91,14 +122,49 @@ No build process, server, or dependencies installation required.
 1. Click "Plan Docs" section to expand file upload
 2. Upload SPD/SMM PDFs for all 5 plan units
 3. Click "Compare Documents" button
-4. Wait for streaming JSON response (model analyzes all documents)
-5. View three-tab output interface:
-   - **Tab 1: Summary** - Executive overview, document inventory, key findings
-   - **Tab 2: Comparison Spreadsheet** - Summary-level side-by-side comparison table
-   - **Tab 3: Language Comparison** - Full quoted legal text with citations
-6. Download any output using the download buttons in each tab
+4. **Watch three-phase progress:**
+   - Phase 1/3: Reading and identifying document structure...
+   - Phase 2/3: Building comparison table across plans...
+   - Phase 3/3: Extracting detailed language with citations...
+5. **Tabs populate progressively:**
+   - Summary tab appears after Phase 1 completes
+   - Comparison tab appears after Phase 2 completes
+   - Language tab appears after Phase 3 completes
+6. Download any output as markdown using the download buttons in each tab
 
 ## Implementation Notes
+
+### Three-Phase Sequential Approach: Rationale
+
+**Why Three Sequential Calls Instead of One?**
+
+The application previously used a single API call with a complex 437-line system prompt that attempted to generate all three outputs in JSON format. This approach was replaced with three sequential calls for the following reasons:
+
+**1. Higher Quality Results:**
+- Each phase gets fresh document analysis without relying on cached context
+- Model can focus on one specific task per call (summary, then comparison, then language extraction)
+- Progressive context engineering: each phase builds on previous outputs explicitly in the prompt
+
+**2. Better Reliability:**
+- No JSON parsing failures (responses are plain text/markdown)
+- Simpler prompts = more predictable outputs
+- Model doesn't need to maintain complex JSON structure while reasoning
+
+**3. More Interpretable Citations:**
+- Explicit citation format: `(filename, page_number, paragraph_number)`
+- Citations embedded directly in response text, not as separate metadata
+- Format specified clearly in Phase 3 prompt
+
+**4. Proven Manual Workflow:**
+- This approach replicates a successful manual workflow demonstrated in `requirements/updated-approach.md`
+- User testing showed this multi-step process produces higher quality results than single-shot generation
+
+**Trade-offs:**
+- **Higher Cost:** PDFs uploaded 3 times (3x token cost)
+- **Longer Duration:** Three sequential API calls vs. one
+- **No Caching:** Intentionally disabled to get fresh analysis each time
+
+**Decision:** The quality and reliability improvements outweigh the cost increase. SPD comparison is a rare, high-value operation where quality matters more than speed/cost.
 
 ### Migration from Claude to Gemini
 

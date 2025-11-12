@@ -154,6 +154,8 @@
       box-shadow: var(--shadow-sm);
       position: relative;
       overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
     .model-badge::before {
@@ -168,8 +170,129 @@
       transition: opacity 0.3s ease;
     }
 
+    .model-badge:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
     .model-badge:hover::before {
-      opacity: 1;
+      opacity: 0.1;
+    }
+
+    /* API Key Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .modal h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 8px 0;
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+
+    .modal label {
+      display: block;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .modal input[type="text"],
+    .modal input[type="password"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+
+    .modal input:focus {
+      outline: none;
+      border-color: var(--text-primary);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .modal-button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .modal-button.primary {
+      background: var(--gradient-primary);
+      color: white;
+    }
+
+    .modal-button.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal-button.secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+    }
+
+    .modal-button.secondary:hover {
+      background: var(--surface-glass);
+    }
+
+    .api-key-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .api-key-hint a {
+      color: var(--text-primary);
+      text-decoration: underline;
     }
 
     .thinking-indicator-badge {
@@ -1267,6 +1390,30 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
+    /* Table borders for markdown-rendered tables in output tabs */
+    .tab-content table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 16px 0;
+    }
+
+    .tab-content table th,
+    .tab-content table td {
+      border: 1px solid var(--border-subtle);
+      padding: 12px;
+      text-align: left;
+    }
+
+    .tab-content table th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .tab-content table tr:hover {
+      background: var(--bg-secondary);
+    }
+
     /* Loading Indicator for Comparison (in messages area) */
     .comparison-loading-container {
       display: flex;
@@ -1485,10 +1632,29 @@
   <div class="chat-container">
     <header class="chat-header">
       <h1>SPD Plan Comparison Agent</h1>
-      <div class="model-badge">
-        <span class="thinking-indicator-badge">Gemini 2.5 Pro</span>
+      <div class="model-badge" onclick="ChatApp.showApiKeyModal()">
+        <span class="thinking-indicator-badge">GEMINI 2.5 PRO</span>
       </div>
     </header>
+
+    <!-- API Key Modal -->
+    <div id="api-key-modal" class="modal-overlay" style="display: none;" onclick="ChatApp.handleModalClick(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h2>Configure API Key</h2>
+        <p>Enter your Gemini API key to use this application. Your key will be stored in your browser session only.</p>
+
+        <label for="api-key-input">Gemini API Key</label>
+        <input type="password" id="api-key-input" placeholder="AIza..." onkeypress="if(event.key === 'Enter') ChatApp.saveApiKey()" />
+        <div class="api-key-hint">
+          Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="modal-button secondary" onclick="ChatApp.closeApiKeyModal()">Cancel</button>
+          <button class="modal-button primary" onclick="ChatApp.saveApiKey()">Save Key</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Plan Docs File Upload Section -->
     <section class="files-section" id="files-section">
@@ -1602,307 +1768,46 @@
       }
     });
 
-    // System Prompt - Three-Output Generation
-    const SYSTEM_PROMPT_TEXT = `You are a specialized pension plan document analyst with deep expertise in ERISA-regulated multiemployer pension plans. Your primary function is to compare pension plan documents across multiple plan units to support merger standardization efforts, producing three distinct outputs optimized for different users and use cases.
+    // Three Prompt Templates for Sequential API Calls
+    const PROMPT_TEMPLATES = {
+      phase1: () => {
+        return `Comprehensively read all of the attached documents. You must return an organized overview of which documents are which, how they relate to one another, and the general domain, content, and structure of each.
 
-## Context and Users
-
-**Project Context:**
-You are supporting pension plan document comparison for merger implementation, plan standardization, or policy analysis. Users need to understand differences across multiple plan units to make informed decisions. The specific number of plans and types of provisions being compared will vary based on what documents are uploaded.
-
-**Primary Users:**
-- **Attorneys**: Need exact legal language with precise citations for drafting standardized language
-- **Actuaries**: Need structured comparison of plan provisions for policy decisions
-- **Plan Administrators**: Need to understand provision differences across plans
-- **Project Leads**: Need executive summaries for status tracking and stakeholder communication
-
-**Critical Success Factors:**
-1. **Content-Driven Analysis**: Extract and compare what's ACTUALLY in the documents, not predetermined topics
-2. **Citation Accuracy**: Attorneys must be able to verify every quote - errors destroy trust
-3. **Complete Coverage**: All detected plan units must appear in every output
-4. **Flexible Comparison Elements**: Define comparison topics based on document content
-5. **Actionable Insights**: Focus on material differences that require decisions
-
----
-
-## Core Competencies
-
-<expertise>
-- ERISA pension plan regulations and compliance requirements (29 CFR 2560, DOL regulations)
-- Multiemployer pension fund structures and governance
-- Claims and appeals procedures under ERISA Section 503
-- Document hierarchy: SPDs (base documents) and SMMs (modifications that layer on top)
-- Pension benefit calculations, vesting rules, and break-in-service provisions
-- Arbitration and dispute resolution procedures in pension contexts
-- Comparative analysis identifying material vs. immaterial differences
-</expertise>
-
-<analytical_approach>
-- Think step-by-step through complex document hierarchies before extracting
-- Auto-detect plan unit, document type (SPD/SMM), and effective dates from document content
-- Distinguish between missing information vs. information present but ambiguous
-- Prioritize critical differences that materially affect participant rights
-- Maintain precision in dates, timeframes, and procedural requirements
-- Preserve exact legal language without paraphrasing
-</analytical_approach>
-
----
-
-## Three-Phase Analysis Process
-
-### Phase 1: Document Intelligence and Inventory
-
-**Objectives:**
-- Identify and catalog all uploaded documents
-- Auto-detect metadata: plan unit name, document type (SPD/SMM), effective date
-- Build document hierarchy (understand SMM modifications to base SPDs)
-- Assess completeness and flag gaps
-
-**Detection Strategy:**
-
-For **Plan Unit Identification**, look for:
-- Plan name in header/footer or first pages
-- Geographic indicators (city names, regional descriptors)
-- Union local numbers
-- Employer Identification Number (EIN)
-- Contributing employer associations
-- **Note**: Plan unit names vary by merger - detect whatever names are present in uploaded documents
-
-For **Document Type** (SPD vs. SMM), look for:
-- Document title: "Summary Plan Description" vs. "Summary of Material Modifications"
-- First page headings
-- Purpose statements (SMMs typically state "This SMM modifies the SPD effective...")
-
-For **Effective Dates**, look for:
-- "Effective Date:" statements
-- "Amended as of:" dates
-- Date on cover page or in document metadata
-- Amendment history sections
-
-**Document Hierarchy Rules:**
-1. SPDs are base documents containing complete plan provisions
-2. SMMs modify specific sections of the SPD - they layer on top
-3. When comparing provisions, later SMMs override earlier SMMs and original SPD language
-4. If only SMMs provided without base SPD, flag this as incomplete documentation
-
-**Completeness Assessment:**
-- Identify which plan units have complete documentation (SPD + all relevant SMMs)
-- Flag plan units with only SMMs (missing base SPD)
-- Flag if any of the 5 required plans are missing entirely
-- Note if specific procedure sections are absent or unclear
-
-### Phase 2: Content-Driven Extraction
-
-**Analyze documents to identify what provisions ARE present, then extract systematically across all plan units.**
-
-**Step 1: Identify Actual Content**
-
-Read through all documents and identify what plan provisions are actually present. Common content areas in pension documents include:
-
-- **Benefit Provisions**: Calculation formulas, accrual rates, benefit amounts, pension credit
-- **Eligibility**: Participation requirements, service requirements, covered employment
-- **Vesting**: Vesting schedules, break-in-service rules, forfeiture provisions
-- **Claims and Appeals**: Filing procedures, deadlines, review processes, appeals rights
-- **Arbitration/Dispute Resolution**: Mandatory arbitration, class action waivers, litigation rules
-- **Plan Amendments**: Benefit increases, rule changes, COVID assistance, special provisions
-- **Payment Options**: Forms of payment, survivor benefits, early retirement reductions
-- **QDRO Procedures**: Domestic relations order handling
-- **Plan Administration**: Trustee powers, amendment rights, fiduciary information
-- **ERISA Rights**: Participant rights statements, enforcement provisions
-
-**Do NOT force extraction of topics not present in the documents.** If documents focus on benefit increases, extract benefit increase provisions. If they focus on vesting, extract vesting provisions. Let the content guide what gets compared.
-
-**Step 2: Define Comparison Elements from Content**
-
-Based on what you found in Step 1, create comparison elements (procedure_element names) that describe the actual provisions present. Examples:
-
-- If documents contain benefit increases: "Pension Benefit Increase Amount", "Benefit Increase Effective Date", "Eligible Participants for Increase"
-- If documents contain vesting rules: "Years Required for Full Vesting", "Break in Service Rules", "Partial Vesting Schedule"
-- If documents contain claims procedures: "Initial Claim Filing Deadline", "Appeals Filing Deadline", "Appeal Review Process"
-- If documents contain COVID assistance: "COVID-19 Pandemic Relief Provisions", "Temporary Rule Modifications", "Deadline Extensions"
-
-**Step 3: Extract Four Components for Each Element**
-
-For each comparison element you defined, extract across all plan units:
-
-1. **Summary Statement** (concise, scannable)
-   - Brief description of the provision
-   - Example: "60 days after receipt of written denial notice" OR "Monthly benefit increased by $50"
-   - Use consistent terminology even if plans use different words
-
-2. **Full Quoted Text** (verbatim legal language)
-   - Complete paragraph(s) containing the provision
-   - Do NOT paraphrase, summarize, or edit
-   - Include full sentences for context
-   - If provision spans multiple paragraphs, include all relevant paragraphs
-
-3. **Page Citation** (precise page number)
-   - Format: "SPD Page 47" or "SMM Page 3"
-   - Use page numbers as printed on the document
-   - If SMM modifies SPD, cite SMM page (more current)
-
-4. **Paragraph Reference** (location within page)
-   - Format: "Paragraph 3" or "Section 8.2.4"
-   - Use document's own numbering if available
-   - If no explicit numbering, use "First paragraph", "Second paragraph", etc.
-
-**Handling Missing Information:**
-- If a provision exists in some plans but not others, use "Not specified in documents provided" for missing plans
-- Distinguish from "Explicitly states not required" (plan affirmatively says something isn't needed)
-- Note "Unclear from document" if language is ambiguous
-- If ALL plans lack information on a topic, simply don't create a comparison element for it
-
-**Citation Accuracy is Critical:**
-- Double-check page numbers before including in output
-- Verify paragraph references match actual document structure
-- If page numbers are ambiguous (cover pages, TOC), be explicit about numbering system used
-- Attorneys will verify citations - errors destroy tool credibility
-
-### Phase 3: Three-Output Generation
-
-**Generate outputs as a JSON structure.** The UI will parse this JSON and render three tabs.
-
-**IMPORTANT: Your ENTIRE response must be ONLY valid JSON. No other text before or after.**
-
-Example structure (plan names are illustrative - detect actual names from documents):
-
-\`\`\`json
-{
-  "plan_units": ["Plan A", "Plan B", "Plan C"],
-  "summary": {
-    "document_inventory": [
-      {
-        "plan_unit": "Plan A",
-        "documents": [
-          {"type": "SPD", "effective_date": "2020-12-01", "filename": "planA_SPD.pdf"}
-        ]
+Return ONLY the organized overview with no preamble or footnotes. Be as concise as possible without oversimplifying. Maximum 500 words response.`;
       },
-      {
-        "plan_unit": "Plan B",
-        "documents": [
-          {"type": "SPD", "effective_date": "2019-06-01", "filename": "planB_SPD.pdf"},
-          {"type": "SMM", "effective_date": "2022-03-15", "filename": "planB_SMM.pdf"}
-        ]
-      }
-    ],
-    "key_findings": [
-      "Two plans provide $50/month benefit increase while one provides $75/month",
-      "Effective dates vary: two plans effective January 1, one effective July 1",
-      "All documents are SMMs modifying existing SPDs - base SPD comparison would require additional documents"
-    ],
-    "completeness_assessment": "Assessment text here...",
-    "recommendations": [
-      "Recommendation 1...",
-      "Recommendation 2..."
-    ]
-  },
-  "comparison_spreadsheet": {
-    "rows": [
-      {
-        "procedure_element": "Pension Benefit Increase Amount",
-        "plan_values": ["$50 per month increase", "$75 per month increase", "$50 per month increase"]
+
+      phase2: (summaryResponse) => {
+        return `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
+
+<summary>
+${summaryResponse}
+</summary>
+
+I want you to return a detailed and comprehensive table comparing elements across all plans. Columns should represent identified plans, and rows should represent identified procedural elements within the plans. The purpose of this table is to compare procedural elements across all plan documents at a glance.
+
+Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`;
       },
-      {
-        "procedure_element": "Benefit Increase Effective Date",
-        "plan_values": ["January 1, 2021", "July 1, 2021", "January 1, 2021"]
+
+      phase3: (summaryResponse, comparisonResponse) => {
+        return `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
+
+<summary>
+${summaryResponse}
+</summary>
+
+Here is a table comparing the various procedural elements by plan:
+
+<comparison>
+${comparisonResponse}
+</comparison>
+
+I want you to create a more detailed version of this table which fully quotes and cites the language from each and every document which represents the procedural elements being compared. The purpose of this is to facilitate quick analysis of the plan document changes and amendments over time while citing the specific language applicable in as detailed a manner as possible.
+
+Your citations must be in parentheses behind each and every statement cited and must be structured as follows: (filename, page_number, paragraph_number).
+
+Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`;
       }
-    ]
-  },
-  "language_comparison": {
-    "rows": [
-      {
-        "procedure_element": "Pension Benefit Increase Amount",
-        "plan_details": [
-          {
-            "summary": "$50 per month increase",
-            "full_text": "Effective January 1, 2021, the monthly pension benefit for all retirees shall be increased by fifty dollars ($50) per month...",
-            "citation": "SMM Page 2, Paragraph 1"
-          },
-          {
-            "summary": "$75 per month increase",
-            "full_text": "All participants receiving monthly pension benefits shall have their benefit amount increased by seventy-five dollars ($75) effective July 1, 2021...",
-            "citation": "SMM Page 3, Paragraph 2"
-          },
-          {
-            "summary": "$50 per month increase",
-            "full_text": "The Board of Trustees has approved a benefit increase of fifty dollars ($50) per month for all retirees...",
-            "citation": "SMM Page 1, Paragraph 4"
-          }
-        ]
-      }
-    ]
-  }
-}
-\`\`\`
-
-**JSON Output Requirements:**
-1. **Valid JSON Syntax**: Must be parseable by standard JSON parsers
-2. **Complete Coverage**: All detected plan units must appear in every output
-3. **Consistent Ordering**: plan_units array defines order; all other arrays follow same order
-4. **Array Correspondence**: plan_values and plan_details arrays must have same length and order as plan_units
-5. **No Missing Data**: Use "Not specified in documents provided" if information unavailable
-6. **Escape Special Characters**: Properly escape quotes, newlines
-7. **NO TEXT OUTSIDE JSON**: Response must be ONLY the JSON object (no markdown, no explanations)
-
----
-
-## Response Style Guidelines
-
-**Be Direct and Precise:**
-- Lead with findings, not process descriptions
-- Use specific numbers and dates: "60 days" not "short period"
-- State facts without hedging unless genuinely uncertain
-
-**Flag Critical Items:**
-- Use clear indicators for material differences in summary
-- Prioritize provisions that restrict participant rights
-- Note unusually favorable or restrictive provisions
-
-**Maintain Professional Tone:**
-- Analytical and neutral, not advocacy
-- Acknowledge legitimate policy trade-offs
-- Note when variations may reflect different plan demographics
-
-**Handle Ambiguity Transparently:**
-- Explicitly state when information is missing or unclear
-- Distinguish between "not mentioned" vs. "explicitly not required"
-- Suggest what additional documents would clarify uncertainties
-
-**Prioritize Actionability:**
-- Emphasize differences requiring decisions
-- De-emphasize immaterial formatting differences
-- Always explain why differences matter (impact on participants)
-
----
-
-## Critical Reminders
-
-**DO:**
-- ✓ Auto-detect plan unit names, document types, and effective dates from content
-- ✓ Build document hierarchy (SMMs override SPDs)
-- ✓ Extract complete verbatim legal language for language_comparison
-- ✓ Provide precise page and paragraph citations
-- ✓ Include ALL detected plan units in plan_units array and all outputs
-- ✓ Maintain consistent ordering (plan_units defines order for all arrays)
-- ✓ Use standardized procedure element names for consistency
-- ✓ Flag when uncertain rather than guessing
-- ✓ Output ONLY valid, parseable JSON (no other text)
-
-**DO NOT:**
-- ❌ Hardcode plan names - detect actual names from documents
-- ❌ Assume specific plan units exist - only include what's actually uploaded
-- ❌ Paraphrase or summarize legal language in language_comparison (must be verbatim)
-- ❌ Fabricate information not present in documents
-- ❌ Assume plans are identical because they're in same organization
-- ❌ Provide legal advice or definitive compliance opinions
-- ❌ Omit any detected plan units from outputs
-- ❌ Use inconsistent array ordering (must match plan_units array)
-- ❌ Include syntax errors in JSON output
-- ❌ Include any text, markdown formatting, or explanations outside the JSON object
-
----
-
-When the user clicks "Compare Documents", begin your three-phase analysis and respond with ONLY the JSON output.`;
+    };
 
     // Chat Application
     const ChatApp = {
@@ -1915,14 +1820,81 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         abortController: null,
         uploadedFiles: [],
         filesPanelExpanded: true,
-        comparisonData: null, // Stores parsed JSON from comparison
+        // Three-phase response tracking
+        currentPhase: 0, // 0 = not started, 1-3 = active phase
+        summaryResponse: null, // Phase 1 result
+        comparisonResponse: null, // Phase 2 result
+        languageResponse: null, // Phase 3 result
         activeTab: 'summary', // Current active tab
-        isComparisonRequest: false // Track if this is a comparison vs. regular chat
+        isComparisonRequest: false, // Track if this is a comparison vs. regular chat
+        // API key management
+        sessionApiKey: null // API key from modal (session only)
       },
 
       init() {
         this.renderInputArea();
         this.initFileUpload();
+        this.loadSessionApiKey();
+      },
+
+      // API Key Modal Functions
+      showApiKeyModal() {
+        const modal = document.getElementById('api-key-modal');
+        const input = document.getElementById('api-key-input');
+
+        // Pre-fill with session key if exists
+        if (this.state.sessionApiKey) {
+          input.value = this.state.sessionApiKey;
+        }
+
+        modal.style.display = 'flex';
+        setTimeout(() => input.focus(), 100);
+      },
+
+      closeApiKeyModal() {
+        document.getElementById('api-key-modal').style.display = 'none';
+      },
+
+      handleModalClick(event) {
+        // Close modal when clicking on overlay (outside the modal box)
+        if (event.target.id === 'api-key-modal') {
+          this.closeApiKeyModal();
+        }
+      },
+
+      saveApiKey() {
+        const input = document.getElementById('api-key-input');
+        const apiKey = input.value.trim();
+
+        if (!apiKey) {
+          alert('Please enter an API key');
+          return;
+        }
+
+        if (!apiKey.startsWith('AIza')) {
+          alert('Invalid API key format. Gemini API keys start with "AIza"');
+          return;
+        }
+
+        // Store in session storage
+        sessionStorage.setItem('gemini_api_key', apiKey);
+        this.state.sessionApiKey = apiKey;
+
+        console.log('✅ API Key saved to session');
+        this.closeApiKeyModal();
+      },
+
+      loadSessionApiKey() {
+        const savedKey = sessionStorage.getItem('gemini_api_key');
+        if (savedKey) {
+          this.state.sessionApiKey = savedKey;
+          console.log('✅ API Key loaded from session');
+        }
+      },
+
+      getApiKey() {
+        // Use session key if available, otherwise fall back to config.js
+        return this.state.sessionApiKey || CONFIG.GEMINI_API_KEY;
       },
 
       isInitialState() {
@@ -2060,59 +2032,69 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
           this.renderInputArea();
         }
 
-        // Prepare messages for API (Gemini format)
-        const apiContents = [];
-
-        // Build conversation history
-        for (const msg of this.state.messages) {
-          if (msg.role === 'user') {
-            // Build parts array for user message
-            const parts = [];
-
-            // Add all uploaded files as inline_data blocks (only for first user message)
-            if (apiContents.length === 0) {
-              const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
-              uploadedFiles.forEach(file => {
-                parts.push({
-                  inline_data: {
-                    mime_type: file.mimeType,
-                    data: file.base64Data
-                  }
-                });
-              });
-            }
-
-            // Add user text
-            parts.push({ text: msg.content });
-
-            apiContents.push({ role: 'user', parts });
-          } else {
-            // For model messages, include thinking summaries if present
-            const parts = [];
-            if (msg.thinking) {
-              parts.push({ text: msg.thinking });
-            }
-            parts.push({ text: msg.content });
-            apiContents.push({ role: 'model', parts });
-          }
+        // For comparison requests, run three-phase analysis
+        if (this.state.isComparisonRequest) {
+          await this.runThreePhaseComparison();
+          return;
         }
 
-        // Start streaming
+        // For regular chat (not implemented in this version)
+        alert('Regular chat mode is not implemented. Please use the Compare Documents button.');
+      },
+
+      async runThreePhaseComparison() {
         this.state.isStreaming = true;
-        this.state.currentThinking = '';
-        this.state.currentResponse = '';
-        this.state.currentBlockType = null;
         this.updateSendButton(true);
 
-        // Create streaming message container
+        // Show loading indicator
         this.createStreamingMessage();
 
         try {
-          await this.streamResponse(apiContents);
+          // PHASE 1: Document Summary
+          this.state.currentPhase = 1;
+          this.updateComparisonPhase(1, 'Reading and identifying document structure...');
+          this.state.currentResponse = '';
+          this.state.currentThinking = '';
+
+          const prompt1 = PROMPT_TEMPLATES.phase1();
+          this.state.summaryResponse = await this.streamResponse(prompt1, true); // true = upload files
+
+          // Populate Summary tab
+          this.renderSummaryTab();
+          this.activateTab('summary');
+
+          // PHASE 2: Comparison Table
+          this.state.currentPhase = 2;
+          this.updateComparisonPhase(2, 'Building comparison table across plans...');
+          this.state.currentResponse = '';
+          this.state.currentThinking = '';
+
+          const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse);
+          this.state.comparisonResponse = await this.streamResponse(prompt2, true); // true = upload files fresh
+
+          // Populate Comparison tab
+          this.renderComparisonTab();
+
+          // PHASE 3: Language Comparison
+          this.state.currentPhase = 3;
+          this.updateComparisonPhase(3, 'Extracting detailed language with citations...');
+          this.state.currentResponse = '';
+          this.state.currentThinking = '';
+
+          const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse);
+          this.state.languageResponse = await this.streamResponse(prompt3, true); // true = upload files fresh
+
+          // Populate Language tab
+          this.renderLanguageTab();
+
+          // Complete - remove loading indicator and show output tabs
+          this.finalizeThreePhaseComparison();
+
         } catch (error) {
           this.handleError(error);
         } finally {
           this.state.isStreaming = false;
+          this.state.currentPhase = 0;
           this.updateSendButton(false);
         }
       },
@@ -2164,42 +2146,84 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         this.scrollToBottom();
       },
 
-      async streamResponse(contents) {
+      async streamResponse(userPrompt, uploadFiles = false) {
         this.state.abortController = new AbortController();
 
-        const model = CONFIG.MODEL || 'gemini-2.0-flash-exp';
+        // Build message parts
+        const parts = [];
+
+        // Add uploaded files if requested (fresh upload for each phase)
+        if (uploadFiles) {
+          const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+          uploadedFiles.forEach(file => {
+            parts.push({
+              inline_data: {
+                mime_type: file.mimeType,
+                data: file.base64Data
+              }
+            });
+          });
+          console.log(`📤 API Request: Uploading ${uploadedFiles.length} PDF file(s)`);
+        }
+
+        // Add user prompt text
+        parts.push({ text: userPrompt });
+
+        const contents = [{ role: 'user', parts }];
+
+        const model = CONFIG.MODEL || 'gemini-2.5-pro';
+
+        // Build request body with vanilla system instruction
+        const requestBody = {
+          systemInstruction: {
+            parts: [{ text: 'You are a helpful assistant.' }]
+          },
+          contents: contents,
+          generationConfig: {
+            maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 8192,
+            temperature: 1.0
+          }
+        };
+
+        // NOTE: thinking_config is not yet available in the Gemini API
+        // The model will still perform internal reasoning, but we cannot configure the budget
+        // Keeping THINKING_BUDGET in config for future use when API supports it
+        // if (CONFIG.THINKING_BUDGET && CONFIG.THINKING_BUDGET > 0) {
+        //   requestBody.generationConfig.thinking_config = {
+        //     budget_tokens: CONFIG.THINKING_BUDGET
+        //   };
+        // }
+
+        console.log(`📤 API Request: Phase ${this.state.currentPhase}/3 to ${model}`);
+        console.log(`📝 Prompt (first 200 chars): ${userPrompt.substring(0, 200)}...`);
+
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-goog-api-key': CONFIG.GEMINI_API_KEY
+              'x-goog-api-key': this.getApiKey()
             },
-            body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: SYSTEM_PROMPT_TEXT }]
-              },
-              contents: contents,
-              generationConfig: {
-                maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 4096,
-                temperature: 1.0
-              }
-            }),
+            body: JSON.stringify(requestBody),
             signal: this.state.abortController.signal
           }
         );
 
         if (!response.ok) {
           const errorText = await response.text();
+          console.error(`❌ API Error (${response.status}):`, errorText);
           throw new Error(`API request failed (${response.status}): ${errorText}`);
         }
+
+        console.log(`✅ API Response: Streaming started`);
 
         const reader = response.body
           .pipeThrough(new TextDecoderStream())
           .getReader();
 
         let buffer = '';
+        let chunkCount = 0;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -2219,6 +2243,7 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
                   const jsonData = line.slice(6);
                   const chunk = JSON.parse(jsonData);
                   this.handleStreamChunk(chunk);
+                  chunkCount++;
                 } catch (e) {
                   console.error('Parse error:', e, line);
                 }
@@ -2227,7 +2252,11 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
           }
         }
 
-        this.finalizeStreamingMessage();
+        const responseLength = this.state.currentResponse.length;
+        console.log(`✅ API Response Complete: Phase ${this.state.currentPhase}/3 - ${chunkCount} chunks, ${responseLength} chars`);
+
+        // Return the accumulated response
+        return this.state.currentResponse;
       },
 
       handleStreamChunk(chunk) {
@@ -2286,12 +2315,6 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
       },
 
       updateStreamingResponse() {
-        // For comparison requests, update progress phase instead of showing JSON
-        if (this.state.isComparisonRequest) {
-          this.updateComparisonProgress();
-          return;
-        }
-
         const responseDiv = document.getElementById('streaming-response');
         if (responseDiv) {
           responseDiv.innerHTML = marked.parse(this.state.currentResponse);
@@ -2299,33 +2322,11 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         }
       },
 
-      updateComparisonProgress() {
+      updateComparisonPhase(phase, phaseText) {
         const phaseDiv = document.getElementById('comparison-phase');
-        if (!phaseDiv) return;
-
-        const response = this.state.currentResponse;
-
-        // Detect which phase based on JSON structure
-        let phase = 1;
-        let phaseText = 'Reading and identifying document structure...';
-
-        if (response.includes('"document_inventory"')) {
-          phase = 1;
-          phaseText = 'Phase 1: Building document inventory and assessing completeness...';
+        if (phaseDiv) {
+          phaseDiv.textContent = `Phase ${phase}/3: ${phaseText}`;
         }
-
-        if (response.includes('"comparison_spreadsheet"') || response.includes('"rows"')) {
-          phase = 2;
-          phaseText = 'Phase 2: Extracting and comparing provisions across plans...';
-        }
-
-        if (response.includes('"language_comparison"') || response.includes('"plan_details"')) {
-          phase = 3;
-          phaseText = 'Phase 3: Generating detailed language comparison with citations...';
-        }
-
-        // Update phase text
-        phaseDiv.textContent = phaseText;
 
         // Update progress dots
         for (let i = 1; i <= 3; i++) {
@@ -2337,6 +2338,64 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
               dot.classList.remove('active');
             }
           }
+        }
+      },
+
+      finalizeThreePhaseComparison() {
+        // Remove loading indicator
+        const comparisonLoading = document.getElementById('comparison-loading');
+        if (comparisonLoading) {
+          comparisonLoading.remove();
+        }
+
+        // Hide messages container, show output tabs
+        document.getElementById('messages').style.display = 'none';
+        document.getElementById('output-tabs').classList.add('active');
+
+        // Reset state
+        this.state.isComparisonRequest = false;
+      },
+
+      renderSummaryTab() {
+        const output = document.getElementById('summary-output');
+        // Render the summary response as markdown
+        output.innerHTML = marked.parse(this.state.summaryResponse || '');
+      },
+
+      renderComparisonTab() {
+        const output = document.getElementById('comparison-output');
+        // Parse the comparison response and render as HTML table
+        // The response should be a markdown table, so we can render it directly
+        output.innerHTML = marked.parse(this.state.comparisonResponse || '');
+      },
+
+      renderLanguageTab() {
+        const output = document.getElementById('language-output');
+        // Parse the language comparison response and render as HTML table
+        // The response should be a markdown table, so we can render it directly
+        output.innerHTML = marked.parse(this.state.languageResponse || '');
+      },
+
+      activateTab(tabName) {
+        // Update active tab in state
+        this.state.activeTab = tabName;
+
+        // Update tab button classes
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        const activeButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+        if (activeButton) {
+          activeButton.classList.add('active');
+        }
+
+        // Show/hide tab content
+        document.querySelectorAll('.tab-content').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        const activeTab = document.getElementById(`tab-${tabName}`);
+        if (activeTab) {
+          activeTab.classList.add('active');
         }
       },
 
@@ -2837,37 +2896,14 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
         output.innerHTML = html;
       },
 
-      // ===== Excel Download Functions =====
+      // ===== Download Functions =====
 
       downloadSummary() {
-        if (!this.state.comparisonData) return;
+        if (!this.state.summaryResponse) return;
 
-        const summaryData = this.state.comparisonData.summary;
-        let markdown = '# SPD Comparison Summary\n\n';
+        // Download the summary response as markdown
+        const markdown = '# SPD Comparison Summary\n\n' + this.state.summaryResponse;
 
-        markdown += '## Document Inventory\n\n';
-        summaryData.document_inventory.forEach(unit => {
-          markdown += `### ${unit.plan_unit}\n`;
-          unit.documents.forEach(doc => {
-            markdown += `- **${doc.type}** (Effective: ${doc.effective_date}) - ${doc.filename}\n`;
-          });
-          markdown += '\n';
-        });
-
-        markdown += '## Key Findings\n\n';
-        summaryData.key_findings.forEach(finding => {
-          markdown += `- ${finding}\n`;
-        });
-
-        markdown += '\n## Completeness Assessment\n\n';
-        markdown += summaryData.completeness_assessment + '\n\n';
-
-        markdown += '## Recommendations\n\n';
-        summaryData.recommendations.forEach(rec => {
-          markdown += `- ${rec}\n`;
-        });
-
-        // Download as .md file
         const blob = new Blob([markdown], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2880,107 +2916,37 @@ When the user clicks "Compare Documents", begin your three-phase analysis and re
       },
 
       downloadComparisonSpreadsheet() {
-        if (!this.state.comparisonData) return;
+        if (!this.state.comparisonResponse) return;
 
-        const data = this.state.comparisonData.comparison_spreadsheet;
-        const planUnits = this.state.comparisonData.plan_units;
+        // Download the comparison table as markdown
+        const markdown = '# SPD Comparison Table\n\n' + this.state.comparisonResponse;
 
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-
-        // Convert to array format for XLSX
-        const wsData = [];
-
-        // Add headers: Procedure Element + all plan units
-        const headers = ['Procedure Element', ...planUnits];
-        wsData.push(headers);
-
-        // Add data rows
-        data.rows.forEach(row => {
-          const rowData = [row.procedure_element, ...row.plan_values.map(v => v || 'Not specified')];
-          wsData.push(rowData);
-        });
-
-        // Create worksheet
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-        // Set column widths dynamically
-        const colWidths = [{ wch: 30 }]; // Procedure Element
-        planUnits.forEach(() => colWidths.push({ wch: 25 })); // Each plan
-        ws['!cols'] = colWidths;
-
-        // Freeze first row
-        ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-
-        // Add worksheet to workbook
-        XLSX.utils.book_append_sheet(wb, ws, 'Procedure Comparison');
-
-        // Download
-        XLSX.writeFile(wb, 'SPD_Comparison_Spreadsheet.xlsx');
+        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'SPD_Comparison_Table.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       },
 
       downloadLanguageComparison() {
-        if (!this.state.comparisonData) return;
+        if (!this.state.languageResponse) return;
 
-        const data = this.state.comparisonData.language_comparison;
-        const planUnits = this.state.comparisonData.plan_units;
+        // Download the language comparison as markdown
+        const markdown = '# SPD Language Comparison\n\n' + this.state.languageResponse;
 
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-
-        // Convert to array format
-        const wsData = [];
-
-        // Add headers
-        wsData.push(['Procedure Element', 'Plan Unit', 'Summary', 'Full Text', 'Citation']);
-
-        // Add data rows
-        data.rows.forEach(row => {
-          row.plan_details.forEach((details, index) => {
-            const planName = planUnits[index] || `Plan ${index + 1}`;
-
-            wsData.push([
-              row.procedure_element,
-              planName,
-              details.summary,
-              details.full_text,
-              details.citation
-            ]);
-          });
-          // Add empty row between procedure elements
-          wsData.push(['', '', '', '', '']);
-        });
-
-        // Create worksheet
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-        // Set column widths
-        ws['!cols'] = [
-          { wch: 30 }, // Procedure Element
-          { wch: 20 }, // Plan Unit
-          { wch: 30 }, // Summary
-          { wch: 80 }, // Full Text (wide for legal language)
-          { wch: 25 }  // Citation
-        ];
-
-        // Freeze first row
-        ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-
-        // Enable text wrapping for full text column
-        const range = XLSX.utils.decode_range(ws['!ref']);
-        for (let R = 1; R <= range.e.r; ++R) {
-          const cellAddress = XLSX.utils.encode_cell({ r: R, c: 3 }); // Column D (Full Text)
-          if (ws[cellAddress]) {
-            if (!ws[cellAddress].s) ws[cellAddress].s = {};
-            ws[cellAddress].s.alignment = { wrapText: true, vertical: 'top' };
-          }
-        }
-
-        // Add worksheet to workbook
-        XLSX.utils.book_append_sheet(wb, ws, 'Language Comparison');
-
-        // Download
-        XLSX.writeFile(wb, 'SPD_Language_Comparison.xlsx');
+        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'SPD_Language_Comparison.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
     };
 
