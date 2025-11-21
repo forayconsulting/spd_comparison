@@ -130,7 +130,14 @@ No build process, server, or dependencies installation required.
    - Summary tab appears after Phase 1 completes
    - Comparison tab appears after Phase 2 completes
    - Language tab appears after Phase 3 completes
-6. Download any output as markdown using the download buttons in each tab
+   - 💬 Chat tab becomes enabled after Phase 3 completes
+6. **Optional: Chat with Results**
+   - Click the "💬 Chat" tab to enter split-view mode
+   - Left panel shows comparison results (switchable via mini-tabs)
+   - Right panel provides chat interface
+   - Ask questions like "Can you dig in on vesting rules?"
+   - Responses reference comparison table rows and cite documents
+7. Download any output as markdown using the download buttons in each tab
 
 ## Implementation Notes
 
@@ -320,6 +327,110 @@ Collapsible "Plan Docs" section enables drag-and-drop upload of PDF files for do
 - Upload full SPDs and large documents directly
 - No need for excerpts or batching for documents <1,000 pages
 - Can compare 6-10 complete SPDs simultaneously (if each <1,000 pages and total fits in context)
+
+## Chat with Results Feature
+
+**Overview:**
+After the three-phase comparison completes, attorneys can engage in follow-up analysis via an interactive chat interface. This enables focused exploration of specific topics (e.g., "Analyze vesting rules") and validation of findings without re-running the full comparison.
+
+**Architecture:**
+
+**Split-View Layout:**
+```
+┌─────────────────────────────────────────────┐
+│ [Summary] [Comparison] [Language] [💬 Chat] │ ← Tab bar (Chat enabled after Phase 3)
+├──────────────────────┬──────────────────────┤
+│ Results Panel (40%)  │ Chat Panel (60%)     │
+│ [Sum][Cmp][Lng] ←───┤                      │
+│ Mini-tabs            │ User: Can you dig... │
+│                      │ Assistant: Based...   │
+│ [Selected content]   │                      │
+│                      │ ┌─────────────────┐  │
+│                      │ │ Ask a question  │  │
+└──────────────────────┴──┴─────────────────┴──┘
+```
+
+**Context Injection:**
+Each chat message automatically includes:
+1. Phase 1 summary (document overview)
+2. Phase 2 comparison table (procedural elements across plans)
+3. Phase 3 language comparison (full text with citations)
+4. All uploaded PDF files (re-uploaded fresh, consistent with three-phase approach)
+
+The prompt explicitly instructs the model to reference comparison table rows and cite documents when answering questions.
+
+**Implementation Details:**
+
+**State Management:**
+```javascript
+state: {
+  // Chat-specific properties
+  chatMessages: [],              // [{role, content, timestamp}]
+  isChatStreaming: false,        // Separate from main comparison streaming
+  currentChatResponse: '',       // Accumulator for chat streaming
+  chatPanelResultTab: 'comparison', // Which result to show in left panel (summary/comparison/language)
+  // ... existing state properties
+}
+```
+
+**Key Methods:**
+- `switchTab('chat')`: Activates split-view mode, hides normal tab view
+- `switchMiniResultTab(resultType)`: Switches left panel between Summary/Comparison/Language
+- `renderMiniResultPanel(resultType)`: Renders selected result in left panel
+- `sendChatMessage(userQuestion)`: Builds context-enriched prompt, uploads PDFs, streams response
+- `buildChatContextPrompt(userQuestion)`: Wraps user question with three analysis outputs
+- `streamChatResponse(prompt, uploadFiles)`: Handles chat streaming (reuses comparison streaming logic)
+- `renderChatMessages()`: Renders chat history with glassmorphism styling
+
+**Chat Prompt Template:**
+```
+You are analyzing pension plan documents. Here is the completed analysis:
+
+<document_summary>
+${Phase 1 Summary}
+</document_summary>
+
+<comparison_table>
+${Phase 2 Comparison}
+</comparison_table>
+
+<detailed_language_comparison>
+${Phase 3 Language Comparison}
+</detailed_language_comparison>
+
+When referencing the comparison table, cite specific rows or elements.
+
+User Question: ${userQuestion}
+```
+
+**UI Features:**
+- **Chat tab**: Initially disabled, enabled after Phase 3 completes
+- **Split view**: Pushes content (resizes), no overlays
+- **Persistent history**: Chat messages remain when switching between tabs
+- **Real-time streaming**: Responses stream with visual indicators
+- **Mini-tabs**: Switch between Summary/Comparison/Language while chatting
+- **Glassmorphism styling**: Matches existing design system
+- **Auto-scroll**: Chat panel scrolls to bottom on new messages
+
+**User Workflow:**
+1. Complete three-phase comparison
+2. Click "💬 Chat" tab
+3. View comparison results in left panel (40%)
+4. Ask questions in right panel chat interface (60%)
+5. Receive context-aware responses that reference analysis
+6. Switch between results using mini-tabs while chatting
+7. Chat history persists across tab switches
+
+**Citation Integration:**
+The chat responses naturally reference:
+- Comparison table rows (e.g., "See row for 'Vesting Service'")
+- Specific plan differences (e.g., "San Diego requires 5 years vs. 3 years for Vegas")
+- Document citations in format: (filename, page_number, paragraph_number)
+
+**Cost Considerations:**
+- Each chat message re-uploads all PDFs (no caching, consistent with comparison approach)
+- Trade-off: Higher cost for better quality and fresh analysis
+- Chat is opt-in, only used when attorneys need focused exploration
 
 ## Git Workflow
 

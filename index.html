@@ -1472,6 +1472,247 @@
       transform: scale(1.3);
     }
 
+    /* Split View Layout for Chat */
+    .split-view {
+      display: none; /* Hidden by default */
+      height: calc(100vh - 200px);
+      gap: 0;
+    }
+
+    .split-view.active {
+      display: flex;
+    }
+
+    .results-panel {
+      flex: 0 0 40%;
+      border-right: 1px solid var(--border-medium);
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-secondary);
+      overflow: hidden;
+    }
+
+    .mini-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-tertiary);
+      flex-shrink: 0;
+    }
+
+    .mini-tab {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .mini-tab:hover {
+      background: var(--surface-glass);
+      color: var(--text-primary);
+      border-color: var(--border-medium);
+    }
+
+    .mini-tab.active {
+      background: var(--text-primary);
+      color: white;
+      border-color: var(--text-primary);
+    }
+
+    .mini-output-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: var(--bg-primary);
+    }
+
+    .mini-output-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .mini-output-content::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    .mini-output-content::-webkit-scrollbar-thumb {
+      background: var(--surface-elevated);
+      border-radius: 3px;
+    }
+
+    /* Chat Panel Styles */
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-primary);
+      overflow: hidden;
+    }
+
+    .chat-messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-messages-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-messages-container::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    .chat-messages-container::-webkit-scrollbar-thumb {
+      background: var(--surface-elevated);
+      border-radius: 4px;
+    }
+
+    .chat-message {
+      animation: slideInUp 0.3s ease;
+    }
+
+    .chat-message.user {
+      align-self: flex-end;
+      max-width: 80%;
+    }
+
+    .chat-message.assistant {
+      align-self: flex-start;
+      max-width: 90%;
+    }
+
+    .chat-message-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .chat-message-content {
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border-medium);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .chat-message.user .chat-message-content {
+      background: rgba(0, 0, 0, 0.02);
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .chat-message-content:hover {
+      box-shadow: var(--shadow-md);
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-medium);
+      background: var(--bg-secondary);
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    #chat-input {
+      flex: 1;
+      min-height: 44px;
+      max-height: 150px;
+      padding: 12px 16px;
+      border: 1px solid var(--border-medium);
+      border-radius: 10px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: none;
+      transition: all 0.2s ease;
+    }
+
+    #chat-input:focus {
+      outline: none;
+      border-color: var(--text-primary);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    }
+
+    #chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    #chat-send-button {
+      padding: 12px 24px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Space Grotesk', sans-serif;
+      white-space: nowrap;
+    }
+
+    #chat-send-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: var(--gradient-accent);
+    }
+
+    #chat-send-button:disabled {
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .chat-streaming-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .chat-streaming-indicator .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      animation: dotPulse 1.4s ease-in-out infinite;
+    }
+
+    .chat-streaming-indicator .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .chat-streaming-indicator .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    .tab-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     /* Responsive Design - Mobile & Tablet */
     @media (max-width: 768px) {
       .chat-header {
@@ -1702,6 +1943,9 @@
         <button class="tab-button" onclick="ChatApp.switchTab('language')">
           Language Comparison
         </button>
+        <button class="tab-button" id="chat-tab-button" onclick="ChatApp.switchTab('chat')" disabled title="Complete the comparison first to enable chat">
+          💬 Chat
+        </button>
       </div>
 
       <!-- Tab 1: Summary -->
@@ -1735,6 +1979,28 @@
           </button>
         </div>
         <div id="language-output"></div>
+      </div>
+    </div>
+
+    <!-- Split View for Chat (shown when chat tab is active) -->
+    <div class="split-view" id="split-view">
+      <!-- Left panel: Results -->
+      <div class="results-panel">
+        <div class="mini-tabs">
+          <button class="mini-tab" data-result="summary" onclick="ChatApp.switchMiniResultTab('summary')">Summary</button>
+          <button class="mini-tab active" data-result="comparison" onclick="ChatApp.switchMiniResultTab('comparison')">Comparison</button>
+          <button class="mini-tab" data-result="language" onclick="ChatApp.switchMiniResultTab('language')">Language</button>
+        </div>
+        <div class="mini-output-content" id="mini-output-content"></div>
+      </div>
+
+      <!-- Right panel: Chat -->
+      <div class="chat-panel">
+        <div class="chat-messages-container" id="chat-messages"></div>
+        <div class="chat-input-area">
+          <textarea id="chat-input" placeholder="Ask about the analysis..." rows="1"></textarea>
+          <button id="chat-send-button">Send</button>
+        </div>
       </div>
     </div>
 
@@ -1827,6 +2093,11 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         languageResponse: null, // Phase 3 result
         activeTab: 'summary', // Current active tab
         isComparisonRequest: false, // Track if this is a comparison vs. regular chat
+        // Chat-specific state
+        chatMessages: [], // [{role, content, timestamp}]
+        isChatStreaming: false, // Separate from main isStreaming
+        currentChatResponse: '', // Accumulator for chat streaming
+        chatPanelResultTab: 'comparison', // Which result to show in left panel
         // API key management
         sessionApiKey: null // API key from modal (session only)
       },
@@ -2346,6 +2617,13 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         document.getElementById('messages').style.display = 'none';
         document.getElementById('output-tabs').classList.add('active');
 
+        // Enable chat tab
+        const chatTabButton = document.getElementById('chat-tab-button');
+        if (chatTabButton) {
+          chatTabButton.disabled = false;
+          chatTabButton.title = 'Chat with the analysis results';
+        }
+
         // Reset state
         this.state.isComparisonRequest = false;
       },
@@ -2760,12 +3038,352 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         });
         event.target.classList.add('active');
 
-        // Update tab content
-        document.querySelectorAll('.tab-content').forEach(content => {
-          content.classList.remove('active');
-        });
-        document.getElementById(`tab-${tabName}`).classList.add('active');
+        if (tabName === 'chat') {
+          // Hide normal tabs, show split view
+          document.getElementById('output-tabs').style.display = 'none';
+          document.getElementById('split-view').classList.add('active');
+
+          // Render left panel with current result
+          this.renderMiniResultPanel(this.state.chatPanelResultTab);
+
+          // Render chat messages
+          this.renderChatMessages();
+
+          // Initialize chat event listeners
+          this.initChatEventListeners();
+        } else {
+          // Hide split view, show normal tabs
+          document.getElementById('split-view').classList.remove('active');
+          document.getElementById('output-tabs').style.display = 'flex';
+
+          // Update tab content
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
       },
+
+      // ===== Chat Feature Methods =====
+
+      switchMiniResultTab(resultType) {
+        // Update state
+        this.state.chatPanelResultTab = resultType;
+
+        // Update mini-tab styling
+        document.querySelectorAll('.mini-tab').forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.result === resultType);
+        });
+
+        // Render selected result in left panel
+        this.renderMiniResultPanel(resultType);
+      },
+
+      renderMiniResultPanel(resultType) {
+        const content = document.getElementById('mini-output-content');
+        let markdown = '';
+
+        switch(resultType) {
+          case 'summary':
+            markdown = this.state.summaryResponse;
+            break;
+          case 'comparison':
+            markdown = this.state.comparisonResponse;
+            break;
+          case 'language':
+            markdown = this.state.languageResponse;
+            break;
+        }
+
+        content.innerHTML = marked.parse(markdown || '');
+      },
+
+      initChatEventListeners() {
+        const chatInput = document.getElementById('chat-input');
+        const chatSendButton = document.getElementById('chat-send-button');
+
+        // Remove existing listeners to avoid duplicates
+        const newChatInput = chatInput.cloneNode(true);
+        const newChatSendButton = chatSendButton.cloneNode(true);
+        chatInput.parentNode.replaceChild(newChatInput, chatInput);
+        chatSendButton.parentNode.replaceChild(newChatSendButton, chatSendButton);
+
+        // Add new listeners
+        newChatSendButton.addEventListener('click', () => {
+          const message = newChatInput.value.trim();
+          if (message && !this.state.isChatStreaming) {
+            this.sendChatMessage(message);
+            newChatInput.value = '';
+            newChatInput.style.height = 'auto';
+          }
+        });
+
+        newChatInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            newChatSendButton.click();
+          }
+        });
+
+        newChatInput.addEventListener('input', () => {
+          newChatInput.style.height = 'auto';
+          newChatInput.style.height = Math.min(newChatInput.scrollHeight, 150) + 'px';
+        });
+      },
+
+      async sendChatMessage(userQuestion) {
+        // Add user message to chat history
+        this.state.chatMessages.push({
+          role: 'user',
+          content: userQuestion,
+          timestamp: new Date().toISOString()
+        });
+
+        this.renderChatMessages();
+
+        // Build context-enriched prompt
+        const contextPrompt = this.buildChatContextPrompt(userQuestion);
+
+        // Stream response with PDFs re-uploaded
+        this.state.isChatStreaming = true;
+        this.state.currentChatResponse = '';
+
+        // Show streaming indicator
+        this.showChatStreamingIndicator();
+
+        const chatSendButton = document.getElementById('chat-send-button');
+        if (chatSendButton) {
+          chatSendButton.disabled = true;
+          chatSendButton.textContent = 'Sending...';
+        }
+
+        try {
+          const response = await this.streamChatResponse(contextPrompt, true);
+
+          // Add assistant response to history
+          this.state.chatMessages.push({
+            role: 'assistant',
+            content: response,
+            timestamp: new Date().toISOString()
+          });
+
+          this.renderChatMessages();
+        } catch (error) {
+          console.error('Chat error:', error);
+          this.state.chatMessages.push({
+            role: 'assistant',
+            content: `Error: ${error.message}`,
+            timestamp: new Date().toISOString()
+          });
+          this.renderChatMessages();
+        } finally {
+          this.state.isChatStreaming = false;
+          this.state.currentChatResponse = '';
+
+          if (chatSendButton) {
+            chatSendButton.disabled = false;
+            chatSendButton.textContent = 'Send';
+          }
+        }
+      },
+
+      buildChatContextPrompt(userQuestion) {
+        return `You are analyzing pension plan documents. Here is the completed analysis:
+
+<document_summary>
+${this.state.summaryResponse}
+</document_summary>
+
+<comparison_table>
+${this.state.comparisonResponse}
+</comparison_table>
+
+<detailed_language_comparison>
+${this.state.languageResponse}
+</detailed_language_comparison>
+
+When referencing the comparison table, cite specific rows or elements (e.g., "See the comparison for 'Claims Procedures'" or "According to row X in the table").
+
+User Question: ${userQuestion}`;
+      },
+
+      async streamChatResponse(prompt, uploadFiles) {
+        this.state.abortController = new AbortController();
+
+        // Build message parts
+        const parts = [];
+
+        // Re-upload PDFs
+        if (uploadFiles) {
+          const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+          uploadedFiles.forEach(file => {
+            parts.push({
+              inline_data: {
+                mime_type: file.mimeType,
+                data: file.base64Data
+              }
+            });
+          });
+          console.log(`📤 Chat API Request: Uploading ${uploadedFiles.length} PDF file(s)`);
+        }
+
+        parts.push({ text: prompt });
+
+        const contents = [{ role: 'user', parts }];
+
+        const model = CONFIG.MODEL || 'gemini-3-pro-preview';
+
+        const requestBody = {
+          systemInstruction: {
+            parts: [{ text: 'You are a helpful assistant.' }]
+          },
+          contents: contents,
+          generationConfig: {
+            maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 32768,
+            temperature: 1.0,
+            thinkingConfig: {
+              thinkingLevel: CONFIG.THINKING_LEVEL || 'high'
+            }
+          }
+        };
+
+        console.log(`📤 Chat API Request to ${model}`);
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': this.getApiKey()
+            },
+            body: JSON.stringify(requestBody),
+            signal: this.state.abortController.signal
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ Chat API Error (${response.status}):`, errorText);
+          throw new Error(`API request failed (${response.status}): ${errorText}`);
+        }
+
+        console.log(`✅ Chat API Response: Streaming started`);
+
+        const reader = response.body
+          .pipeThrough(new TextDecoderStream())
+          .getReader();
+
+        let buffer = '';
+        let chunkCount = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += value;
+          const events = buffer.split(/\r?\n\r?\n/);
+          buffer = events.pop() || '';
+
+          for (const event of events) {
+            if (!event.trim()) continue;
+
+            const lines = event.split(/\r?\n/);
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const jsonData = line.slice(6);
+                  const chunk = JSON.parse(jsonData);
+                  this.handleChatStreamChunk(chunk);
+                  chunkCount++;
+                } catch (e) {
+                  console.error('Parse error:', e, line);
+                }
+              }
+            }
+          }
+        }
+
+        console.log(`✅ Chat API Response Complete: ${chunkCount} chunks, ${this.state.currentChatResponse.length} chars`);
+
+        return this.state.currentChatResponse;
+      },
+
+      handleChatStreamChunk(chunk) {
+        const candidate = chunk.candidates?.[0];
+        if (!candidate || !candidate.content || !candidate.content.parts) return;
+
+        for (const part of candidate.content.parts) {
+          if (part.text) {
+            this.state.currentChatResponse += part.text;
+            this.updateChatStreamingMessage();
+          }
+        }
+      },
+
+      showChatStreamingIndicator() {
+        const chatMessages = document.getElementById('chat-messages');
+        const streamingDiv = document.createElement('div');
+        streamingDiv.id = 'chat-streaming-message';
+        streamingDiv.className = 'chat-message assistant';
+        streamingDiv.innerHTML = `
+          <div class="chat-message-header">Assistant</div>
+          <div class="chat-message-content">
+            <div id="chat-streaming-response"></div>
+            <div class="chat-streaming-indicator">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+          </div>
+        `;
+        chatMessages.appendChild(streamingDiv);
+        this.scrollChatToBottom();
+      },
+
+      updateChatStreamingMessage() {
+        const responseDiv = document.getElementById('chat-streaming-response');
+        if (responseDiv) {
+          responseDiv.innerHTML = marked.parse(this.state.currentChatResponse);
+          this.scrollChatToBottom();
+        }
+      },
+
+      renderChatMessages() {
+        const chatMessages = document.getElementById('chat-messages');
+
+        // Remove streaming message if exists
+        const streamingMsg = document.getElementById('chat-streaming-message');
+        if (streamingMsg) {
+          streamingMsg.remove();
+        }
+
+        // Render all messages
+        chatMessages.innerHTML = this.state.chatMessages.map(msg => {
+          const roleClass = msg.role === 'user' ? 'user' : 'assistant';
+          const header = msg.role === 'user' ? 'You' : 'Assistant';
+
+          return `
+            <div class="chat-message ${roleClass}">
+              <div class="chat-message-header">${header}</div>
+              <div class="chat-message-content">
+                ${msg.role === 'assistant' ? marked.parse(msg.content) : this.escapeHtml(msg.content)}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        this.scrollChatToBottom();
+      },
+
+      scrollChatToBottom() {
+        const container = document.getElementById('chat-messages');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      },
+
+      // ===== End Chat Feature Methods =====
 
       parseAndRenderOutputs(jsonResponse) {
         try {
