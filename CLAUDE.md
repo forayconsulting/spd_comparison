@@ -21,7 +21,7 @@ See `requirements/new-requirements.md` for detailed business requirements.
 
 The project uses a browser-based application (`index.html`) that integrates with Google's Gemini API using **three sequential API calls** with progressive context engineering:
 
-- **Model:** Gemini 2.5 Pro (best for comprehensive document analysis)
+- **Model:** Gemini 3 Pro Preview (most advanced reasoning model, 65k token output)
 - **Context Window:** 1 million tokens (~750,000 words or ~1,500 pages)
 - **Streaming:** Real-time SSE (Server-Sent Events) streaming via Fetch API
 - **Workflow:** Three sequential phases, each re-uploading PDFs for fresh analysis
@@ -83,9 +83,9 @@ The project uses a browser-based application (`index.html`) that integrates with
 - `config.example.js` provides template
 - Configuration object:
   - `CONFIG.GEMINI_API_KEY`: API key from Google AI Studio
-  - `CONFIG.MODEL`: Model to use (default: gemini-2.0-flash-exp)
-  - `CONFIG.MAX_OUTPUT_TOKENS`: 8192 (increased for longer responses)
-  - `CONFIG.THINKING_BUDGET`: Reserved for future use (thinking_config not yet available in API)
+  - `CONFIG.MODEL`: Model to use (default: gemini-3-pro-preview)
+  - `CONFIG.MAX_OUTPUT_TOKENS`: 32768 (Gemini 3 Pro supports up to 65,536 tokens)
+  - `CONFIG.THINKING_LEVEL`: Controls reasoning depth - 'low' (fast) or 'high' (deep reasoning, default). Used in `thinkingConfig.thinkingLevel` API parameter.
 
 ### File Structure
 
@@ -227,10 +227,11 @@ for (const line of lines) {
 }
 ```
 
-**No Thinking Visibility:**
-- Gemini 2.0+ models have internal reasoning but don't expose it via API
-- `thinking_config` parameter exists in docs but returns 400 error (not yet available)
-- Model still reasons internally for better responses
+**Internal Reasoning:**
+- Gemini 3 Pro has configurable internal reasoning via `thinkingConfig.thinkingLevel` parameter
+- Structure: `generationConfig: { thinkingConfig: { thinkingLevel: 'high' } }`
+- Options: `'low'` (fast, cost-effective) or `'high'` (deep reasoning, default)
+- Reasoning happens internally and is not exposed in API responses
 - No equivalent to Claude's visible thinking blocks
 
 **State Management:**
@@ -292,10 +293,11 @@ Collapsible "Plan Docs" section enables drag-and-drop upload of PDF files for do
 **The Gemini Advantage:** 1,000 pages **per individual PDF document**
 
 **Comparison:**
-| Provider | Pages per PDF | Total Context |
-|----------|---------------|---------------|
-| **Gemini 2.5 Pro** | 1,000 pages | 1M tokens (~1,500 pages total) |
-| Claude Haiku/Sonnet | 100 pages | 200k tokens (~400 pages total) |
+| Provider | Pages per PDF | Total Context | Max Output |
+|----------|---------------|---------------|------------|
+| **Gemini 3 Pro Preview** | 1,000 pages | 1M tokens (~1,500 pages total) | 65k tokens |
+| Gemini 2.5 Pro | 1,000 pages | 1M tokens (~1,500 pages total) | 8k tokens |
+| Claude Haiku/Sonnet | 100 pages | 200k tokens (~400 pages total) | 8k tokens |
 
 **What Now Works (vs. Claude):**
 - ✅ Large SPDs (100-1,000 pages each)

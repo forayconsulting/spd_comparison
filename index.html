@@ -1633,7 +1633,7 @@
     <header class="chat-header">
       <h1>SPD Plan Comparison Agent</h1>
       <div class="model-badge" onclick="ChatApp.showApiKeyModal()">
-        <span class="thinking-indicator-badge">GEMINI 2.5 PRO</span>
+        <span class="thinking-indicator-badge">GEMINI 3 PRO</span>
       </div>
     </header>
 
@@ -2171,7 +2171,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
         const contents = [{ role: 'user', parts }];
 
-        const model = CONFIG.MODEL || 'gemini-2.5-pro';
+        const model = CONFIG.MODEL || 'gemini-3-pro-preview';
 
         // Build request body with vanilla system instruction
         const requestBody = {
@@ -2180,19 +2180,13 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           },
           contents: contents,
           generationConfig: {
-            maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 8192,
-            temperature: 1.0
+            maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 32768,
+            temperature: 1.0,
+            thinkingConfig: {
+              thinkingLevel: CONFIG.THINKING_LEVEL || 'high'
+            }
           }
         };
-
-        // NOTE: thinking_config is not yet available in the Gemini API
-        // The model will still perform internal reasoning, but we cannot configure the budget
-        // Keeping THINKING_BUDGET in config for future use when API supports it
-        // if (CONFIG.THINKING_BUDGET && CONFIG.THINKING_BUDGET > 0) {
-        //   requestBody.generationConfig.thinking_config = {
-        //     budget_tokens: CONFIG.THINKING_BUDGET
-        //   };
-        // }
 
         console.log(`📤 API Request: Phase ${this.state.currentPhase}/3 to ${model}`);
         console.log(`📝 Prompt (first 200 chars): ${userPrompt.substring(0, 200)}...`);
