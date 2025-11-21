@@ -7,31 +7,41 @@ An AI-powered tool for comparing pension plan documents to identify policy diffe
 This tool helps pension fund administrators quickly compare Summary Plan Descriptions (SPDs), Summary of Material Modifications (SMMs), and related plan documents across multiple plan units. Instead of manually reviewing hundreds of pages, you can:
 
 - **Upload multiple plan documents** (PDFs) from different plan units
-- **Get instant AI analysis** comparing claims procedures, appeals processes, arbitration requirements, and other key provisions
-- **Identify critical differences** that affect participant rights and benefits
-- **Receive structured reports** in XML format with detailed findings and recommendations
+- **Get comprehensive three-phase analysis:** Document summary → Comparison table → Detailed language citations
+- **Identify critical differences** across all plan provisions with exact page references
+- **Chat with results** to explore specific topics and ask follow-up questions
+- **Export to Excel** for further analysis and documentation
 
 ## Key Features
 
-### Intelligent Document Analysis
-Powered by Google Gemini 2.5 Pro with specialized expertise in:
-- ERISA pension plan regulations and compliance
-- Multiemployer pension fund structures
-- Claims and appeals procedures under DOL regulations
-- Arbitration and dispute resolution in pension contexts
+### Three-Phase Sequential Analysis
+Powered by Google Gemini 3 Pro Preview with progressive context engineering:
 
-### Simple Workflow
-1. Click "Plan Docs" to expand the file upload section
-2. Drag and drop your PDF documents or click to browse
-3. Click "Compare Documents" to start the analysis
-4. Review the detailed comparison report
-5. Ask follow-up questions to dig deeper
+**Phase 1: Document Summary**
+- Comprehensive overview of all uploaded documents
+- Identifies plan structures, relationships, and key domains
+- Concise 500-word summary for quick understanding
 
-### Smart Comparison Features
-- **Structured Analysis:** Extracts claims procedures, appeals timeframes, arbitration requirements, and more
-- **Critical Finding Flags:** Highlights provisions that substantially restrict or protect participant rights
-- **Risk Assessment:** Identifies potential legal compliance issues
-- **Standardization Recommendations:** Suggests where alignment would benefit participants
+**Phase 2: Comparison Spreadsheet**
+- Side-by-side comparison table of all procedural elements
+- Compares provisions across all plan units
+- Identifies similarities and differences systematically
+
+**Phase 3: Language Comparison**
+- Detailed extraction with full legal text and exact citations
+- Format: `(filename, page_number, paragraph_number)`
+- Complete language for legal review and standardization
+
+### Interactive Chat Feature
+After analysis completes, a collapsible chat sidebar appears:
+- **Ask follow-up questions** about specific provisions
+- **Explore topics in depth** with context-aware responses
+- **All three analysis outputs** automatically included in chat context
+- **Fresh PDF analysis** with each question for accuracy
+
+### Export Options
+- **Download as Markdown:** Save any tab's content for documentation
+- **Excel Export (Coming Soon):** Generate spreadsheets for stakeholder review
 
 ## Getting Started
 
@@ -43,17 +53,20 @@ Powered by Google Gemini 2.5 Pro with specialized expertise in:
 1. Copy `config.example.js` to `config.js`
 2. Open `config.js` and add your Gemini API key
 3. Open `index.html` in your web browser
-4. Start comparing documents!
+4. Click "Plan Docs" to upload SPD/SMM documents
+5. Click "Compare Documents" to start three-phase analysis
+6. Use the chat sidebar for follow-up questions
 
 No installation, no command line, no technical setup required.
 
 ## Usage Tips
 
 ### Best Practices
-- **Use clear, focused uploads:** Group related documents (e.g., all SMMs about disability procedures) for targeted comparisons
-- **Ask specific questions** like "What are the appeals filing deadlines?" or "Compare arbitration requirements"
-- **Request structured output** by asking for "XML format" or "comparison table"
-- **Leverage large context:** Upload multiple large documents simultaneously (up to 1,000 pages total)
+- **Upload all relevant documents:** The tool handles up to 1,000 pages per PDF
+- **Review all three tabs:** Summary for overview, Comparison for structure, Language for exact text
+- **Use chat for specific questions:** "What are the claims filing deadlines for San Francisco?" or "Compare arbitration requirements"
+- **Download markdown exports:** Save analysis outputs for documentation and stakeholder review
+- **Leverage progressive analysis:** Each phase builds on the previous for increasingly detailed insights
 
 ### Document Limits
 - **File size:** 20 MB per file maximum (inline upload)
@@ -66,38 +79,49 @@ The expanded limits allow you to compare complete SPDs, not just excerpts.
 ## Example Use Cases
 
 ### Post-Merger Standardization
-*"I just merged 10 local pension plans. Which ones have different appeals procedures?"*
+*"I just merged 5 local pension plans. Which ones have different appeals procedures?"*
 
-Upload SPDs from all 10 plans → Click Compare → Get a structured breakdown of differences in appeals filing deadlines, review processes, and claimant rights.
+1. Upload SPDs from all 5 plans
+2. Review Phase 2 Comparison tab for side-by-side appeals procedures
+3. Check Phase 3 Language tab for exact text with citations
+4. Use chat: "Which plan has the longest appeals deadline?"
 
 ### Compliance Review
-*"Do any of our plans have mandatory arbitration clauses that might face legal challenges?"*
+*"Do any of our plans have mandatory arbitration clauses?"*
 
-Upload relevant plan documents → Ask about arbitration → Get analysis with risk assessment and recent case law considerations.
+1. Upload all plan documents
+2. Review Phase 1 Summary for quick overview
+3. Use chat: "Compare arbitration requirements across all plans"
+4. Get detailed analysis with specific page references
 
 ### Policy Harmonization
-*"We want to standardize claims procedures. What's the range of decision timeframes across our plans?"*
+*"We want to standardize claims procedures across all merged plans."*
 
-Upload claims procedure sections → Request comparison → Receive participant-protection ranking and standardization recommendations.
+1. Upload all SPDs
+2. Export Phase 2 Comparison tab as markdown
+3. Use chat to explore: "What's the most participant-friendly claims deadline?"
+4. Share analysis with legal team for harmonization decisions
 
 ## Cost Efficiency
 
-This tool uses Google Gemini 2.5 Pro with smart caching:
+This tool uses Google Gemini 3 Pro Preview (most advanced reasoning model):
 
-- **First comparison:** $1.25 per million input tokens (≤200k context), $2.50/M (>200k)
-- **Follow-up questions:** 75% cheaper with implicit caching (automatic)
-- **Output:** $10.00 per million output tokens (≤200k), $15.00/M (>200k)
-- **Typical session:** Analyze 5-10 documents with multiple questions for under $2
+- **Three-phase analysis:** Each phase re-uploads PDFs for fresh analysis (no caching)
+- **Input cost:** $2.50 per million input tokens (>200k context)
+- **Output cost:** $15.00 per million output tokens (>200k context), up to 65k tokens per response
+- **Chat feature:** Re-uploads PDFs + includes all three analysis outputs in context
+- **Typical session:** 5-10 documents + 3-5 chat questions = ~$3-5 total
 
 Compare this to:
 - Law firm associate at $500/hour: $2,000+ for similar analysis
 - Manual document review: 10-20 hours of staff time
 
-**Why Gemini?**
+**Why Gemini 3 Pro?**
+- **Most advanced reasoning:** Internal thinking for higher quality analysis
 - **10x larger page limits:** 1,000 pages per PDF vs 100 pages with Claude
-- **5x larger context:** 1M tokens vs 200k tokens
-- **Lower cost:** ~40% cheaper for comparable workloads
-- **Can process all 10 SPDs simultaneously** (if total <1,000 pages)
+- **5x larger context:** 1M tokens vs 200k tokens with Claude
+- **Massive output capability:** 65k tokens per response (8x more than Gemini 2.5 Pro)
+- **Can process all documents simultaneously** (if total <1,000 pages)
 
 ## Technical Architecture
 
@@ -108,11 +132,13 @@ Compare this to:
 - **Privacy first:** Client PDFs never touch our servers (that's why `plan_docs/` is gitignored)
 
 ### Powered By
-- **Google Gemini 2.5 Pro:** State-of-the-art AI model with 1M token context window
-- **Built-in reasoning:** Model reasons internally before responding for better analysis
-- **Implicit caching:** 75% cost reduction on repeated context (automatic)
-- **Streaming responses:** Real-time analysis as it thinks and writes
+- **Google Gemini 3 Pro Preview:** Most advanced reasoning model with 1M token context window
+- **Three-phase sequential workflow:** Progressive context engineering for comprehensive analysis
+- **Internal reasoning:** Model performs deep thinking automatically for higher quality
+- **65k token output:** 8x larger responses than Gemini 2.5 Pro
+- **Streaming responses:** Real-time analysis as it processes and writes
 - **Direct browser integration:** CORS-enabled API, no proxy needed
+- **Interactive chat:** Context-aware follow-up questions with full analysis included
 
 ## Migration from Claude
 
@@ -129,7 +155,7 @@ Legacy Claude implementation available in `legacy/` directory.
 **Developed for:** Western Pension Fund
 **Purpose:** Post-merger plan standardization
 **Budget:** $3,000-$4,000 target (vs. $10,000+ for law firm analysis)
-**Status:** Functional prototype with Gemini 2.5 Pro integration
+**Status:** Production-ready with Gemini 3 Pro, three-phase analysis, and interactive chat
 
 ## Support & Development
 
