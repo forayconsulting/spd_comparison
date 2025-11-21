@@ -1472,15 +1472,63 @@
       transform: scale(1.3);
     }
 
-    /* Split View Layout for Chat */
+    /* Split View Layout for Chat (Permanent Sidebar) */
     .split-view {
       display: none; /* Hidden by default */
-      height: calc(100vh - 200px);
-      gap: 0;
+      position: fixed;
+      right: 0;
+      top: 140px; /* Below header */
+      height: calc(100vh - 140px);
+      width: 48px; /* Start with collapsed width */
+      z-index: 100;
+      transition: width 0.3s ease;
     }
 
     .split-view.active {
       display: flex;
+      flex-direction: row;
+    }
+
+    .split-view.expanded {
+      width: 400px; /* Expanded width - grows leftward from right: 0 anchor */
+    }
+
+    /* Hide results-panel initially - only show when expanded with resize */
+    .split-view .results-panel {
+      display: none;
+    }
+
+    /* Show resize handle only when chat is expanded */
+    .split-view .resize-handle {
+      display: none;
+    }
+
+    .split-view.expanded .resize-handle {
+      display: flex;
+    }
+
+    /* Adjust output-tabs to make room for collapsed chat sidebar */
+    .output-tabs.active {
+      margin-right: 52px; /* Room for collapsed chat (48px + 4px gap) */
+    }
+
+    .output-tabs.chat-expanded {
+      margin-right: 404px; /* Room for expanded chat (400px + 4px gap) */
+    }
+
+    /* Chat panel sizing */
+    .split-view .chat-panel {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Hide main chat content when collapsed */
+    .split-view .chat-panel.collapsed .chat-messages-container,
+    .split-view .chat-panel.collapsed .chat-input-area {
+      display: none;
     }
 
     .results-panel {
@@ -1713,6 +1761,122 @@
       cursor: not-allowed;
     }
 
+    /* Coming Soon Tab Styling */
+    .coming-soon-tab {
+      color: #ff8c42 !important;
+      border-bottom-color: #ffd4b3 !important;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .coming-soon-tab:hover {
+      color: #ff9e5f !important;
+      border-bottom-color: #ffe0c7 !important;
+    }
+
+    /* Resize Handle for Split View */
+    .resize-handle {
+      flex: 0 0 4px;
+      background: var(--bg-secondary);
+      cursor: col-resize;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+
+    .resize-handle:hover {
+      background: var(--border-medium);
+    }
+
+    .resize-handle-line {
+      width: 1px;
+      height: 40px;
+      background: var(--text-muted);
+      border-radius: 2px;
+      transition: background 0.2s ease;
+    }
+
+    .resize-handle:hover .resize-handle-line {
+      background: var(--text-primary);
+    }
+
+    .resizing {
+      cursor: col-resize !important;
+      user-select: none;
+    }
+
+    .collapse-button {
+      position: absolute;
+      top: 12px;
+      left: 8px;
+      width: 32px;
+      height: 32px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-medium);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-primary);
+      transition: all 0.2s ease;
+      z-index: 1000;
+    }
+
+    .collapse-button:hover {
+      background: var(--text-primary);
+      color: white;
+      transform: scale(1.1);
+      border-color: var(--text-primary);
+    }
+
+    /* Hide collapse button when chat panel is collapsed */
+    .chat-panel.collapsed .collapse-button {
+      display: none;
+    }
+
+    .chat-panel-collapsed-ui {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 0;
+      background: var(--bg-tertiary);
+    }
+
+    .chat-panel.collapsed .chat-panel-collapsed-ui {
+      display: flex;
+    }
+
+    .expand-chat-button {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      padding: 16px 10px;
+      background: var(--text-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .expand-chat-button:hover {
+      background: var(--text-secondary);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
     /* Responsive Design - Mobile & Tablet */
     @media (max-width: 768px) {
       .chat-header {
@@ -1943,8 +2107,8 @@
         <button class="tab-button" onclick="ChatApp.switchTab('language')">
           Language Comparison
         </button>
-        <button class="tab-button" id="chat-tab-button" onclick="ChatApp.switchTab('chat')" disabled title="Complete the comparison first to enable chat">
-          💬 Chat
+        <button class="tab-button coming-soon-tab" disabled title="Additional features coming soon">
+          Coming Soon
         </button>
       </div>
 
@@ -1994,12 +2158,29 @@
         <div class="mini-output-content" id="mini-output-content"></div>
       </div>
 
+      <!-- Resize Handle -->
+      <div class="resize-handle" id="resize-handle">
+        <div class="resize-handle-line"></div>
+      </div>
+
       <!-- Right panel: Chat -->
-      <div class="chat-panel">
+      <div class="chat-panel" id="chat-panel">
+        <!-- Collapse button (shown when expanded) -->
+        <button class="collapse-button" id="collapse-chat-button" title="Collapse chat panel">
+          ◀
+        </button>
+
         <div class="chat-messages-container" id="chat-messages"></div>
         <div class="chat-input-area">
           <textarea id="chat-input" placeholder="Ask about the analysis..." rows="1"></textarea>
           <button id="chat-send-button">Send</button>
+        </div>
+
+        <!-- Collapsed state UI -->
+        <div class="chat-panel-collapsed-ui">
+          <button class="expand-chat-button" onclick="ChatApp.toggleChatPanel()">
+            Chat
+          </button>
         </div>
       </div>
     </div>
@@ -2098,6 +2279,10 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         isChatStreaming: false, // Separate from main isStreaming
         currentChatResponse: '', // Accumulator for chat streaming
         chatPanelResultTab: 'comparison', // Which result to show in left panel
+        // Split view state
+        splitPanelWidth: 40, // Percentage for results panel (default 40%)
+        isResizing: false, // Track if user is dragging resize handle
+        chatPanelCollapsed: true, // Track if chat panel is collapsed (default: collapsed)
         // API key management
         sessionApiKey: null // API key from modal (session only)
       },
@@ -2106,6 +2291,21 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.renderInputArea();
         this.initFileUpload();
         this.loadSessionApiKey();
+        this.loadSplitViewPreferences();
+      },
+
+      loadSplitViewPreferences() {
+        // Load saved split panel width
+        const savedWidth = localStorage.getItem('splitPanelWidth');
+        if (savedWidth) {
+          this.state.splitPanelWidth = parseFloat(savedWidth);
+        }
+
+        // Load saved collapse state
+        const savedCollapsed = localStorage.getItem('chatPanelCollapsed');
+        if (savedCollapsed === 'true') {
+          this.state.chatPanelCollapsed = true;
+        }
       },
 
       // API Key Modal Functions
@@ -2532,7 +2732,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         for (const part of candidate.content.parts) {
           if (part.thought) {
             // This is a thinking summary
-            this.state.currentThinking += part.text || '';
+            // Thinking text might be in part.thought itself (if string) or part.text when part.thought is true
+            const thinkingText = typeof part.thought === 'string' ? part.thought : (part.text || '');
+            this.state.currentThinking += thinkingText;
             this.updateStreamingThinking();
           } else if (part.text) {
             // This is the main response
@@ -2613,16 +2815,33 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           comparisonLoading.remove();
         }
 
-        // Hide messages container, show output tabs
+        // Hide messages container, show output tabs AND split view (chat sidebar)
         document.getElementById('messages').style.display = 'none';
         document.getElementById('output-tabs').classList.add('active');
+        document.getElementById('split-view').classList.add('active');
 
-        // Enable chat tab
-        const chatTabButton = document.getElementById('chat-tab-button');
-        if (chatTabButton) {
-          chatTabButton.disabled = false;
-          chatTabButton.title = 'Chat with the analysis results';
+        // Set chat panel to collapsed state by default
+        const chatPanel = document.getElementById('chat-panel');
+        const collapseButton = document.getElementById('collapse-chat-button');
+        if (chatPanel && this.state.chatPanelCollapsed) {
+          chatPanel.classList.add('collapsed');
+          if (collapseButton) {
+            collapseButton.innerHTML = '▶';
+            collapseButton.title = 'Expand chat panel';
+          }
         }
+
+        // Initialize resize handle (only once)
+        if (!this._resizeHandleInitialized) {
+          this.initResizeHandle();
+          this._resizeHandleInitialized = true;
+        }
+
+        // Initialize chat event listeners
+        this.initChatEventListeners();
+
+        // Render initial result panel content (for when chat expands)
+        this.renderMiniResultPanel(this.state.chatPanelResultTab);
 
         // Reset state
         this.state.isComparisonRequest = false;
@@ -3038,30 +3257,14 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         });
         event.target.classList.add('active');
 
-        if (tabName === 'chat') {
-          // Hide normal tabs, show split view
-          document.getElementById('output-tabs').style.display = 'none';
-          document.getElementById('split-view').classList.add('active');
+        // Update tab content (summary/comparison/language)
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(`tab-${tabName}`).classList.add('active');
 
-          // Render left panel with current result
-          this.renderMiniResultPanel(this.state.chatPanelResultTab);
-
-          // Render chat messages
-          this.renderChatMessages();
-
-          // Initialize chat event listeners
-          this.initChatEventListeners();
-        } else {
-          // Hide split view, show normal tabs
-          document.getElementById('split-view').classList.remove('active');
-          document.getElementById('output-tabs').style.display = 'flex';
-
-          // Update tab content
-          document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-          });
-          document.getElementById(`tab-${tabName}`).classList.add('active');
-        }
+        // Also update mini result panel to match (for chat sidebar)
+        this.renderMiniResultPanel(tabName);
       },
 
       // ===== Chat Feature Methods =====
@@ -3096,6 +3299,95 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         }
 
         content.innerHTML = marked.parse(markdown || '');
+      },
+
+      initResizeHandle() {
+        const handle = document.getElementById('resize-handle');
+        const splitView = document.getElementById('split-view');
+        const collapseButton = document.getElementById('collapse-chat-button');
+
+        if (!handle || !splitView) return;
+
+        // Handle drag to resize
+        handle.addEventListener('mousedown', (e) => {
+          // Don't start resize if clicking the collapse button
+          if (e.target === collapseButton || e.target.closest('.collapse-button')) {
+            return;
+          }
+
+          this.state.isResizing = true;
+          document.body.classList.add('resizing');
+          e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+          if (!this.state.isResizing) return;
+
+          const splitViewRect = splitView.getBoundingClientRect();
+          const offsetX = e.clientX - splitViewRect.left;
+          const percentage = (offsetX / splitViewRect.width) * 100;
+
+          // Constrain between 20% and 70%
+          const constrainedPercentage = Math.min(Math.max(percentage, 20), 70);
+          this.state.splitPanelWidth = constrainedPercentage;
+
+          this.updateSplitPanelSizes();
+        });
+
+        document.addEventListener('mouseup', () => {
+          if (this.state.isResizing) {
+            this.state.isResizing = false;
+            document.body.classList.remove('resizing');
+            // Persist to localStorage
+            localStorage.setItem('splitPanelWidth', this.state.splitPanelWidth);
+          }
+        });
+
+        // Handle collapse button
+        if (collapseButton) {
+          collapseButton.addEventListener('click', () => this.toggleChatPanel());
+        }
+      },
+
+      updateSplitPanelSizes() {
+        const resultsPanel = document.querySelector('.results-panel');
+        const chatPanel = document.querySelector('.chat-panel');
+
+        if (resultsPanel && chatPanel && !this.state.chatPanelCollapsed) {
+          resultsPanel.style.flex = `0 0 ${this.state.splitPanelWidth}%`;
+          chatPanel.style.flex = '1';
+        }
+      },
+
+      toggleChatPanel() {
+        this.state.chatPanelCollapsed = !this.state.chatPanelCollapsed;
+        const splitView = document.getElementById('split-view');
+        const chatPanel = document.getElementById('chat-panel');
+        const collapseButton = document.getElementById('collapse-chat-button');
+        const outputTabs = document.getElementById('output-tabs');
+
+        if (this.state.chatPanelCollapsed) {
+          // Collapse to 48px sidebar
+          splitView.classList.remove('expanded');
+          chatPanel.classList.add('collapsed');
+          outputTabs.classList.remove('chat-expanded');
+          if (collapseButton) {
+            collapseButton.innerHTML = '▶';
+            collapseButton.title = 'Expand chat panel';
+          }
+        } else {
+          // Expand to 400px chat panel
+          splitView.classList.add('expanded');
+          chatPanel.classList.remove('collapsed');
+          outputTabs.classList.add('chat-expanded');
+          if (collapseButton) {
+            collapseButton.innerHTML = '◀';
+            collapseButton.title = 'Collapse chat panel';
+          }
+        }
+
+        // Persist to localStorage
+        localStorage.setItem('chatPanelCollapsed', this.state.chatPanelCollapsed);
       },
 
       initChatEventListeners() {
@@ -3315,6 +3607,7 @@ User Question: ${userQuestion}`;
 
         for (const part of candidate.content.parts) {
           if (part.text) {
+            // Handle response text
             this.state.currentChatResponse += part.text;
             this.updateChatStreamingMessage();
           }
@@ -3359,7 +3652,7 @@ User Question: ${userQuestion}`;
         }
 
         // Render all messages
-        chatMessages.innerHTML = this.state.chatMessages.map(msg => {
+        chatMessages.innerHTML = this.state.chatMessages.map((msg, index) => {
           const roleClass = msg.role === 'user' ? 'user' : 'assistant';
           const header = msg.role === 'user' ? 'You' : 'Assistant';
 
