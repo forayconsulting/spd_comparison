@@ -296,14 +296,12 @@
     }
 
     .thinking-indicator-badge {
-      background: var(--text-primary);
-      color: white;
+      background: var(--border-medium);
+      color: var(--text-secondary);
       padding: 6px 12px;
       border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-size: 12px;
+      font-weight: 500;
       position: relative;
       z-index: 1;
     }
@@ -782,7 +780,6 @@
 
     .files-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       padding: 16px 32px;
       cursor: pointer;
@@ -1414,6 +1411,14 @@
       background: var(--bg-secondary);
     }
 
+    /* Citation highlighting in Citations tab */
+    .citation {
+      background: rgba(0, 0, 0, 0.06);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+
     /* Loading Indicator for Comparison (in messages area) */
     .comparison-loading-container {
       display: flex;
@@ -1536,7 +1541,7 @@
     }
 
     .split-view.expanded {
-      width: 400px; /* Expanded width - grows leftward from right: 0 anchor */
+      /* Width controlled by inline styles for resize functionality */
     }
 
     /* Hide results-panel initially - only show when expanded with resize */
@@ -1553,14 +1558,8 @@
       display: flex;
     }
 
-    /* Adjust output-tabs to make room for collapsed chat sidebar */
-    .output-tabs.active {
-      margin-right: 52px; /* Room for collapsed chat (48px + 4px gap) */
-    }
-
-    .output-tabs.chat-expanded {
-      margin-right: 404px; /* Room for expanded chat (400px + 4px gap) */
-    }
+    /* Adjust output-tabs to make room for chat sidebar */
+    /* Margins are controlled via inline styles for resize functionality */
 
     /* Chat panel sizing */
     .split-view .chat-panel {
@@ -1714,6 +1713,36 @@
     .chat-message-content:hover {
       box-shadow: var(--shadow-md);
       border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    /* List styling for chat messages */
+    .chat-message-content ul,
+    .chat-message-content ol {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+
+    .chat-message-content li {
+      margin: 6px 0;
+      line-height: 1.5;
+    }
+
+    .chat-message-content ul {
+      list-style-type: disc;
+    }
+
+    .chat-message-content ul ul {
+      list-style-type: circle;
+      margin: 4px 0;
+    }
+
+    .chat-message-content ul ul ul {
+      list-style-type: square;
+    }
+
+    .chat-message-content li > p {
+      margin: 0;
+      display: inline;
     }
 
     .chat-input-area {
@@ -2084,15 +2113,15 @@
     <header class="chat-header">
       <h1>SPD Plan Comparison Agent</h1>
       <div class="model-badge" onclick="ChatApp.showApiKeyModal()">
-        <span class="thinking-indicator-badge">GEMINI 3 PRO</span>
+        <span class="thinking-indicator-badge">Settings</span>
       </div>
     </header>
 
     <!-- API Key Modal -->
     <div id="api-key-modal" class="modal-overlay" style="display: none;" onclick="ChatApp.handleModalClick(event)">
       <div class="modal" onclick="event.stopPropagation()">
-        <h2>Configure API Key</h2>
-        <p>Enter your Gemini API key to use this application. Your key will be stored in your browser session only.</p>
+        <h2>Settings</h2>
+        <p>This application uses Gemini 3 Pro. Enter your API key below to get started.</p>
 
         <label for="api-key-input">Gemini API Key</label>
         <input type="password" id="api-key-input" placeholder="AIza..." onkeypress="if(event.key === 'Enter') ChatApp.saveApiKey()" />
@@ -2114,8 +2143,8 @@
           <span class="files-icon">📁</span>
           <span>Plan Docs</span>
           <span class="files-count" id="files-count">(0 files)</span>
+          <span class="files-toggle" id="files-toggle">▼</span>
         </div>
-        <span class="files-toggle" id="files-toggle">▼</span>
       </div>
 
       <div class="files-content" id="files-content">
@@ -2151,7 +2180,7 @@
           Comparison Spreadsheet
         </button>
         <button class="tab-button" onclick="ChatApp.switchTab('language')">
-          Language Comparison
+          Citations
         </button>
         <button class="tab-button coming-soon-tab" disabled title="Additional features coming soon">
           Coming Soon
@@ -2172,7 +2201,7 @@
         <div class="output-header">
           <h2 class="output-title">Summary</h2>
           <button class="download-button" id="download-summary-btn" onclick="ChatApp.downloadSummary()" style="display: none;">
-            📄 Download Summary.md
+            Download
           </button>
         </div>
         <div class="summary-content" id="summary-output"></div>
@@ -2183,18 +2212,18 @@
         <div class="output-header">
           <h2 class="output-title">Comparison Spreadsheet</h2>
           <button class="download-button" id="download-comparison-btn" onclick="ChatApp.downloadComparisonSpreadsheet()" style="display: none;">
-            📊 Download Comparison.xlsx
+            Download
           </button>
         </div>
         <div id="comparison-output"></div>
       </div>
 
-      <!-- Tab 3: Language Comparison -->
+      <!-- Tab 3: Citations -->
       <div class="tab-content" id="tab-language">
         <div class="output-header">
-          <h2 class="output-title">Language Comparison</h2>
+          <h2 class="output-title">Citations</h2>
           <button class="download-button" id="download-language-btn" onclick="ChatApp.downloadLanguageComparison()" style="display: none;">
-            📋 Download Language.xlsx
+            Download
           </button>
         </div>
         <div id="language-output"></div>
@@ -2208,7 +2237,7 @@
         <div class="mini-tabs">
           <button class="mini-tab" data-result="summary" onclick="ChatApp.switchMiniResultTab('summary')">Summary</button>
           <button class="mini-tab active" data-result="comparison" onclick="ChatApp.switchMiniResultTab('comparison')">Comparison</button>
-          <button class="mini-tab" data-result="language" onclick="ChatApp.switchMiniResultTab('language')">Language</button>
+          <button class="mini-tab" data-result="language" onclick="ChatApp.switchMiniResultTab('language')">Citations</button>
         </div>
         <div class="mini-output-content" id="mini-output-content"></div>
       </div>
@@ -2222,7 +2251,7 @@
       <div class="chat-panel" id="chat-panel">
         <!-- Collapse button (shown when expanded) -->
         <button class="collapse-button" id="collapse-chat-button" title="Collapse chat panel">
-          ◀
+          ▶
         </button>
 
         <div class="chat-messages-container" id="chat-messages"></div>
@@ -2338,6 +2367,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         splitPanelWidth: 40, // Percentage for results panel (default 40%)
         isResizing: false, // Track if user is dragging resize handle
         chatPanelCollapsed: true, // Track if chat panel is collapsed (default: collapsed)
+        chatPanelWidth: 400, // Width of chat panel in pixels when expanded
         // API key management
         sessionApiKey: null // API key from modal (session only)
       },
@@ -2360,6 +2390,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         const savedCollapsed = localStorage.getItem('chatPanelCollapsed');
         if (savedCollapsed === 'true') {
           this.state.chatPanelCollapsed = true;
+        }
+
+        // Load saved chat panel width
+        const savedChatWidth = localStorage.getItem('chatPanelWidth');
+        if (savedChatWidth) {
+          this.state.chatPanelWidth = parseFloat(savedChatWidth);
         }
       },
 
@@ -2854,7 +2890,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         }
 
         if (outputDiv) {
-          outputDiv.innerHTML = marked.parse(this.state.currentResponse);
+          let html = marked.parse(this.state.currentResponse);
+          // Apply citation highlighting for language/citations tab (phase 3)
+          if (this.state.isComparisonRequest && this.state.currentPhase === 3) {
+            html = this.highlightCitations(html);
+          }
+          outputDiv.innerHTML = html;
           this.scrollTabToBottom();
         }
       },
@@ -2944,16 +2985,30 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.hidePhaseProgress();
 
         // Show split view (chat sidebar)
-        document.getElementById('split-view').classList.add('active');
+        const splitView = document.getElementById('split-view');
+        const outputTabs = document.getElementById('output-tabs');
+        splitView.classList.add('active');
 
         // Set chat panel to collapsed state by default
         const chatPanel = document.getElementById('chat-panel');
         const collapseButton = document.getElementById('collapse-chat-button');
         if (chatPanel && this.state.chatPanelCollapsed) {
           chatPanel.classList.add('collapsed');
+          splitView.style.width = '48px';
+          if (outputTabs) {
+            outputTabs.style.marginRight = '52px';
+          }
+          if (collapseButton) {
+            collapseButton.innerHTML = '◀';
+            collapseButton.title = 'Expand chat panel';
+          }
+        } else if (chatPanel) {
+          // Expanded state
+          splitView.classList.add('expanded');
+          this.updateChatPanelWidth();
           if (collapseButton) {
             collapseButton.innerHTML = '▶';
-            collapseButton.title = 'Expand chat panel';
+            collapseButton.title = 'Collapse chat panel';
           }
         }
 
@@ -2986,11 +3041,24 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         output.innerHTML = marked.parse(this.state.comparisonResponse || '');
       },
 
+      // Highlight citation patterns like (filename.pdf, page, paragraph)
+      highlightCitations(html) {
+        // Match citations: (filename.pdf, page_number, ...) format
+        // Flexible to handle:
+        //   - Basic: (Plan.pdf, 6, 5)
+        //   - Ranges: (Plan.pdf, 64, 2-3)
+        //   - Text refs: (Plan.pdf, 14, table)
+        //   - Multiple: (Plan.pdf, 1, 8; 2, 5; 3, 7)
+        const citationPattern = /\(([^)]*\.pdf,\s*\d+[^)]*)\)/gi;
+        return html.replace(citationPattern, '<span class="citation">($1)</span>');
+      },
+
       renderLanguageTab() {
         const output = document.getElementById('language-output');
         // Parse the language comparison response and render as HTML table
         // The response should be a markdown table, so we can render it directly
-        output.innerHTML = marked.parse(this.state.languageResponse || '');
+        const html = marked.parse(this.state.languageResponse || '');
+        output.innerHTML = this.highlightCitations(html);
       },
 
       activateTab(tabName) {
@@ -3434,7 +3502,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
             break;
         }
 
-        content.innerHTML = marked.parse(markdown || '');
+        let html = marked.parse(markdown || '');
+        // Apply citation highlighting for language/citations panel
+        if (resultType === 'language') {
+          html = this.highlightCitations(html);
+        }
+        content.innerHTML = html;
       },
 
       initResizeHandle() {
@@ -3459,15 +3532,15 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         document.addEventListener('mousemove', (e) => {
           if (!this.state.isResizing) return;
 
-          const splitViewRect = splitView.getBoundingClientRect();
-          const offsetX = e.clientX - splitViewRect.left;
-          const percentage = (offsetX / splitViewRect.width) * 100;
+          // Calculate width from the right edge of viewport
+          const viewportWidth = window.innerWidth;
+          const newWidth = viewportWidth - e.clientX;
 
-          // Constrain between 20% and 70%
-          const constrainedPercentage = Math.min(Math.max(percentage, 20), 70);
-          this.state.splitPanelWidth = constrainedPercentage;
+          // Constrain between 300px and 800px
+          const constrainedWidth = Math.min(Math.max(newWidth, 300), 800);
+          this.state.chatPanelWidth = constrainedWidth;
 
-          this.updateSplitPanelSizes();
+          this.updateChatPanelWidth();
         });
 
         document.addEventListener('mouseup', () => {
@@ -3475,7 +3548,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
             this.state.isResizing = false;
             document.body.classList.remove('resizing');
             // Persist to localStorage
-            localStorage.setItem('splitPanelWidth', this.state.splitPanelWidth);
+            localStorage.setItem('chatPanelWidth', this.state.chatPanelWidth);
           }
         });
 
@@ -3485,13 +3558,15 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         }
       },
 
-      updateSplitPanelSizes() {
-        const resultsPanel = document.querySelector('.results-panel');
-        const chatPanel = document.querySelector('.chat-panel');
+      updateChatPanelWidth() {
+        const splitView = document.getElementById('split-view');
+        const outputTabs = document.getElementById('output-tabs');
 
-        if (resultsPanel && chatPanel && !this.state.chatPanelCollapsed) {
-          resultsPanel.style.flex = `0 0 ${this.state.splitPanelWidth}%`;
-          chatPanel.style.flex = '1';
+        if (splitView && !this.state.chatPanelCollapsed) {
+          splitView.style.width = `${this.state.chatPanelWidth}px`;
+          if (outputTabs) {
+            outputTabs.style.marginRight = `${this.state.chatPanelWidth + 4}px`;
+          }
         }
       },
 
@@ -3505,19 +3580,23 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         if (this.state.chatPanelCollapsed) {
           // Collapse to 48px sidebar
           splitView.classList.remove('expanded');
+          splitView.style.width = '48px';
           chatPanel.classList.add('collapsed');
-          outputTabs.classList.remove('chat-expanded');
+          if (outputTabs) {
+            outputTabs.style.marginRight = '52px';
+          }
           if (collapseButton) {
-            collapseButton.innerHTML = '▶';
+            collapseButton.innerHTML = '◀';
             collapseButton.title = 'Expand chat panel';
           }
         } else {
-          // Expand to 400px chat panel
+          // Expand chat panel
           splitView.classList.add('expanded');
           chatPanel.classList.remove('collapsed');
-          outputTabs.classList.add('chat-expanded');
+          // Apply saved width
+          this.updateChatPanelWidth();
           if (collapseButton) {
-            collapseButton.innerHTML = '◀';
+            collapseButton.innerHTML = '▶';
             collapseButton.title = 'Collapse chat panel';
           }
         }
@@ -3939,17 +4018,49 @@ User Question: ${userQuestion}`;
 
       // ===== Download Functions =====
 
+      // Convert markdown table to CSV format
+      markdownTableToCSV(markdown) {
+        const lines = markdown.split('\n');
+        const csvLines = [];
+
+        for (const line of lines) {
+          // Skip separator lines (|---|---|)
+          if (line.match(/^\|[\s\-:]+\|$/)) continue;
+
+          // Process table rows
+          if (line.startsWith('|') && line.endsWith('|')) {
+            const cells = line
+              .slice(1, -1)  // Remove leading/trailing pipes
+              .split('|')
+              .map(cell => {
+                // Clean and escape cell content for CSV
+                let content = cell.trim();
+                // Escape quotes by doubling them
+                content = content.replace(/"/g, '""');
+                // Wrap in quotes if contains comma, newline, or quote
+                if (content.includes(',') || content.includes('\n') || content.includes('"')) {
+                  content = `"${content}"`;
+                }
+                return content;
+              });
+            csvLines.push(cells.join(','));
+          }
+        }
+
+        return csvLines.join('\n');
+      },
+
       downloadSummary() {
         if (!this.state.summaryResponse) return;
 
-        // Download the summary response as markdown
-        const markdown = '# SPD Comparison Summary\n\n' + this.state.summaryResponse;
+        // Download the summary response as plain text
+        const content = 'SPD Comparison Summary\n\n' + this.state.summaryResponse;
 
-        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'SPD_Comparison_Summary.md';
+        a.download = 'Summary.txt';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -3959,14 +4070,14 @@ User Question: ${userQuestion}`;
       downloadComparisonSpreadsheet() {
         if (!this.state.comparisonResponse) return;
 
-        // Download the comparison table as markdown
-        const markdown = '# SPD Comparison Table\n\n' + this.state.comparisonResponse;
+        // Convert markdown table to CSV
+        const csv = this.markdownTableToCSV(this.state.comparisonResponse);
 
-        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'SPD_Comparison_Table.md';
+        a.download = 'Comparison.csv';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -3976,14 +4087,14 @@ User Question: ${userQuestion}`;
       downloadLanguageComparison() {
         if (!this.state.languageResponse) return;
 
-        // Download the language comparison as markdown
-        const markdown = '# SPD Language Comparison\n\n' + this.state.languageResponse;
+        // Convert markdown table to CSV
+        const csv = this.markdownTableToCSV(this.state.languageResponse);
 
-        const blob = new Blob([markdown], { type: 'text/markdown' });
+        const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'SPD_Language_Comparison.md';
+        a.download = 'Citations.csv';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
