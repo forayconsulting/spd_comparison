@@ -105,7 +105,10 @@ The project uses a browser-based application (`index.html`) that integrates with
 │   ├── output_schema.json          # JSON schema for three outputs
 │   └── procedure_elements.md       # Standard procedure element list
 ├── tests/
-│   └── test-gemini.html            # CORS/API testing tool
+│   ├── test-gemini.html            # CORS/API testing tool
+│   └── QA/                         # QA test outputs (3 production runs)
+│       ├── 1/, 2/, 3/              # Individual run outputs
+│       └── QA_Analysis.md          # Comparative analysis of runs
 └── README.md
 ```
 
@@ -450,3 +453,22 @@ The chat responses naturally reference:
   4. Streaming with SSE
 - Use this to validate API access before deploying changes
 - All tests passed ✅ confirming direct browser integration works
+
+## QA Testing
+
+**tests/QA/:**
+- Contains outputs from 3 production runs with identical inputs
+- Each run folder (1/, 2/, 3/) contains: Summary.txt, Comparison.csv, Citations.csv, chat.txt
+- QA_Analysis.md provides detailed comparative analysis
+
+**Key QA Findings:**
+- Model outputs vary between runs (non-deterministic)
+- Critical issue: Run 2 missed detecting San Diego plan entirely (4 vs 5 plans)
+- Procedural element coverage varies (17-20 elements across runs)
+- San Diego's "Mandatory Arbitration + Class Action Waiver" only captured in Run 3
+- Citation format varies between runs (date-prefixed vs full descriptive names)
+
+**Recommendations for Production:**
+- Add validation to confirm expected plan count after analysis
+- Standardize required procedural elements in prompts
+- Ensure critical legal distinctions (arbitration clauses) are always surfaced
