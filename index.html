@@ -2158,7 +2158,7 @@
         </button>
         <!-- Phase progress indicator (shown during streaming) -->
         <div class="phase-progress" id="phase-progress">
-          <span class="phase-text" id="phase-text">Phase 1/3</span>
+          <span class="phase-text" id="phase-text">Reading to understand...</span>
           <div class="phase-dots">
             <span class="dot" id="pdot-1"></span>
             <span class="dot" id="pdot-2"></span>
@@ -2171,7 +2171,7 @@
       <div class="tab-content active" id="tab-summary">
         <div class="output-header">
           <h2 class="output-title">Summary</h2>
-          <button class="download-button" onclick="ChatApp.downloadSummary()">
+          <button class="download-button" id="download-summary-btn" onclick="ChatApp.downloadSummary()" style="display: none;">
             📄 Download Summary.md
           </button>
         </div>
@@ -2182,7 +2182,7 @@
       <div class="tab-content" id="tab-comparison">
         <div class="output-header">
           <h2 class="output-title">Comparison Spreadsheet</h2>
-          <button class="download-button" onclick="ChatApp.downloadComparisonSpreadsheet()">
+          <button class="download-button" id="download-comparison-btn" onclick="ChatApp.downloadComparisonSpreadsheet()" style="display: none;">
             📊 Download Comparison.xlsx
           </button>
         </div>
@@ -2193,7 +2193,7 @@
       <div class="tab-content" id="tab-language">
         <div class="output-header">
           <h2 class="output-title">Language Comparison</h2>
-          <button class="download-button" onclick="ChatApp.downloadLanguageComparison()">
+          <button class="download-button" id="download-language-btn" onclick="ChatApp.downloadLanguageComparison()" style="display: none;">
             📋 Download Language.xlsx
           </button>
         </div>
@@ -2575,38 +2575,47 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         // Show output tabs immediately with streaming content (no loading spinner)
         document.getElementById('messages').style.display = 'none';
         document.getElementById('output-tabs').classList.add('active');
-        this.showPhaseProgress(1, 'Reading documents...');
+        this.showPhaseProgress(1, 'Reading to understand...');
 
         try {
-          // PHASE 1: Document Summary - stream to Summary tab
+          // PHASE 1: Document Summary - tab switches when first chunk arrives
           this.state.currentPhase = 1;
-          this.activateTab('summary');
-          this.updatePhaseProgress(1, 'Reading documents...');
+          this.state.hasActivatedPhaseTab = false;
+          this.updatePhaseProgress(1, 'Reading to understand...');
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
           const prompt1 = PROMPT_TEMPLATES.phase1();
           this.state.summaryResponse = await this.streamResponse(prompt1, true); // true = upload files
 
-          // PHASE 2: Comparison Table - auto-switch to Comparison tab
+          // Phase 1 complete - show download button
+          document.getElementById('download-summary-btn').style.display = 'inline-flex';
+
+          // PHASE 2: Comparison Table - tab switches when first chunk arrives
           this.state.currentPhase = 2;
-          this.activateTab('comparison');
-          this.updatePhaseProgress(2, 'Building comparison...');
+          this.state.hasActivatedPhaseTab = false;
+          this.updatePhaseProgress(2, 'Reading to understand...');
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
           const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse);
           this.state.comparisonResponse = await this.streamResponse(prompt2, true); // true = upload files fresh
 
-          // PHASE 3: Language Comparison - auto-switch to Language tab
+          // Phase 2 complete - show download button
+          document.getElementById('download-comparison-btn').style.display = 'inline-flex';
+
+          // PHASE 3: Language Comparison - tab switches when first chunk arrives
           this.state.currentPhase = 3;
-          this.activateTab('language');
-          this.updatePhaseProgress(3, 'Extracting language...');
+          this.state.hasActivatedPhaseTab = false;
+          this.updatePhaseProgress(3, 'Reading to understand...');
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
           const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse);
           this.state.languageResponse = await this.streamResponse(prompt3, true); // true = upload files fresh
+
+          // Phase 3 complete - show download button
+          document.getElementById('download-language-btn').style.display = 'inline-flex';
 
           // Complete - hide progress indicator and enable chat
           this.finalizeThreePhaseComparison();
@@ -2717,6 +2726,15 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
         console.log(`✅ API Response: Streaming started`);
 
+        // Update status to reflect AI is now processing (for comparison requests)
+        if (this.state.isComparisonRequest) {
+          switch (this.state.currentPhase) {
+            case 1: this.setPhaseStatus('Reading document structure...'); break;
+            case 2: this.setPhaseStatus('Comparing procedures across plans...'); break;
+            case 3: this.setPhaseStatus('Extracting language and citations...'); break;
+          }
+        }
+
         const reader = response.body
           .pipeThrough(new TextDecoderStream())
           .getReader();
@@ -2771,6 +2789,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
             this.state.currentThinking += thinkingText;
             this.updateStreamingThinking();
           } else if (part.text) {
+            // Activate tab on first text chunk (switch happens when content starts, not when request is sent)
+            if (this.state.isComparisonRequest && !this.state.hasActivatedPhaseTab) {
+              this.activatePhaseTab();
+              this.state.hasActivatedPhaseTab = true;
+            }
+
             // This is the main response
             this.state.currentResponse += part.text;
             this.updateStreamingResponse();
@@ -2875,7 +2899,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       updatePhaseProgress(phase, text) {
         const phaseText = document.getElementById('phase-text');
         if (phaseText) {
-          phaseText.textContent = `Phase ${phase}/3: ${text}`;
+          phaseText.textContent = text;
         }
 
         // Update phase dots with complete/active states
@@ -2892,10 +2916,26 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         }
       },
 
+      setPhaseStatus(text) {
+        const phaseText = document.getElementById('phase-text');
+        if (phaseText) {
+          phaseText.textContent = text;
+        }
+      },
+
       hidePhaseProgress() {
         const progress = document.getElementById('phase-progress');
         if (progress) {
           progress.classList.remove('active');
+        }
+      },
+
+      activatePhaseTab() {
+        // Map current phase number to tab name
+        switch (this.state.currentPhase) {
+          case 1: this.activateTab('summary'); break;
+          case 2: this.activateTab('comparison'); break;
+          case 3: this.activateTab('language'); break;
         }
       },
 
