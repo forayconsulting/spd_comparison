@@ -97,4 +97,4 @@ gitGraph TB:
 
 ## License
 
-Internal tool for Western Pension Fund. Not licensed for external distribution.
+Not licensed for external distribution.
