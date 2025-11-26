@@ -6,39 +6,57 @@
 
 ## Getting Started
 
-1. Copy `config.example.js` to `config.js` and add your [Gemini API key](https://aistudio.google.com/app/apikey)
-2. Open `index.html` in a browser
+1. Open `index.html` in a browser
+2. Enter your [Gemini API key](https://aistudio.google.com/app/apikey) in Settings
 3. Upload plan documents and click "Compare Documents"
 
 ## Development History
 
 ```mermaid
-%%{init: { 'theme': 'neutral', 'gitGraph': {'mainBranchName': 'main', 'showCommitLabel': false}}}%%
-gitGraph
-    commit id: "d0f2cd3" tag: "init"
+%%{init: { 'theme': 'neutral' } }%%
+gitGraph TB:
+    commit id: "d0f2cd3"
+    branch anthropic-agent
     commit id: "ada75b7"
     commit id: "ce4a76b"
     commit id: "649b993"
-    commit id: "cf93985" tag: "anthropic-agent"
+    commit id: "cf93985"
     commit id: "8ce5174"
     commit id: "58c61fa"
     commit id: "fabb649"
     commit id: "a6a7244"
-    commit id: "11cae84" tag: "gemini-rework"
+    checkout main
+    merge anthropic-agent
+    branch gemini-rework
+    commit id: "11cae84"
     commit id: "0fe413f"
     commit id: "66ac310"
-    commit id: "8b4790d" tag: "updated-use-case"
-    commit id: "b972f4c" tag: "updated-approach"
-    commit id: "d9e30d5" tag: "gemini-model-upgrade"
+    checkout main
+    merge gemini-rework
+    branch updated-approach
+    commit id: "8b4790d"
+    commit id: "b972f4c"
+    checkout main
+    merge updated-approach
+    branch gemini-model-upgrade
+    commit id: "d9e30d5"
+    checkout main
+    merge gemini-model-upgrade
+    branch chat-with-results
     commit id: "444b5be"
-    commit id: "82cc701" tag: "chat-with-results"
+    commit id: "82cc701"
     commit id: "dbf55c3"
+    checkout main
+    merge chat-with-results
+    branch ui-refresh
     commit id: "d2a25ac"
     commit id: "fd35c3c"
     commit id: "941d401"
     commit id: "b02ee8e"
-    commit id: "a82669d" tag: "ui-refresh"
-    commit id: "1c17518" tag: "HEAD"
+    commit id: "a82669d"
+    commit id: "1c17518"
+    checkout main
+    merge ui-refresh
 ```
 
 ### Timeline
