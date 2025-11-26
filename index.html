@@ -1473,6 +1473,26 @@
       font-size: 0.9em;
     }
 
+    /* Clickable citation link */
+    .citation-link {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      border-bottom: 1px dashed var(--accent-primary);
+      transition: background 0.15s ease;
+    }
+
+    .citation-link:hover {
+      background: rgba(30, 58, 95, 0.15);
+      text-decoration: none;
+    }
+
+    /* Unmatched citation warning */
+    .citation-unmatched {
+      border-bottom: 1px dashed #b45309;
+      cursor: help;
+    }
+
     /* Loading Indicator for Comparison (in messages area) */
     .comparison-loading-container {
       display: flex;
@@ -2390,25 +2410,35 @@
 
     // Three Prompt Templates for Sequential API Calls
     const PROMPT_TEMPLATES = {
-      phase1: () => {
+      phase1: (fileList) => {
         return `Comprehensively read all of the attached documents. You must return an organized overview of which documents are which, how they relate to one another, and the general domain, content, and structure of each.
+
+The uploaded documents are (in order):
+${fileList}
+
+When referencing documents, use these EXACT filenames as provided above.
 
 Return ONLY the organized overview with no preamble or footnotes. Be as concise as possible without oversimplifying. Maximum 500 words response.`;
       },
 
-      phase2: (summaryResponse) => {
+      phase2: (summaryResponse, fileList) => {
         return `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
 
 <summary>
 ${summaryResponse}
 </summary>
 
+The uploaded documents are (in order):
+${fileList}
+
 I want you to return a detailed and comprehensive table comparing elements across all plans. Columns should represent identified plans, and rows should represent identified procedural elements within the plans. The purpose of this table is to compare procedural elements across all plan documents at a glance.
+
+When naming columns or referencing documents, use the EXACT filenames as provided above.
 
 Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`;
       },
 
-      phase3: (summaryResponse, comparisonResponse) => {
+      phase3: (summaryResponse, comparisonResponse, fileList) => {
         return `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
 
 <summary>
@@ -2421,9 +2451,12 @@ Here is a table comparing the various procedural elements by plan:
 ${comparisonResponse}
 </comparison>
 
+The uploaded documents are (in order):
+${fileList}
+
 I want you to create a more detailed version of this table which fully quotes and cites the language from each and every document which represents the procedural elements being compared. The purpose of this is to facilitate quick analysis of the plan document changes and amendments over time while citing the specific language applicable in as detailed a manner as possible.
 
-Your citations must be in parentheses behind each and every statement cited and must be structured as follows: (filename, page_number, paragraph_number).
+IMPORTANT: Your citations MUST use the EXACT filenames listed above. Do NOT invent, abbreviate, or modify filenames. Citations must be in parentheses behind each and every statement cited in the format: (filename, page_number, paragraph_number).
 
 Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`;
       }
@@ -2503,7 +2536,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         progressMessageIndex: 0,
         progressMessageInterval: null,
         dotAnimationIndex: 0,
-        dotAnimationInterval: null
+        dotAnimationInterval: null,
+        // Blob URL cache for PDF viewing
+        blobUrlCache: {}
       },
 
       init() {
@@ -2511,6 +2546,14 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.initFileUpload();
         this.loadSessionApiKey();
         this.loadSplitViewPreferences();
+      },
+
+      // Helper to generate formatted list of uploaded filenames for prompt injection
+      getUploadedFileList() {
+        return this.state.uploadedFiles
+          .filter(f => f.status === 'uploaded')
+          .map((f, i) => `${i + 1}. "${f.filename}"`)
+          .join('\n');
       },
 
       loadSplitViewPreferences() {
@@ -2748,13 +2791,16 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.showPhaseProgress(1, 'Reading document contents');
 
         try {
+          // Get filename list once for all phases (ensures citations use actual filenames)
+          const fileList = this.getUploadedFileList();
+
           // PHASE 1: Document Summary - tab switches when first chunk arrives
           this.state.currentPhase = 1;
           this.state.hasActivatedPhaseTab = false;
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
-          const prompt1 = PROMPT_TEMPLATES.phase1();
+          const prompt1 = PROMPT_TEMPLATES.phase1(fileList);
           this.state.summaryResponse = await this.streamResponse(prompt1, true); // true = upload files
 
           // Phase 1 complete - show download button
@@ -2768,7 +2814,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
-          const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse);
+          const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse, fileList);
           this.state.comparisonResponse = await this.streamResponse(prompt2, true); // true = upload files fresh
 
           // Phase 2 complete - show download button
@@ -2782,7 +2828,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
-          const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse);
+          const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse, fileList);
           this.state.languageResponse = await this.streamResponse(prompt3, true); // true = upload files fresh
 
           // Phase 3 complete - show download button
@@ -3242,18 +3288,86 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         output.innerHTML = marked.parse(this.state.comparisonResponse || '');
       },
 
-      // Highlight citation patterns like (filename, page, paragraph)
+      // Find uploaded file by citation filename (exact, case-insensitive, or fuzzy match)
+      findUploadedFile(citedFilename) {
+        const files = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+
+        // 1. Exact match
+        let match = files.find(f => f.filename === citedFilename);
+        if (match) return { file: match, confidence: 'exact' };
+
+        // 2. Case-insensitive exact match
+        match = files.find(f => f.filename.toLowerCase() === citedFilename.toLowerCase());
+        if (match) return { file: match, confidence: 'case-insensitive' };
+
+        // 3. Fuzzy match: check if cited name is contained in uploaded filename or vice versa
+        const citedBase = citedFilename.replace(/\.pdf$/i, '').toLowerCase();
+        match = files.find(f => {
+          const uploadedBase = f.filename.replace(/\.pdf$/i, '').toLowerCase();
+          return uploadedBase.includes(citedBase) || citedBase.includes(uploadedBase);
+        });
+        if (match) return { file: match, confidence: 'fuzzy' };
+
+        // 4. No match found
+        return { file: null, confidence: 'none' };
+      },
+
+      // Get or create blob URL for a file (cached for efficiency)
+      getBlobUrlForFile(file) {
+        if (this.state.blobUrlCache[file.filename]) {
+          return this.state.blobUrlCache[file.filename];
+        }
+
+        const byteCharacters = atob(file.base64Data);
+        const byteArray = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteArray[i] = byteCharacters.charCodeAt(i);
+        }
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        this.state.blobUrlCache[file.filename] = blobUrl;
+        return blobUrl;
+      },
+
+      // Open PDF at specific page in new tab
+      openPdfAtPage(filename, pageNumber) {
+        const result = this.findUploadedFile(filename);
+
+        if (!result.file) {
+          console.warn(`Could not find uploaded file matching: ${filename}`);
+          return false;
+        }
+
+        const blobUrl = this.getBlobUrlForFile(result.file);
+        window.open(`${blobUrl}#page=${pageNumber}`, '_blank');
+        return true;
+      },
+
+      // Highlight citation patterns and make them clickable
       highlightCitations(html) {
-        // Match citations in format: (text, page/pg number, optional para/section)
-        // Flexible to handle various formats:
-        //   - With .pdf: (Plan.pdf, 6, 5)
-        //   - Without .pdf: (Plan Name, pg 5, para 3)
-        //   - Page prefix: (Doc, page 5, para 3-4)
-        //   - Ranges: (Plan.pdf, 64, 2-3)
-        //   - Text refs: (Plan.pdf, 14, table)
-        //   - Multiple: (Plan.pdf, 1, 8; 2, 5; 3, 7)
-        const citationPattern = /\(([^,)]+,\s*(?:pg\.?\s*|page\s*)?\d+[^)]*)\)/gi;
-        return html.replace(citationPattern, '<span class="citation">($1)</span>');
+        // Pattern captures: (filename.pdf, page N, optional paragraph info)
+        // Handles variations: pg, pg., page, paragraph, para, para.
+        // Uses .+? (non-greedy) to allow parentheses within filenames like "(SPD)" or "(eff. 06.01.05)"
+        const citationPattern = /\((.+?\.pdf)\s*,\s*(?:pg\.?\s*|page\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
+
+        return html.replace(citationPattern, (match, filename, page, paragraph) => {
+          const result = this.findUploadedFile(filename);
+          const pageNum = parseInt(page, 10);
+
+          if (result.file) {
+            // Clickable citation - opens PDF at page
+            const escapedFilename = this.escapeHtml(filename).replace(/'/g, "\\'");
+            const title = result.confidence === 'fuzzy'
+              ? `Opens: ${this.escapeHtml(result.file.filename)} (fuzzy match)`
+              : `Opens: ${this.escapeHtml(result.file.filename)}`;
+
+            return `<a href="#" class="citation citation-link" onclick="ChatApp.openPdfAtPage('${escapedFilename}', ${pageNum}); return false;" title="${title}">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</a>`;
+          } else {
+            // Non-clickable - file not found
+            return `<span class="citation citation-unmatched" title="File not found in uploads">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</span>`;
+          }
+        });
       },
 
       renderLanguageTab() {
@@ -3586,6 +3700,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       removeFile(fileId) {
+        // Clean up blob URL if cached
+        const file = this.state.uploadedFiles.find(f => f.id === fileId);
+        if (file && this.state.blobUrlCache[file.filename]) {
+          URL.revokeObjectURL(this.state.blobUrlCache[file.filename]);
+          delete this.state.blobUrlCache[file.filename];
+        }
         // Remove from state (base64 data is stored locally, no API cleanup needed)
         this.state.uploadedFiles = this.state.uploadedFiles.filter(f => f.id !== fileId);
         this.renderFilesList();
@@ -3938,6 +4058,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       buildChatContextPrompt(userQuestion) {
+        const fileList = this.getUploadedFileList();
         return `You are analyzing pension plan documents. Here is the completed analysis:
 
 <document_summary>
@@ -3952,7 +4073,11 @@ ${this.state.comparisonResponse}
 ${this.state.languageResponse}
 </detailed_language_comparison>
 
-When referencing the comparison table, cite specific rows or elements (e.g., "See the comparison for 'Claims Procedures'" or "According to row X in the table").
+<uploaded_documents>
+${fileList}
+</uploaded_documents>
+
+When referencing documents, use the EXACT filenames listed above. When citing, use the format: (filename, page_number, paragraph_number). When referencing the comparison table, cite specific rows or elements.
 
 User Question: ${userQuestion}`;
       },

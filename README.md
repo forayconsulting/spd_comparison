@@ -94,6 +94,7 @@ gitGraph TB:
 - `b02ee8e` QA test outputs and comparative analysis
 - `a82669d` Rebrand to "SPD MATRIX" with professional enterprise UI
 - `1c17518` Repository cleanup (remove internal directories)
+- `540d207` **Clickable citations:** Click any citation to open the source PDF at the referenced page
 
 ## License
 
