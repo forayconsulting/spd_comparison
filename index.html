@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPD Plan Comparison Agent - Gemini</title>
+  <title>SPD MATRIX</title>
 
   <!-- External Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -21,39 +21,50 @@
 
   <style>
     :root {
-      /* Light Modern Monochrome Palette */
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8f9fa;
-      --bg-tertiary: #f1f3f5;
-      --surface-glass: rgba(255, 255, 255, 0.8);
-      --surface-elevated: rgba(0, 0, 0, 0.02);
+      /* SPD MATRIX - Professional Navy Blue Theme */
 
-      /* Subtle Monochrome Gradients */
-      --gradient-primary: linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%);
-      --gradient-accent: linear-gradient(135deg, #2d2d2d 0%, #5a5a5a 100%);
-      --gradient-success: linear-gradient(135deg, #333333 0%, #666666 100%);
-      --gradient-border: linear-gradient(135deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.12));
+      /* Primary Brand Colors */
+      --brand-navy: #1e3a5f;
+      --brand-navy-light: #2d4a6f;
+      --brand-navy-dark: #152a47;
+
+      /* Background Colors */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f7f9fc;
+      --bg-tertiary: #eef2f7;
+
+      /* Surface Colors (for glass effects) */
+      --surface-glass: rgba(255, 255, 255, 0.88);
+      --surface-elevated: rgba(30, 58, 95, 0.04);
+
+      /* Gradients */
+      --gradient-primary: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
+      --gradient-accent: linear-gradient(135deg, #2d4a6f 0%, #3d5a7f 100%);
+      --gradient-success: linear-gradient(135deg, #0d6e6e 0%, #1a8a8a 100%);
+      --gradient-border: linear-gradient(135deg, rgba(30, 58, 95, 0.1), rgba(30, 58, 95, 0.15));
 
       /* Text Colors */
-      --text-primary: #1a1a1a;
-      --text-secondary: #666666;
-      --text-muted: #999999;
+      --text-primary: #1a2b3c;
+      --text-secondary: #5a6b7c;
+      --text-muted: #8a9bac;
 
-      /* Accent Colors - Minimal */
-      --accent-dark: #2d2d2d;
-      --accent-gray: #5a5a5a;
-      --accent-light: #8a8a8a;
-      --accent-success: #4a4a4a;
+      /* Accent Colors */
+      --accent-primary: #1e3a5f;
+      --accent-hover: #2d4a6f;
+      --accent-success: #0d6e6e;
+      --accent-dark: #152a47;
+      --accent-gray: #5a6b7c;
+      --accent-light: #8a9bac;
 
       /* Borders */
-      --border-subtle: rgba(0, 0, 0, 0.06);
-      --border-medium: rgba(0, 0, 0, 0.12);
+      --border-subtle: rgba(30, 58, 95, 0.08);
+      --border-medium: rgba(30, 58, 95, 0.15);
 
-      /* Shadows */
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-      --shadow-glow: 0 0 40px rgba(0, 0, 0, 0.1);
+      /* Shadows (navy-tinted) */
+      --shadow-sm: 0 2px 8px rgba(30, 58, 95, 0.08);
+      --shadow-md: 0 4px 16px rgba(30, 58, 95, 0.12);
+      --shadow-lg: 0 8px 32px rgba(30, 58, 95, 0.16);
+      --shadow-glow: 0 0 40px rgba(30, 58, 95, 0.15);
 
       /* Error */
       --error: #d32f2f;
@@ -76,25 +87,18 @@
       position: relative;
     }
 
-    /* Subtle animated background pattern */
+    /* Subtle static background pattern */
     body::before {
       content: '';
       position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 20% 50%, rgba(0, 0, 0, 0.02) 0%, transparent 50%),
-                  radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.03) 0%, transparent 50%);
-      animation: backgroundShift 20s ease infinite;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 0% 0%, rgba(30, 58, 95, 0.03) 0%, transparent 50%),
+                  radial-gradient(circle at 100% 100%, rgba(30, 58, 95, 0.02) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
-    }
-
-    @keyframes backgroundShift {
-      0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(5%, -5%) rotate(120deg); }
-      66% { transform: translate(-5%, 5%) rotate(240deg); }
     }
 
     .chat-container {
@@ -108,18 +112,18 @@
       z-index: 1;
     }
 
-    /* Modern Header with Asymmetric Design */
+    /* SPD MATRIX Header with Navy Gradient */
     .chat-header {
-      padding: 24px 32px;
-      border-bottom: 1px solid var(--border-medium);
-      background: var(--surface-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      padding: 16px 32px;
+      border-bottom: none;
+      background: var(--gradient-primary);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: relative;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-md);
     }
 
     .chat-header::before {
@@ -136,21 +140,47 @@
       font-family: 'Space Grotesk', sans-serif;
       font-size: 28px;
       font-weight: 700;
-      color: var(--text-primary);
+      color: white;
       letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .settings-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .settings-button:hover {
+      background: rgba(255, 255, 255, 0.25);
     }
 
     .model-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: var(--surface-elevated);
+      background: rgba(255, 255, 255, 0.15);
       padding: 8px 16px;
       border-radius: 12px;
       font-size: 13px;
-      color: var(--text-secondary);
+      color: white;
       font-weight: 500;
-      border: 1px solid var(--border-medium);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       box-shadow: var(--shadow-sm);
       position: relative;
       overflow: hidden;
@@ -165,7 +195,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: var(--gradient-border);
+      background: rgba(255, 255, 255, 0.1);
       opacity: 0;
       transition: opacity 0.3s ease;
     }
@@ -173,10 +203,11 @@
     .model-badge:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
+      background: rgba(255, 255, 255, 0.2);
     }
 
     .model-badge:hover::before {
-      opacity: 0.1;
+      opacity: 1;
     }
 
     /* API Key Modal */
@@ -206,7 +237,7 @@
     }
 
     .modal h2 {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 24px;
       font-weight: 700;
       color: var(--text-primary);
@@ -371,7 +402,7 @@
       content: '●';
       position: absolute;
       left: 0;
-      color: var(--text-primary);
+      color: var(--accent-primary);
       animation: pulse 2s ease infinite;
     }
 
@@ -387,8 +418,8 @@
     /* Glass Morphism Message Cards */
     .message-content {
       background: var(--surface-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       padding: 24px;
       border-radius: 16px;
       border: 1px solid var(--border-medium);
@@ -564,7 +595,7 @@
     }
 
     .response-text h1, .response-text h2, .response-text h3 {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       margin-top: 24px;
       margin-bottom: 12px;
@@ -595,7 +626,7 @@
     .streaming-indicator .dot {
       width: 8px;
       height: 8px;
-      background: var(--text-primary);
+      background: var(--accent-primary);
       border-radius: 50%;
       animation: dotPulse 1.4s ease-in-out infinite;
     }
@@ -624,8 +655,8 @@
       border-top: 1px solid var(--border-medium);
       padding: 24px 32px;
       background: var(--surface-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       position: relative;
       box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
     }
@@ -668,15 +699,15 @@
     }
 
     #user-input:focus {
-      border-color: var(--text-primary);
-      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), var(--shadow-md);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1), var(--shadow-md);
       background: var(--bg-tertiary);
     }
 
-    /* Monochrome Button with Animation */
+    /* Navy Button with Animation */
     #send-button {
       padding: 16px 32px;
-      background: var(--text-primary);
+      background: var(--gradient-primary);
       color: white;
       border: none;
       border-radius: 12px;
@@ -711,7 +742,7 @@
     #send-button:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
-      background: var(--text-secondary);
+      background: var(--gradient-accent);
     }
 
     #send-button:active:not(:disabled) {
@@ -747,7 +778,7 @@
     }
 
     .empty-state h2 {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 32px;
       margin-bottom: 16px;
       color: var(--text-primary);
@@ -763,8 +794,8 @@
     .files-section {
       border-bottom: 1px solid var(--border-medium);
       background: var(--surface-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       position: relative;
     }
 
@@ -798,12 +829,19 @@
       font-size: 15px;
       font-weight: 700;
       color: var(--text-primary);
-      font-family: 'Space Grotesk', sans-serif;
-      letter-spacing: 0.5px;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.3px;
     }
 
     .files-icon {
-      font-size: 20px;
+      display: flex;
+      align-items: center;
+      color: var(--text-secondary);
+    }
+
+    .files-icon svg {
+      width: 20px;
+      height: 20px;
     }
 
     .files-count {
@@ -876,7 +914,7 @@
     }
 
     .drop-zone:hover {
-      border-color: var(--text-primary);
+      border-color: var(--accent-primary);
       background: var(--bg-tertiary);
       box-shadow: var(--shadow-md);
     }
@@ -886,16 +924,20 @@
     }
 
     .drop-zone.dragging {
-      border-color: var(--text-primary);
-      background: rgba(0, 0, 0, 0.04);
+      border-color: var(--accent-primary);
+      background: rgba(30, 58, 95, 0.06);
       border-width: 3px;
       box-shadow: var(--shadow-glow);
     }
 
     .drop-zone-icon {
-      font-size: 48px;
       margin-bottom: 12px;
-      opacity: 0.7;
+      color: var(--text-muted);
+    }
+
+    .drop-zone-icon svg {
+      width: 48px;
+      height: 48px;
     }
 
     .drop-zone-text {
@@ -903,7 +945,7 @@
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 8px;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
     }
 
     .drop-zone-hint {
@@ -972,8 +1014,17 @@
     }
 
     .file-icon {
-      font-size: 28px;
       flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .file-icon svg {
+      width: 28px;
+      height: 28px;
     }
 
     .file-info {
@@ -1013,7 +1064,7 @@
     }
 
     .file-status.uploaded {
-      color: var(--text-primary);
+      color: var(--accent-success);
     }
 
     .file-status.uploading {
@@ -1060,7 +1111,7 @@
       width: 100%;
       max-width: 500px;
       padding: 20px 48px;
-      background: var(--text-primary);
+      background: var(--gradient-primary);
       color: white;
       border: none;
       border-radius: 16px;
@@ -1097,7 +1148,7 @@
     .compare-button:hover:not(:disabled) {
       transform: translateY(-4px) scale(1.02);
       box-shadow: var(--shadow-lg);
-      background: var(--text-secondary);
+      background: var(--gradient-accent);
     }
 
     .compare-button:active:not(:disabled) {
@@ -1114,7 +1165,7 @@
     }
 
     .compare-button.comparing {
-      background: var(--text-secondary);
+      background: var(--gradient-accent);
       animation: pulse 2s ease infinite;
     }
 
@@ -1147,7 +1198,7 @@
       display: flex;
       border-bottom: 2px solid var(--border-medium);
       background: var(--surface-glass);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(12px);
       padding: 0 32px;
       gap: 8px;
     }
@@ -1167,13 +1218,13 @@
     }
 
     .tab-button:hover {
-      color: var(--text-primary);
-      background: rgba(0, 0, 0, 0.02);
+      color: var(--accent-primary);
+      background: rgba(30, 58, 95, 0.05);
     }
 
     .tab-button.active {
-      color: var(--text-primary);
-      border-bottom-color: var(--text-primary);
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
     }
 
     .tab-content {
@@ -1211,7 +1262,7 @@
     }
 
     .output-title {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 24px;
       font-weight: 700;
       color: var(--text-primary);
@@ -1219,7 +1270,7 @@
 
     .download-button {
       padding: 12px 24px;
-      background: var(--text-primary);
+      background: var(--gradient-primary);
       color: white;
       border: none;
       border-radius: 10px;
@@ -1236,7 +1287,7 @@
     .download-button:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
-      background: var(--text-secondary);
+      background: var(--gradient-accent);
     }
 
     /* Summary Output Styles */
@@ -1246,7 +1297,7 @@
     }
 
     .summary-content h2 {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 20px;
       font-weight: 700;
       margin: 24px 0 12px 0;
@@ -1254,7 +1305,7 @@
     }
 
     .summary-content h3 {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 16px;
       font-weight: 600;
       margin: 20px 0 10px 0;
@@ -1290,20 +1341,21 @@
     }
 
     .comparison-table th {
-      padding: 16px;
+      padding: 14px;
       text-align: left;
       font-weight: 700;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .comparison-table td {
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-bottom: 1px solid var(--border-subtle);
-      font-size: 14px;
+      font-size: 13px;
       vertical-align: top;
+      line-height: 1.5;
     }
 
     .comparison-table tbody tr:hover {
@@ -1334,7 +1386,7 @@
     }
 
     .language-row-header {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 18px;
       font-weight: 700;
       color: var(--text-primary);
@@ -1360,7 +1412,7 @@
       font-size: 15px;
       color: var(--text-primary);
       margin-bottom: 8px;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
     }
 
     .plan-summary {
@@ -1397,23 +1449,25 @@
     .tab-content table th,
     .tab-content table td {
       border: 1px solid var(--border-subtle);
-      padding: 12px;
+      padding: 10px 12px;
       text-align: left;
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     .tab-content table th {
-      background: var(--bg-secondary);
+      background: var(--bg-tertiary);
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--accent-primary);
     }
 
     .tab-content table tr:hover {
-      background: var(--bg-secondary);
+      background: rgba(30, 58, 95, 0.04);
     }
 
     /* Citation highlighting in Citations tab */
     .citation {
-      background: rgba(0, 0, 0, 0.06);
+      background: rgba(30, 58, 95, 0.08);
       padding: 2px 4px;
       border-radius: 3px;
       font-size: 0.9em;
@@ -1434,7 +1488,7 @@
       width: 60px;
       height: 60px;
       border: 4px solid var(--border-subtle);
-      border-top-color: var(--text-primary);
+      border-top-color: var(--accent-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -1444,7 +1498,7 @@
     }
 
     .comparison-loading-text {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 18px;
       font-weight: 600;
       color: var(--text-primary);
@@ -1473,7 +1527,7 @@
     }
 
     .progress-dot.active {
-      background: var(--text-primary);
+      background: var(--accent-primary);
       transform: scale(1.3);
     }
 
@@ -1495,6 +1549,12 @@
       display: flex;
     }
 
+    .phase-dots-anim {
+      display: inline-block;
+      width: 1.5em;
+      text-align: left;
+    }
+
     .phase-dots {
       display: flex;
       gap: 6px;
@@ -1509,7 +1569,7 @@
     }
 
     .phase-dots .dot.active {
-      background: var(--text-primary);
+      background: var(--accent-primary);
       transform: scale(1.2);
       animation: phasePulse 1.5s ease-in-out infinite;
     }
@@ -1614,9 +1674,9 @@
     }
 
     .mini-tab.active {
-      background: var(--text-primary);
+      background: var(--accent-primary);
       color: white;
-      border-color: var(--text-primary);
+      border-color: var(--accent-primary);
     }
 
     .mini-output-content {
@@ -1696,8 +1756,8 @@
 
     .chat-message-content {
       background: var(--surface-glass);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       padding: 16px 20px;
       border-radius: 12px;
       border: 1px solid var(--border-medium);
@@ -1955,7 +2015,7 @@
     /* Responsive Design - Mobile & Tablet */
     @media (max-width: 768px) {
       .chat-header {
-        padding: 20px 24px;
+        padding: 14px 24px;
       }
 
       .chat-header h1 {
@@ -1984,8 +2044,9 @@
         padding: 36px 24px;
       }
 
-      .drop-zone-icon {
-        font-size: 40px;
+      .drop-zone-icon svg {
+        width: 40px;
+        height: 40px;
       }
 
       .drop-zone-text {
@@ -2001,8 +2062,9 @@
         gap: 12px;
       }
 
-      .file-icon {
-        font-size: 24px;
+      .file-icon svg {
+        width: 24px;
+        height: 24px;
       }
 
       .file-name {
@@ -2058,7 +2120,7 @@
 
     @media (max-width: 480px) {
       .chat-header {
-        padding: 16px 20px;
+        padding: 12px 20px;
       }
 
       .chat-header h1 {
@@ -2111,10 +2173,26 @@
 <body>
   <div class="chat-container">
     <header class="chat-header">
-      <h1>SPD Plan Comparison Agent</h1>
-      <div class="model-badge" onclick="ChatApp.showApiKeyModal()">
-        <span class="thinking-indicator-badge">Settings</span>
-      </div>
+      <h1>
+        <svg class="logo-icon" viewBox="0 0 24 24" width="28" height="28">
+          <rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor"/>
+          <rect x="9.5" y="2" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+          <rect x="17" y="2" width="5" height="5" rx="1" fill="currentColor"/>
+          <rect x="2" y="9.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+          <rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/>
+          <rect x="17" y="9.5" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+          <rect x="2" y="17" width="5" height="5" rx="1" fill="currentColor"/>
+          <rect x="9.5" y="17" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+          <rect x="17" y="17" width="5" height="5" rx="1" fill="currentColor"/>
+        </svg>
+        SPD MATRIX
+      </h1>
+      <button class="settings-button" onclick="ChatApp.showApiKeyModal()" title="Settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
     </header>
 
     <!-- API Key Modal -->
@@ -2140,7 +2218,11 @@
     <section class="files-section" id="files-section">
       <div class="files-header" onclick="ChatApp.toggleFilesPanel()">
         <div class="files-title">
-          <span class="files-icon">📁</span>
+          <span class="files-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+          </span>
           <span>Plan Docs</span>
           <span class="files-count" id="files-count">(0 files)</span>
           <span class="files-toggle" id="files-toggle">▼</span>
@@ -2151,7 +2233,14 @@
         <div class="drop-zone" id="drop-zone">
           <input type="file" id="file-input" multiple accept=".pdf,.txt,.docx,.doc,.csv,.xlsx,.xls,image/*" hidden>
           <div class="drop-zone-content">
-            <div class="drop-zone-icon">📄</div>
+            <div class="drop-zone-icon">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <polyline points="9 15 12 12 15 15"/>
+              </svg>
+            </div>
             <div class="drop-zone-text">Drop files here or click to browse</div>
             <div class="drop-zone-hint">Supports PDF, DOCX, TXT, CSV, Excel, and images • Max 1,000 pages per PDF • 20 MB inline limit</div>
           </div>
@@ -2187,7 +2276,7 @@
         </button>
         <!-- Phase progress indicator (shown during streaming) -->
         <div class="phase-progress" id="phase-progress">
-          <span class="phase-text" id="phase-text">Reading to understand...</span>
+          <span class="phase-text" id="phase-text">Reading to understand</span><span class="phase-dots-anim" id="phase-dots-anim">...</span>
           <div class="phase-dots">
             <span class="dot" id="pdot-1"></span>
             <span class="dot" id="pdot-2"></span>
@@ -2340,6 +2429,46 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       }
     };
 
+    // Phase Progress Messages - Contextual phrases that rotate during analysis
+    const PHASE_MESSAGES = {
+      1: [
+        "Reading document contents",
+        "Identifying plan structures",
+        "Analyzing document relationships",
+        "Scanning for key provisions",
+        "Mapping document hierarchy",
+        "Understanding plan types",
+        "Reviewing benefit summaries",
+        "Categorizing plan documents",
+        "Processing document metadata",
+        "Building document overview"
+      ],
+      2: [
+        "Comparing plan provisions",
+        "Analyzing key differences",
+        "Cross-referencing documents",
+        "Building comparison matrix",
+        "Identifying variations",
+        "Evaluating procedural elements",
+        "Mapping similarities",
+        "Synthesizing findings",
+        "Organizing comparisons",
+        "Structuring results"
+      ],
+      3: [
+        "Extracting exact language",
+        "Locating source references",
+        "Compiling detailed quotes",
+        "Verifying citations",
+        "Cross-checking sources",
+        "Documenting variations",
+        "Finalizing references",
+        "Building language table",
+        "Validating quotations",
+        "Completing detailed analysis"
+      ]
+    };
+
     // Chat Application
     const ChatApp = {
       state: {
@@ -2369,7 +2498,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         chatPanelCollapsed: true, // Track if chat panel is collapsed (default: collapsed)
         chatPanelWidth: 400, // Width of chat panel in pixels when expanded
         // API key management
-        sessionApiKey: null // API key from modal (session only)
+        sessionApiKey: null, // API key from modal (session only)
+        // Progress message rotation
+        progressMessageIndex: 0,
+        progressMessageInterval: null,
+        dotAnimationIndex: 0,
+        dotAnimationInterval: null
       },
 
       init() {
@@ -2611,13 +2745,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         // Show output tabs immediately with streaming content (no loading spinner)
         document.getElementById('messages').style.display = 'none';
         document.getElementById('output-tabs').classList.add('active');
-        this.showPhaseProgress(1, 'Reading to understand...');
+        this.showPhaseProgress(1, 'Reading document contents');
 
         try {
           // PHASE 1: Document Summary - tab switches when first chunk arrives
           this.state.currentPhase = 1;
           this.state.hasActivatedPhaseTab = false;
-          this.updatePhaseProgress(1, 'Reading to understand...');
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
@@ -2630,7 +2763,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           // PHASE 2: Comparison Table - tab switches when first chunk arrives
           this.state.currentPhase = 2;
           this.state.hasActivatedPhaseTab = false;
-          this.updatePhaseProgress(2, 'Reading to understand...');
+          this.updatePhaseProgress(2, 'Comparing plan provisions');
+          this.startProgressRotation(2);
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
@@ -2643,7 +2777,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           // PHASE 3: Language Comparison - tab switches when first chunk arrives
           this.state.currentPhase = 3;
           this.state.hasActivatedPhaseTab = false;
-          this.updatePhaseProgress(3, 'Reading to understand...');
+          this.updatePhaseProgress(3, 'Extracting exact language');
+          this.startProgressRotation(3);
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
@@ -2934,6 +3069,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         if (progress) {
           progress.classList.add('active');
           this.updatePhaseProgress(phase, text);
+          // Start rotating contextual messages for this phase
+          this.startProgressRotation(phase);
         }
       },
 
@@ -2968,6 +3105,70 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         const progress = document.getElementById('phase-progress');
         if (progress) {
           progress.classList.remove('active');
+        }
+        this.stopProgressRotation();
+      },
+
+      // Start rotating progress messages for a phase
+      startProgressRotation(phase) {
+        const messages = PHASE_MESSAGES[phase];
+        if (!messages) return;
+
+        // Reset indices
+        this.state.progressMessageIndex = 0;
+        this.state.dotAnimationIndex = 0;
+
+        // Clear any existing intervals/timeouts
+        this.stopProgressRotation();
+
+        // Set initial message
+        this.updateProgressText(messages[0]);
+
+        // Schedule next message rotation with randomized timing
+        const scheduleNextMessage = () => {
+          // Random delay between 5-8 seconds
+          const delay = 5000 + Math.random() * 3000;
+          this.state.progressMessageInterval = setTimeout(() => {
+            this.state.progressMessageIndex = (this.state.progressMessageIndex + 1) % messages.length;
+            this.updateProgressText(messages[this.state.progressMessageIndex]);
+            scheduleNextMessage();
+          }, delay);
+        };
+        scheduleNextMessage();
+
+        // Animate dots every 500ms
+        this.state.dotAnimationInterval = setInterval(() => {
+          this.state.dotAnimationIndex = (this.state.dotAnimationIndex + 1) % 3;
+          this.updateProgressDots();
+        }, 500);
+      },
+
+      // Stop progress message rotation
+      stopProgressRotation() {
+        if (this.state.progressMessageInterval) {
+          clearTimeout(this.state.progressMessageInterval);
+          this.state.progressMessageInterval = null;
+        }
+        if (this.state.dotAnimationInterval) {
+          clearInterval(this.state.dotAnimationInterval);
+          this.state.dotAnimationInterval = null;
+        }
+      },
+
+      // Update the progress text (separate from dots)
+      updateProgressText(text) {
+        const phaseText = document.getElementById('phase-text');
+        if (phaseText) {
+          phaseText.textContent = text;
+        }
+      },
+
+      // Update just the dots animation (in separate element)
+      updateProgressDots() {
+        const dotsEl = document.getElementById('phase-dots-anim');
+        if (dotsEl) {
+          const dots = '.'.repeat(this.state.dotAnimationIndex + 1);
+          dotsEl.textContent = dots;
         }
       },
 
@@ -3041,15 +3242,17 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         output.innerHTML = marked.parse(this.state.comparisonResponse || '');
       },
 
-      // Highlight citation patterns like (filename.pdf, page, paragraph)
+      // Highlight citation patterns like (filename, page, paragraph)
       highlightCitations(html) {
-        // Match citations: (filename.pdf, page_number, ...) format
-        // Flexible to handle:
-        //   - Basic: (Plan.pdf, 6, 5)
+        // Match citations in format: (text, page/pg number, optional para/section)
+        // Flexible to handle various formats:
+        //   - With .pdf: (Plan.pdf, 6, 5)
+        //   - Without .pdf: (Plan Name, pg 5, para 3)
+        //   - Page prefix: (Doc, page 5, para 3-4)
         //   - Ranges: (Plan.pdf, 64, 2-3)
         //   - Text refs: (Plan.pdf, 14, table)
         //   - Multiple: (Plan.pdf, 1, 8; 2, 5; 3, 7)
-        const citationPattern = /\(([^)]*\.pdf,\s*\d+[^)]*)\)/gi;
+        const citationPattern = /\(([^,)]+,\s*(?:pg\.?\s*|page\s*)?\d+[^)]*)\)/gi;
         return html.replace(citationPattern, '<span class="citation">($1)</span>');
       },
 
@@ -3438,15 +3641,55 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       getFileIcon(mimeType) {
-        if (!mimeType) return '📄';
+        const pdfIcon = `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#c0392b" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#fdf2f2"/>
+          <polyline points="14 2 14 8 20 8" stroke="#c0392b"/>
+          <text x="12" y="16" font-size="6" font-weight="bold" fill="#c0392b" text-anchor="middle" font-family="system-ui">PDF</text>
+        </svg>`;
 
-        if (mimeType.includes('pdf')) return '📕';
-        if (mimeType.includes('image')) return '🖼️';
-        if (mimeType.includes('word') || mimeType.includes('document')) return '📘';
-        if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return '📊';
-        if (mimeType.includes('text')) return '📝';
+        const imageIcon = `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#1e3a5f" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="#f0f4f8"/>
+          <circle cx="8.5" cy="8.5" r="1.5" fill="#1e3a5f"/>
+          <polyline points="21 15 16 10 5 21" stroke="#1e3a5f"/>
+        </svg>`;
 
-        return '📄';
+        const wordIcon = `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#2980b9" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#ebf5fb"/>
+          <polyline points="14 2 14 8 20 8" stroke="#2980b9"/>
+          <line x1="8" y1="13" x2="16" y2="13" stroke="#2980b9"/>
+          <line x1="8" y1="17" x2="14" y2="17" stroke="#2980b9"/>
+        </svg>`;
+
+        const spreadsheetIcon = `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#27ae60" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#eafaf1"/>
+          <polyline points="14 2 14 8 20 8" stroke="#27ae60"/>
+          <line x1="8" y1="12" x2="8" y2="18" stroke="#27ae60"/>
+          <line x1="12" y1="12" x2="12" y2="18" stroke="#27ae60"/>
+          <line x1="6" y1="14" x2="18" y2="14" stroke="#27ae60"/>
+          <line x1="6" y1="16" x2="18" y2="16" stroke="#27ae60"/>
+        </svg>`;
+
+        const textIcon = `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#7f8c8d" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#f8f9fa"/>
+          <polyline points="14 2 14 8 20 8" stroke="#7f8c8d"/>
+          <line x1="8" y1="13" x2="16" y2="13" stroke="#7f8c8d"/>
+          <line x1="8" y1="17" x2="12" y2="17" stroke="#7f8c8d"/>
+        </svg>`;
+
+        const defaultIcon = `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#1e3a5f" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="#f7f9fc"/>
+          <polyline points="14 2 14 8 20 8" stroke="#1e3a5f"/>
+        </svg>`;
+
+        if (!mimeType) return defaultIcon;
+
+        if (mimeType.includes('pdf')) return pdfIcon;
+        if (mimeType.includes('image')) return imageIcon;
+        if (mimeType.includes('word') || mimeType.includes('document')) return wordIcon;
+        if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return spreadsheetIcon;
+        if (mimeType.includes('text')) return textIcon;
+
+        return defaultIcon;
       },
 
       // ===== NEW: Three-Output Tab System =====

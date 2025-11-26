@@ -6,3 +6,11 @@ plan_docs/
 
 # Ignore API key configuration
 config.js
+
+# Ignore development/internal directories
+legacy/
+requirements/
+tests/
+
+# Ignore development documentation
+CLAUDE.md

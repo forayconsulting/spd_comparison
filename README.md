@@ -1,4 +1,4 @@
-# SPD Plan Comparison Tool
+# SPD MATRIX
 
 An AI-powered tool for comparing pension plan documents to identify policy differences and support standardization efforts following plan mergers.
 
@@ -14,6 +14,15 @@ This tool helps pension fund administrators quickly compare Summary Plan Descrip
 
 ## Key Features
 
+### Professional Enterprise Interface
+Designed with inspiration from enterprise legal and document management tools:
+
+- **Navy blue theme** with subtle glassmorphism effects
+- **Clean SVG iconography** throughout (no emojis)
+- **Dynamic progress messages** that rotate contextually during each analysis phase
+- **Animated status indicators** showing real-time processing state
+- **Responsive design** optimized for desktop and tablet use
+
 ### Three-Phase Sequential Analysis
 Powered by Google Gemini 3 Pro Preview with progressive context engineering:
 
@@ -21,16 +30,19 @@ Powered by Google Gemini 3 Pro Preview with progressive context engineering:
 - Comprehensive overview of all uploaded documents
 - Identifies plan structures, relationships, and key domains
 - Concise 500-word summary for quick understanding
+- Progress messages: "Reading document contents", "Identifying plan structures", etc.
 
 **Phase 2: Comparison Spreadsheet**
 - Side-by-side comparison table of all procedural elements
 - Compares provisions across all plan units
 - Identifies similarities and differences systematically
+- Progress messages: "Comparing plan provisions", "Building comparison matrix", etc.
 
 **Phase 3: Language Comparison**
 - Detailed extraction with full legal text and exact citations
 - Format: `(filename, page_number, paragraph_number)`
 - Complete language for legal review and standardization
+- Progress messages: "Extracting exact language", "Verifying citations", etc.
 
 ### Interactive Chat Feature
 After analysis completes, a collapsible chat sidebar appears:
@@ -38,6 +50,12 @@ After analysis completes, a collapsible chat sidebar appears:
 - **Explore topics in depth** with context-aware responses
 - **All three analysis outputs** automatically included in chat context
 - **Fresh PDF analysis** with each question for accuracy
+
+### Citation Highlighting
+Automatically highlights citations in the Language Comparison tab:
+- Flexible pattern matching for various citation formats
+- Supports filenames with or without `.pdf` extension
+- Handles page references with "pg", "page", or just numbers
 
 ### Export Options
 - **Download as Markdown:** Save any tab's content for documentation
@@ -129,7 +147,7 @@ Compare this to:
 - **No server required:** Runs entirely in your browser
 - **Direct API connection:** Your documents go straight to Google's secure API
 - **No data storage:** Files are converted to base64 and sent with each request, not stored anywhere
-- **Privacy first:** Client PDFs never touch our servers (that's why `plan_docs/` is gitignored)
+- **Privacy first:** Client PDFs never touch our servers
 
 ### Powered By
 - **Google Gemini 3 Pro Preview:** Most advanced reasoning model with 1M token context window
@@ -140,30 +158,12 @@ Compare this to:
 - **Direct browser integration:** CORS-enabled API, no proxy needed
 - **Interactive chat:** Context-aware follow-up questions with full analysis included
 
-## Migration from Claude
-
-This tool previously used Anthropic's Claude API. We migrated to Google Gemini for:
-- **Higher PDF limits:** 1,000 pages per document (vs 100 with Claude)
-- **Larger context:** 1M tokens (vs 200k with Claude)
-- **Better cost efficiency:** 40-60% cheaper for large document analysis
-- **Simpler streaming:** Standard SSE format
-
-Legacy Claude implementation available in `legacy/` directory.
-
 ## Project Background
 
 **Developed for:** Western Pension Fund
 **Purpose:** Post-merger plan standardization
 **Budget:** $3,000-$4,000 target (vs. $10,000+ for law firm analysis)
 **Status:** Production-ready with Gemini 3 Pro, three-phase analysis, and interactive chat
-
-## Support & Development
-
-This is a proof-of-concept tool. For questions, enhancements, or issues:
-
-- Technical documentation: See `CLAUDE.md`
-- Business requirements: See `requirements/requirements.md`
-- System prompt details: See `requirements/system_prompt.md`
 
 ## License
 
