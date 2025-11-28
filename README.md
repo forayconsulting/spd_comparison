@@ -12,20 +12,18 @@
 3. Upload plan documents and click "Compare Documents"
 
 ### Cloudflare Pages Deployment
-The `cloudflare/` directory contains a ready-to-deploy Cloudflare Pages configuration with:
-- **Server-side API proxy**: Pages Function proxies Gemini API requests, keeping the API key completely hidden from browsers
+The repo is configured for Cloudflare Pages deployment with a unified codebase:
+- **Single `index.html`**: Auto-detects local vs. Cloudflare environment at runtime
+- **Server-side API proxy**: Pages Function at `functions/api/gemini/[model].js` proxies requests, keeping the API key hidden
 - **Custom domain support**: Pages supports external DNS via CNAME (works with Squarespace, GoDaddy, etc.)
 - **Cloudflare Access**: Email OTP authentication with allowlists—only authorized users can access the app
-- **NFR mode**: Settings modal shows "NFR API key provided for testing" with "Secured server-side" indicator
 
 ```bash
-cd cloudflare
-npx wrangler pages project create spd-matrix   # Create Pages project
-npx wrangler pages deploy public --branch=main # Deploy to production
-npx wrangler pages secret put GEMINI_API_KEY   # Add API key to production
+wrangler pages deploy .                    # Deploy to production
+wrangler pages secret put GEMINI_API_KEY   # Add API key (first time only)
 ```
 
-For local testing: `npx wrangler pages dev public` (uses `.dev.vars` for secrets)
+For local testing with proxy: `wrangler pages dev .` (uses `.dev.vars` for secrets)
 
 **Custom Domain Setup:**
 1. In Cloudflare Pages dashboard, add custom domain (e.g., `spd-matrix.yourdomain.com`)
@@ -118,12 +116,14 @@ gitGraph TB:
 - `1c17518` Repository cleanup (remove internal directories)
 - `3a5e982` **Clickable citations:** Click any citation to open the source PDF at the referenced page
 
-**November 28, 2025 — Cloudflare Pages Deployment**
+**November 28, 2025 — Cloudflare Pages & Unified Codebase**
 - Convert from Cloudflare Workers to Pages for custom domain support with external DNS
 - Pages Function proxies Gemini API requests with server-side key injection (never exposed to browser)
 - Custom domain configured via CNAME from Squarespace DNS
 - Cloudflare Access configured with email OTP authentication and user allowlist
-- Settings modal shows "NFR API key provided for testing" with "Secured server-side" indicator
+- **Unified codebase:** Single `index.html` with runtime environment detection (eliminates duplicate files)
+- **Citation regex fix:** Handle quoted filenames in model output (e.g., `("filename.pdf", Page 6)`)
+- Settings modal adapts to show API key input (local) or "Secured server-side" indicator (Cloudflare)
 
 ## License
 

@@ -8,9 +8,9 @@ plan_docs/
 config.js
 
 # Cloudflare Wrangler
-cloudflare/.dev.vars
-cloudflare/.wrangler/
-cloudflare/node_modules/
+.dev.vars
+.wrangler/
+node_modules/
 
 # Ignore development/internal directories
 legacy/
