@@ -2455,18 +2455,22 @@
   <script src="config.js" onerror="window.CONFIG_LOAD_FAILED = true;"></script>
 
   <script>
-    // Ensure CONFIG exists with defaults (for proxy mode when config.js doesn't exist)
+    // Ensure CONFIG exists with defaults
     if (typeof CONFIG === 'undefined' || window.CONFIG_LOAD_FAILED) {
       window.CONFIG = {
         MODEL: 'gemini-3-pro-preview',
         MAX_OUTPUT_TOKENS: 32768,
         THINKING_LEVEL: 'high'
-        // Note: GEMINI_API_KEY intentionally omitted - proxy mode
       };
     }
 
-    // Detect proxy mode: true when no API key configured (server handles auth)
-    const IS_PROXY_MODE = !CONFIG.GEMINI_API_KEY;
+    // Detect proxy mode by hostname (more reliable than checking for API key)
+    // Local development: localhost, 127.0.0.1, file:// protocol
+    // Cloudflare/Production: everything else uses server-side proxy
+    const IS_LOCAL_DEV = window.location.hostname === 'localhost' ||
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.protocol === 'file:';
+    const IS_PROXY_MODE = !IS_LOCAL_DEV;
 
     // Configure marked for markdown rendering
     marked.setOptions({
@@ -3446,7 +3450,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         // Pattern captures: (filename.pdf, page N, optional paragraph info)
         // Handles variations: pg, pg., page, paragraph, para, para.
         // Uses .+? (non-greedy) to allow parentheses within filenames like "(SPD)" or "(eff. 06.01.05)"
-        const citationPattern = /\(["']?(.+?\.pdf)["']?\s*,\s*(?:pg\.?\s*|page\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
+        const citationPattern = /\((?:["']|&quot;)?(.+?\.pdf)(?:["']|&quot;)?\s*,\s*(?:pg\.?\s*|page\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
 
         return html.replace(citationPattern, (match, filename, page, paragraph) => {
           const result = this.findUploadedFile(filename);

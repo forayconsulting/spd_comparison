@@ -1,0 +1,12 @@
+# Files to exclude from Cloudflare Pages deployment
+config.js
+.dev.vars
+.git/
+.gitignore
+.wrangler/
+node_modules/
+plan_docs/
+legacy/
+requirements/
+tests/
+CLAUDE.md
