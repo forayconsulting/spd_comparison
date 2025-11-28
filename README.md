@@ -13,9 +13,9 @@
 
 ### Cloudflare Deployment
 The `cloudflare/` directory contains a ready-to-deploy Cloudflare Workers configuration with:
-- **API key injection**: Store your Gemini key as a Wrangler secret (never exposed in code)
+- **Server-side API proxy**: Worker proxies Gemini API requests, keeping the API key completely hidden from browsers (not even in HTML source)
 - **Authentication ready**: Configure Cloudflare Access with email OTP for user allowlists
-- **NFR mode**: Settings modal shows read-only API key with "NFR API key provided for testing" notice
+- **NFR mode**: Settings modal shows "NFR API key provided for testing" notice with server-side security indicator
 
 ```bash
 cd cloudflare
@@ -112,9 +112,9 @@ gitGraph TB:
 - `3a5e982` **Clickable citations:** Click any citation to open the source PDF at the referenced page
 
 **November 28, 2025 — Cloudflare Deployment**
-- Add Cloudflare Workers deployment configuration
-- Worker injects Gemini API key from Wrangler secrets into HTML at serve time
-- Modified Settings modal shows read-only masked API key with NFR notice
+- Add Cloudflare Workers deployment configuration with server-side API proxy
+- Worker proxies all Gemini API requests, injecting API key server-side (never exposed to browser)
+- Settings modal shows "NFR API key provided for testing" with "Secured server-side" indicator
 - Ready for Cloudflare Access authentication (email OTP with user allowlist)
 
 ## License
