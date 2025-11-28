@@ -6,9 +6,24 @@
 
 ## Getting Started
 
-1. Open `index.html` in a browser
-2. Enter your [Gemini API key](https://aistudio.google.com/app/apikey) in Settings
+### Local Development
+1. Copy `config.example.js` to `config.js` and add your [Gemini API key](https://aistudio.google.com/app/apikey)
+2. Open `index.html` in a browser
 3. Upload plan documents and click "Compare Documents"
+
+### Cloudflare Deployment
+The `cloudflare/` directory contains a ready-to-deploy Cloudflare Workers configuration with:
+- **API key injection**: Store your Gemini key as a Wrangler secret (never exposed in code)
+- **Authentication ready**: Configure Cloudflare Access with email OTP for user allowlists
+- **NFR mode**: Settings modal shows read-only API key with "NFR API key provided for testing" notice
+
+```bash
+cd cloudflare
+wrangler secret put GEMINI_API_KEY    # Add your API key
+wrangler deploy                        # Deploy to Cloudflare
+```
+
+For local testing: `wrangler dev` (uses `.dev.vars` for secrets)
 
 ## Development History
 
@@ -94,7 +109,13 @@ gitGraph TB:
 - `b02ee8e` QA test outputs and comparative analysis
 - `a82669d` Rebrand to "SPD MATRIX" with professional enterprise UI
 - `1c17518` Repository cleanup (remove internal directories)
-- `540d207` **Clickable citations:** Click any citation to open the source PDF at the referenced page
+- `3a5e982` **Clickable citations:** Click any citation to open the source PDF at the referenced page
+
+**November 28, 2025 — Cloudflare Deployment**
+- Add Cloudflare Workers deployment configuration
+- Worker injects Gemini API key from Wrangler secrets into HTML at serve time
+- Modified Settings modal shows read-only masked API key with NFR notice
+- Ready for Cloudflare Access authentication (email OTP with user allowlist)
 
 ## License
 

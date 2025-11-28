@@ -7,6 +7,11 @@ plan_docs/
 # Ignore API key configuration
 config.js
 
+# Cloudflare Wrangler
+cloudflare/.dev.vars
+cloudflare/.wrangler/
+cloudflare/node_modules/
+
 # Ignore development/internal directories
 legacy/
 requirements/
