@@ -11,19 +11,26 @@
 2. Open `index.html` in a browser
 3. Upload plan documents and click "Compare Documents"
 
-### Cloudflare Deployment
-The `cloudflare/` directory contains a ready-to-deploy Cloudflare Workers configuration with:
-- **Server-side API proxy**: Worker proxies Gemini API requests, keeping the API key completely hidden from browsers (not even in HTML source)
-- **Authentication ready**: Configure Cloudflare Access with email OTP for user allowlists
-- **NFR mode**: Settings modal shows "NFR API key provided for testing" notice with server-side security indicator
+### Cloudflare Pages Deployment
+The `cloudflare/` directory contains a ready-to-deploy Cloudflare Pages configuration with:
+- **Server-side API proxy**: Pages Function proxies Gemini API requests, keeping the API key completely hidden from browsers
+- **Custom domain support**: Pages supports external DNS via CNAME (works with Squarespace, GoDaddy, etc.)
+- **Cloudflare Access**: Email OTP authentication with allowlists—only authorized users can access the app
+- **NFR mode**: Settings modal shows "NFR API key provided for testing" with "Secured server-side" indicator
 
 ```bash
 cd cloudflare
-wrangler secret put GEMINI_API_KEY    # Add your API key
-wrangler deploy                        # Deploy to Cloudflare
+npx wrangler pages project create spd-matrix   # Create Pages project
+npx wrangler pages deploy public --branch=main # Deploy to production
+npx wrangler pages secret put GEMINI_API_KEY   # Add API key to production
 ```
 
-For local testing: `wrangler dev` (uses `.dev.vars` for secrets)
+For local testing: `npx wrangler pages dev public` (uses `.dev.vars` for secrets)
+
+**Custom Domain Setup:**
+1. In Cloudflare Pages dashboard, add custom domain (e.g., `spd-matrix.yourdomain.com`)
+2. Add CNAME record in your DNS provider pointing to `spd-matrix.pages.dev`
+3. Cloudflare handles SSL automatically
 
 ## Development History
 
@@ -111,11 +118,12 @@ gitGraph TB:
 - `1c17518` Repository cleanup (remove internal directories)
 - `3a5e982` **Clickable citations:** Click any citation to open the source PDF at the referenced page
 
-**November 28, 2025 — Cloudflare Deployment**
-- Add Cloudflare Workers deployment configuration with server-side API proxy
-- Worker proxies all Gemini API requests, injecting API key server-side (never exposed to browser)
+**November 28, 2025 — Cloudflare Pages Deployment**
+- Convert from Cloudflare Workers to Pages for custom domain support with external DNS
+- Pages Function proxies Gemini API requests with server-side key injection (never exposed to browser)
+- Custom domain configured via CNAME from Squarespace DNS
+- Cloudflare Access configured with email OTP authentication and user allowlist
 - Settings modal shows "NFR API key provided for testing" with "Secured server-side" indicator
-- Ready for Cloudflare Access authentication (email OTP with user allowlist)
 
 ## License
 
