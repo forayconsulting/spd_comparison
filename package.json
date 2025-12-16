@@ -1,0 +1,10 @@
+{
+  "name": "spd-matrix",
+  "version": "1.0.0",
+  "description": "SPD comparison tool with Railway PostgreSQL backend",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "postgres": "^3.4.4"
+  }
+}
