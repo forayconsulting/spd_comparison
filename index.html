@@ -2453,6 +2453,229 @@
         font-size: 15px;
       }
     }
+
+    /* Notes Feature Styles */
+    .note-highlight {
+      background: linear-gradient(180deg, rgba(255, 230, 100, 0.4), rgba(255, 230, 100, 0.3));
+      border-bottom: 2px solid rgba(200, 160, 0, 0.6);
+      cursor: pointer;
+      padding: 1px 2px;
+      border-radius: 2px;
+      transition: all 0.2s ease;
+    }
+    .note-highlight:hover {
+      background: rgba(255, 230, 100, 0.6);
+      border-bottom-color: rgba(200, 160, 0, 0.9);
+    }
+    .note-highlight.active {
+      background: rgba(255, 200, 50, 0.5);
+      box-shadow: 0 0 0 2px rgba(200, 160, 0, 0.3);
+    }
+
+    .note-popup {
+      position: fixed;
+      z-index: 10001;
+      width: 320px;
+      max-height: 400px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      animation: notePopupIn 0.2s ease;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    @keyframes notePopupIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .note-popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-tertiary);
+      flex-shrink: 0;
+    }
+    .note-popup-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .note-popup-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .note-popup-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .note-popup-btn.delete {
+      background: rgba(220, 38, 38, 0.1);
+      color: #dc2626;
+    }
+    .note-popup-btn.delete:hover {
+      background: #dc2626;
+      color: white;
+    }
+    .note-popup-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .note-popup-close:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    .note-popup-content {
+      padding: 16px;
+      max-height: 250px;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    .note-popup-content.editing {
+      padding: 12px;
+    }
+    .note-editor {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .note-editor:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+    }
+    .note-rendered {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+    .note-rendered p {
+      margin: 0 0 8px 0;
+    }
+    .note-rendered p:last-child {
+      margin-bottom: 0;
+    }
+    .note-popup-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-tertiary);
+      flex-shrink: 0;
+    }
+    .note-save-btn {
+      padding: 8px 16px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .note-save-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    .note-cancel-btn {
+      padding: 8px 16px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .note-cancel-btn:hover {
+      background: var(--surface-glass);
+    }
+    .note-timestamp {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .note-edit-btn {
+      background: none;
+      border: none;
+      color: var(--accent-primary);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .note-edit-btn:hover {
+      background: rgba(30, 58, 95, 0.1);
+    }
+
+    /* Selection hint tooltip */
+    .selection-hint {
+      position: fixed;
+      z-index: 10000;
+      padding: 4px 8px;
+      background: var(--text-primary);
+      border-radius: 6px;
+      animation: fadeIn 0.15s ease;
+      box-shadow: var(--shadow-md);
+    }
+    .selection-hint button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 8px;
+      white-space: nowrap;
+    }
+    .selection-hint button:hover {
+      text-decoration: underline;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -2523,6 +2746,39 @@
           <button class="modal-button primary" onclick="ChatApp.confirmRename()">Save</button>
         </div>
       </div>
+    </div>
+
+    <!-- Note Popup -->
+    <div id="note-popup" class="note-popup" style="display: none;">
+      <div class="note-popup-header">
+        <span class="note-popup-title">Note</span>
+        <div class="note-popup-actions">
+          <button class="note-popup-btn delete" onclick="ChatApp.deleteCurrentNote()" title="Delete note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+          <button class="note-popup-close" onclick="ChatApp.closeNotePopup()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="note-popup-content" id="note-popup-content">
+        <!-- Content rendered here (either editor or markdown view) -->
+      </div>
+      <div class="note-popup-footer" id="note-popup-footer">
+        <button class="note-cancel-btn" onclick="ChatApp.cancelNoteEdit()">Cancel</button>
+        <button class="note-save-btn" onclick="ChatApp.saveCurrentNote()">Save</button>
+      </div>
+    </div>
+
+    <!-- Selection Hint (appears when text is selected) -->
+    <div id="selection-hint" class="selection-hint" style="display: none;">
+      <button onclick="ChatApp.addNoteFromSelection()">+ Add Note</button>
     </div>
 
     <!-- Settings Modal (adapts to local vs proxy mode) -->
@@ -2900,7 +3156,15 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         currentAnalysisId: null,      // UUID of current/loaded analysis
         historyList: [],              // [{id, title, created_at, file_metadata}]
         historyPanelOpen: false,      // History drawer visibility
-        renamingAnalysisId: null      // ID of analysis being renamed
+        renamingAnalysisId: null,     // ID of analysis being renamed
+        // Notes state
+        notes: [],                    // [{id, tab, anchor_text, anchor_prefix, anchor_suffix, content, created_at}]
+        activeNoteId: null,           // Currently open popup note ID
+        pendingSelection: null,       // {text, prefix, suffix, tab, rect} - temp selection before note created
+        isNotePopupOpen: false,       // Popup visibility state
+        notePopupPosition: { top: 0, left: 0 }, // Popup positioning
+        editingNoteContent: '',       // Current content in note editor
+        isEditingNote: false          // Whether we're in edit mode
       },
 
       init() {
@@ -2909,6 +3173,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.loadSessionApiKey();
         this.loadSplitViewPreferences();
         this.loadHistoryList();
+        this.initNoteEvents();
       },
 
       // Helper to generate formatted list of uploaded filenames for prompt injection
@@ -3669,6 +3934,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         const output = document.getElementById('summary-output');
         // Render the summary response as markdown
         output.innerHTML = marked.parse(this.state.summaryResponse || '');
+        // Apply note highlights after rendering
+        this.applyNoteHighlights('summary');
       },
 
       renderComparisonTab() {
@@ -3676,6 +3943,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         // Parse the comparison response and render as HTML table
         // The response should be a markdown table, so we can render it directly
         output.innerHTML = marked.parse(this.state.comparisonResponse || '');
+        // Apply note highlights after rendering
+        this.applyNoteHighlights('comparison');
       },
 
       // Find uploaded file by citation filename (exact, case-insensitive, or fuzzy match)
@@ -3766,6 +4035,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         // The response should be a markdown table, so we can render it directly
         const html = marked.parse(this.state.languageResponse || '');
         output.innerHTML = this.highlightCitations(html);
+        // Apply note highlights after rendering
+        this.applyNoteHighlights('language');
       },
 
       activateTab(tabName) {
@@ -3940,6 +4211,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
@@ -4970,6 +5242,7 @@ User Question: ${userQuestion}`;
           this.state.comparisonResponse = data.comparison_response;
           this.state.languageResponse = data.language_response;
           this.state.chatMessages = data.chat_messages || [];
+          this.state.notes = data.notes || [];
 
           // Set file metadata (without base64 - user must re-upload for new chats)
           // Parse file_metadata if it's a JSON string (from database)
@@ -5317,6 +5590,7 @@ User Question: ${userQuestion}`;
         this.state.comparisonResponse = null;
         this.state.languageResponse = null;
         this.state.chatMessages = [];
+        this.state.notes = [];
         this.state.currentPhase = 0;
         this.state.isStreaming = false;
         this.state.isChatStreaming = false;
@@ -5372,6 +5646,698 @@ User Question: ${userQuestion}`;
 
         // Close history panel
         this.toggleHistoryPanel();
+      },
+
+      // ========================================
+      // NOTES FEATURE METHODS
+      // ========================================
+
+      /**
+       * Initialize note-related event listeners
+       */
+      initNoteEvents() {
+        // Text selection in output tabs
+        ['summary-output', 'comparison-output', 'language-output'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+
+          el.addEventListener('mouseup', (e) => {
+            // Don't show hint if clicking on an existing highlight
+            if (e.target.closest('.note-highlight')) return;
+
+            const tab = id.replace('-output', '');
+            const selection = this.captureTextSelection(tab);
+            if (selection) {
+              this.state.pendingSelection = selection;
+              this.showSelectionHint(selection.rect);
+            } else {
+              this.hideSelectionHint();
+              this.state.pendingSelection = null;
+            }
+          });
+        });
+
+        // Click on highlights to open popup
+        document.addEventListener('click', (e) => {
+          const highlight = e.target.closest('.note-highlight');
+          if (highlight) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.hideSelectionHint();
+            this.openNotePopup(highlight.dataset.noteId, highlight.getBoundingClientRect());
+          }
+        });
+
+        // Close popup on outside click
+        document.addEventListener('mousedown', (e) => {
+          if (this.state.isNotePopupOpen) {
+            const popup = document.getElementById('note-popup');
+            const hint = document.getElementById('selection-hint');
+            if (!popup.contains(e.target) && !e.target.closest('.note-highlight') && !hint?.contains(e.target)) {
+              this.closeNotePopup();
+            }
+          }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          // Escape to close popup
+          if (e.key === 'Escape' && this.state.isNotePopupOpen) {
+            this.closeNotePopup();
+          }
+
+          // Ctrl/Cmd + Enter to save note in editor
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && this.state.isNotePopupOpen && this.state.isEditingNote) {
+            e.preventDefault();
+            this.saveCurrentNote();
+          }
+        });
+
+        // Hide selection hint on scroll (position becomes invalid)
+        document.addEventListener('scroll', () => {
+          this.hideSelectionHint();
+          this.state.pendingSelection = null;
+        }, true);
+
+        // Hide selection hint when clicking elsewhere
+        document.addEventListener('mousedown', (e) => {
+          const hint = document.getElementById('selection-hint');
+          if (hint && hint.style.display !== 'none' && !hint.contains(e.target)) {
+            // Small delay to allow "Add Note" click to process first
+            setTimeout(() => {
+              if (this.state.pendingSelection) {
+                this.hideSelectionHint();
+                this.state.pendingSelection = null;
+              }
+            }, 100);
+          }
+        });
+      },
+
+      /**
+       * Capture the current text selection and return anchor data
+       */
+      captureTextSelection(tab) {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed) return null;
+
+        const selectedText = selection.toString().trim();
+        if (!selectedText || selectedText.length < 3) return null;
+
+        const outputDiv = document.getElementById(`${tab}-output`);
+        if (!outputDiv) return null;
+
+        const fullText = outputDiv.textContent;
+        const idx = fullText.indexOf(selectedText);
+        if (idx === -1) return null;
+
+        // Extract prefix/suffix context (50 chars each)
+        const prefix = fullText.substring(Math.max(0, idx - 50), idx);
+        const suffix = fullText.substring(idx + selectedText.length, idx + selectedText.length + 50);
+
+        return {
+          text: selectedText,
+          prefix: prefix,
+          suffix: suffix,
+          tab: tab,
+          rect: selection.getRangeAt(0).getBoundingClientRect()
+        };
+      },
+
+      /**
+       * Escape special regex characters in a string
+       */
+      escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      },
+
+      /**
+       * Calculate similarity score between two strings (0-1)
+       */
+      similarity(str1, str2) {
+        if (!str1 || !str2) return 0;
+        const maxLen = Math.max(str1.length, str2.length);
+        if (maxLen === 0) return 1;
+
+        // Simple character-by-character comparison
+        let matches = 0;
+        const minLen = Math.min(str1.length, str2.length);
+        for (let i = 0; i < minLen; i++) {
+          if (str1[i] === str2[i]) matches++;
+        }
+        return matches / maxLen;
+      },
+
+      /**
+       * Find the position of a note's anchor text in the content
+       */
+      findAnchorPosition(note, outputDiv) {
+        const fullText = outputDiv.textContent;
+        const { anchor_text, anchor_prefix, anchor_suffix } = note;
+
+        // Find all occurrences of anchor_text
+        const occurrences = [];
+        let pos = 0;
+        while ((pos = fullText.indexOf(anchor_text, pos)) !== -1) {
+          occurrences.push(pos);
+          pos += 1;
+        }
+
+        if (occurrences.length === 0) return null;
+        if (occurrences.length === 1) return occurrences[0];
+
+        // Disambiguate using prefix/suffix similarity
+        let bestMatch = occurrences[0];
+        let bestScore = 0;
+
+        for (const pos of occurrences) {
+          let score = 0;
+
+          // Check prefix match
+          if (anchor_prefix) {
+            const actualPrefix = fullText.substring(Math.max(0, pos - anchor_prefix.length), pos);
+            score += this.similarity(actualPrefix, anchor_prefix);
+          }
+
+          // Check suffix match
+          if (anchor_suffix) {
+            const actualSuffix = fullText.substring(
+              pos + anchor_text.length,
+              pos + anchor_text.length + (anchor_suffix?.length || 50)
+            );
+            score += this.similarity(actualSuffix, anchor_suffix);
+          }
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = pos;
+          }
+        }
+
+        return bestMatch;
+      },
+
+      /**
+       * Create a Range at a specific text position
+       */
+      createRangeAtPosition(outputDiv, position, length) {
+        const walker = document.createTreeWalker(
+          outputDiv,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false
+        );
+
+        let currentPos = 0;
+        let node;
+        let startNode = null, startOffset = 0;
+        let endNode = null, endOffset = 0;
+        const endPosition = position + length;
+
+        while ((node = walker.nextNode())) {
+          const nodeLen = node.textContent.length;
+
+          // Find start node
+          if (!startNode && currentPos + nodeLen > position) {
+            startNode = node;
+            startOffset = position - currentPos;
+          }
+
+          // Find end node
+          if (currentPos + nodeLen >= endPosition) {
+            endNode = node;
+            endOffset = endPosition - currentPos;
+            break;
+          }
+
+          currentPos += nodeLen;
+        }
+
+        if (!startNode || !endNode) return null;
+
+        try {
+          const range = document.createRange();
+          range.setStart(startNode, startOffset);
+          range.setEnd(endNode, endOffset);
+          return range;
+        } catch (e) {
+          console.warn('Failed to create range:', e);
+          return null;
+        }
+      },
+
+      /**
+       * Apply note highlights to a tab's content
+       */
+      applyNoteHighlights(tab) {
+        const outputDiv = document.getElementById(`${tab}-output`);
+        if (!outputDiv) return;
+
+        const tabNotes = this.state.notes.filter(n => n.tab === tab);
+
+        // Clear existing highlights
+        outputDiv.querySelectorAll('.note-highlight').forEach(el => {
+          const text = el.textContent;
+          el.replaceWith(document.createTextNode(text));
+        });
+
+        // Normalize to merge adjacent text nodes
+        outputDiv.normalize();
+
+        // Apply each note's highlight (sort by position to handle overlaps)
+        const notesWithPositions = tabNotes.map(note => ({
+          note,
+          position: this.findAnchorPosition(note, outputDiv)
+        })).filter(n => n.position !== null)
+          .sort((a, b) => b.position - a.position); // Reverse order to preserve positions
+
+        for (const { note, position } of notesWithPositions) {
+          const range = this.createRangeAtPosition(outputDiv, position, note.anchor_text.length);
+          if (!range) continue;
+
+          try {
+            const mark = document.createElement('mark');
+            mark.className = 'note-highlight';
+            mark.dataset.noteId = note.id;
+            mark.title = 'Click to view note';
+            range.surroundContents(mark);
+          } catch (e) {
+            // If selection spans multiple elements, try extractContents approach
+            try {
+              const mark = document.createElement('mark');
+              mark.className = 'note-highlight';
+              mark.dataset.noteId = note.id;
+              mark.title = 'Click to view note';
+              const fragment = range.extractContents();
+              mark.appendChild(fragment);
+              range.insertNode(mark);
+            } catch (e2) {
+              console.warn(`Could not highlight note ${note.id}:`, e2);
+            }
+          }
+        }
+      },
+
+      /**
+       * Show the selection hint tooltip near the selection
+       */
+      showSelectionHint(rect) {
+        const hint = document.getElementById('selection-hint');
+        if (!hint) return;
+
+        // Position below and centered on selection
+        let left = rect.left + (rect.width / 2) - 50; // Approximate hint width / 2
+        let top = rect.bottom + 8;
+
+        // Viewport bounds check
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        if (left < 16) left = 16;
+        if (left + 100 > viewportWidth - 16) left = viewportWidth - 116;
+        if (top + 40 > viewportHeight - 16) top = rect.top - 40;
+
+        hint.style.left = `${left}px`;
+        hint.style.top = `${top}px`;
+        hint.style.display = 'block';
+      },
+
+      /**
+       * Hide the selection hint tooltip
+       */
+      hideSelectionHint() {
+        const hint = document.getElementById('selection-hint');
+        if (hint) {
+          hint.style.display = 'none';
+        }
+      },
+
+      /**
+       * Add a note from the current text selection
+       */
+      addNoteFromSelection() {
+        const selection = this.state.pendingSelection;
+        if (!selection) return;
+
+        this.hideSelectionHint();
+
+        // Check if analysis is saved (has ID)
+        if (!this.state.currentAnalysisId) {
+          alert('Please save the analysis first before adding notes. Notes will be saved automatically after the comparison completes.');
+          return;
+        }
+
+        // Create a temporary note
+        const tempId = 'temp_' + Date.now();
+        const note = {
+          id: tempId,
+          _tempId: tempId,
+          tab: selection.tab,
+          anchor_text: selection.text,
+          anchor_prefix: selection.prefix,
+          anchor_suffix: selection.suffix,
+          content: '',
+          created_at: new Date().toISOString()
+        };
+
+        // Add to state
+        this.state.notes.push(note);
+
+        // Apply highlight immediately
+        this.applyNoteHighlights(selection.tab);
+
+        // Open popup in edit mode
+        this.state.activeNoteId = tempId;
+        this.state.isEditingNote = true;
+        this.state.editingNoteContent = '';
+
+        this.openNotePopup(tempId, selection.rect);
+
+        // Clear selection
+        window.getSelection()?.removeAllRanges();
+        this.state.pendingSelection = null;
+      },
+
+      /**
+       * Open the note popup for viewing/editing
+       */
+      openNotePopup(noteId, rect) {
+        const popup = document.getElementById('note-popup');
+        if (!popup) return;
+
+        const note = this.state.notes.find(n => n.id === noteId || n._tempId === noteId);
+        if (!note) return;
+
+        this.state.activeNoteId = noteId;
+        this.state.isNotePopupOpen = true;
+
+        // If it's a new note (no content), start in edit mode
+        if (!note.content) {
+          this.state.isEditingNote = true;
+          this.state.editingNoteContent = '';
+        } else {
+          this.state.isEditingNote = false;
+          this.state.editingNoteContent = note.content;
+        }
+
+        // Render popup content
+        this.renderNotePopupContent();
+
+        // Position popup
+        popup.style.display = 'flex';
+
+        // Use setTimeout to get accurate dimensions after display
+        setTimeout(() => {
+          const popupRect = popup.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+
+          let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+          let top = rect.bottom + 12;
+
+          // Horizontal bounds check
+          if (left < 16) left = 16;
+          if (left + popupRect.width > viewportWidth - 16) {
+            left = viewportWidth - popupRect.width - 16;
+          }
+
+          // Vertical bounds check - show above if not enough room below
+          if (top + popupRect.height > viewportHeight - 16) {
+            top = rect.top - popupRect.height - 12;
+          }
+
+          // Ensure not off-screen at top
+          if (top < 16) top = 16;
+
+          popup.style.left = `${left}px`;
+          popup.style.top = `${top}px`;
+
+          // Focus editor if in edit mode
+          if (this.state.isEditingNote) {
+            const editor = document.getElementById('note-editor');
+            if (editor) editor.focus();
+          }
+        }, 10);
+
+        // Mark the highlight as active
+        document.querySelectorAll('.note-highlight').forEach(el => el.classList.remove('active'));
+        const highlight = document.querySelector(`.note-highlight[data-note-id="${noteId}"]`);
+        if (highlight) highlight.classList.add('active');
+      },
+
+      /**
+       * Close the note popup
+       */
+      closeNotePopup() {
+        const popup = document.getElementById('note-popup');
+        if (popup) {
+          popup.style.display = 'none';
+        }
+
+        // Remove active class from highlights
+        document.querySelectorAll('.note-highlight').forEach(el => el.classList.remove('active'));
+
+        // If we're closing a new note without content, remove it
+        if (this.state.activeNoteId) {
+          const note = this.state.notes.find(n => n.id === this.state.activeNoteId || n._tempId === this.state.activeNoteId);
+          if (note && !note.content && note._tempId) {
+            // Remove unsaved empty note
+            this.state.notes = this.state.notes.filter(n => n._tempId !== note._tempId);
+            this.applyNoteHighlights(note.tab);
+          }
+        }
+
+        this.state.isNotePopupOpen = false;
+        this.state.activeNoteId = null;
+        this.state.isEditingNote = false;
+        this.state.editingNoteContent = '';
+      },
+
+      /**
+       * Render the content of the note popup (edit or view mode)
+       */
+      renderNotePopupContent() {
+        const content = document.getElementById('note-popup-content');
+        const footer = document.getElementById('note-popup-footer');
+        if (!content || !footer) return;
+
+        const note = this.state.notes.find(n => n.id === this.state.activeNoteId || n._tempId === this.state.activeNoteId);
+        if (!note) return;
+
+        if (this.state.isEditingNote) {
+          content.className = 'note-popup-content editing';
+          content.innerHTML = `
+            <textarea id="note-editor" class="note-editor" placeholder="Add your note here... (Markdown supported)">${this.escapeHtml(this.state.editingNoteContent)}</textarea>
+          `;
+          footer.style.display = 'flex';
+
+          // Sync textarea changes to state
+          const editor = document.getElementById('note-editor');
+          if (editor) {
+            editor.addEventListener('input', (e) => {
+              this.state.editingNoteContent = e.target.value;
+            });
+          }
+        } else {
+          content.className = 'note-popup-content';
+          const renderedContent = marked.parse(note.content || '');
+          const timestamp = note.created_at ? new Date(note.created_at).toLocaleString() : '';
+          content.innerHTML = `
+            <div class="note-rendered">${renderedContent}</div>
+            <button class="note-edit-btn" onclick="ChatApp.startEditingNote()">Edit</button>
+            ${timestamp ? `<div class="note-timestamp">Created: ${timestamp}</div>` : ''}
+          `;
+          footer.style.display = 'none';
+        }
+      },
+
+      /**
+       * Start editing the current note
+       */
+      startEditingNote() {
+        const note = this.state.notes.find(n => n.id === this.state.activeNoteId || n._tempId === this.state.activeNoteId);
+        if (!note) return;
+
+        this.state.isEditingNote = true;
+        this.state.editingNoteContent = note.content || '';
+        this.renderNotePopupContent();
+
+        // Focus editor
+        setTimeout(() => {
+          const editor = document.getElementById('note-editor');
+          if (editor) {
+            editor.focus();
+            editor.setSelectionRange(editor.value.length, editor.value.length);
+          }
+        }, 10);
+      },
+
+      /**
+       * Save the current note
+       */
+      async saveCurrentNote() {
+        const noteId = this.state.activeNoteId;
+        const content = this.state.editingNoteContent.trim();
+
+        if (!content) {
+          alert('Note content cannot be empty');
+          return;
+        }
+
+        const noteIndex = this.state.notes.findIndex(n => n.id === noteId || n._tempId === noteId);
+        if (noteIndex === -1) return;
+
+        const note = this.state.notes[noteIndex];
+        const isNew = !!note._tempId;
+
+        // Update local state
+        this.state.notes[noteIndex].content = content;
+
+        // Save to backend
+        const success = await this.saveNoteToBackend(note, isNew);
+
+        if (success) {
+          this.state.isEditingNote = false;
+          this.renderNotePopupContent();
+        } else {
+          alert('Failed to save note. Please try again.');
+        }
+      },
+
+      /**
+       * Cancel editing and revert
+       */
+      cancelNoteEdit() {
+        const note = this.state.notes.find(n => n.id === this.state.activeNoteId || n._tempId === this.state.activeNoteId);
+
+        if (note && !note.content && note._tempId) {
+          // New note with no content - remove it
+          this.closeNotePopup();
+        } else if (note) {
+          // Existing note - revert to view mode
+          this.state.isEditingNote = false;
+          this.state.editingNoteContent = note.content || '';
+          this.renderNotePopupContent();
+        }
+      },
+
+      /**
+       * Delete the current note
+       */
+      async deleteCurrentNote() {
+        const noteId = this.state.activeNoteId;
+        const note = this.state.notes.find(n => n.id === noteId || n._tempId === noteId);
+
+        if (!note) return;
+
+        if (!confirm('Delete this note?')) return;
+
+        const tab = note.tab;
+
+        // If it's a temp note, just remove locally
+        if (note._tempId) {
+          this.state.notes = this.state.notes.filter(n => n._tempId !== note._tempId);
+        } else {
+          // Delete from backend
+          const success = await this.deleteNoteFromBackend(note.id);
+          if (!success) {
+            alert('Failed to delete note. Please try again.');
+            return;
+          }
+          this.state.notes = this.state.notes.filter(n => n.id !== note.id);
+        }
+
+        this.closeNotePopup();
+        this.applyNoteHighlights(tab);
+      },
+
+      /**
+       * Save note to backend via API
+       */
+      async saveNoteToBackend(note, isNew) {
+        if (!this.state.currentAnalysisId) {
+          console.warn('Cannot save note: no analysis ID');
+          return false;
+        }
+
+        try {
+          const body = isNew ? {
+            add_note: {
+              tab: note.tab,
+              anchor_text: note.anchor_text,
+              anchor_prefix: note.anchor_prefix,
+              anchor_suffix: note.anchor_suffix,
+              content: note.content
+            }
+          } : {
+            update_note: {
+              note_id: note.id,
+              content: note.content
+            }
+          };
+
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+
+          if (!res.ok) {
+            console.error('Failed to save note:', await res.text());
+            return false;
+          }
+
+          const data = await res.json();
+
+          // Update local note with server ID if new
+          if (isNew && data.note_id) {
+            const noteIndex = this.state.notes.findIndex(n => n._tempId === note._tempId);
+            if (noteIndex !== -1) {
+              this.state.notes[noteIndex].id = data.note_id;
+              delete this.state.notes[noteIndex]._tempId;
+              // Update activeNoteId to use the real ID
+              this.state.activeNoteId = data.note_id;
+              // Update highlight's data attribute
+              const highlight = document.querySelector(`.note-highlight[data-note-id="${note._tempId}"]`);
+              if (highlight) {
+                highlight.dataset.noteId = data.note_id;
+              }
+            }
+          }
+
+          return true;
+        } catch (error) {
+          console.error('Failed to save note:', error);
+          return false;
+        }
+      },
+
+      /**
+       * Delete note from backend via API
+       */
+      async deleteNoteFromBackend(noteId) {
+        if (!this.state.currentAnalysisId) {
+          console.warn('Cannot delete note: no analysis ID');
+          return false;
+        }
+
+        try {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ delete_note: { note_id: noteId } })
+          });
+
+          if (!res.ok) {
+            console.error('Failed to delete note:', await res.text());
+            return false;
+          }
+
+          return true;
+        } catch (error) {
+          console.error('Failed to delete note:', error);
+          return false;
+        }
       }
     };
 

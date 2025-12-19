@@ -63,13 +63,21 @@ export async function onRequestGet(context) {
       ORDER BY created_at ASC
     `;
 
+    // Get notes for this analysis
+    const notes = await sql`
+      SELECT id, tab, anchor_text, anchor_prefix, anchor_suffix, content, created_at, updated_at
+      FROM notes
+      WHERE analysis_id = ${analysisId}
+    `;
+
     return jsonResponse({
       ...analysis,
       chat_messages: chatMessages.map(m => ({
         role: m.role,
         content: m.content,
         timestamp: m.created_at
-      }))
+      })),
+      notes: notes
     });
   } catch (error) {
     console.error('Error loading analysis:', error);
@@ -103,11 +111,11 @@ export async function onRequestPatch(context) {
     return errorResponse('Invalid JSON body', 400);
   }
 
-  const { title, new_messages } = body;
+  const { title, new_messages, add_note, update_note, delete_note } = body;
 
   // Need at least one field to update
-  if (!title && (!new_messages || !Array.isArray(new_messages))) {
-    return errorResponse('title or new_messages is required', 400);
+  if (!title && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note) {
+    return errorResponse('At least one update field is required', 400);
   }
 
   const sql = createSqlClient(env);
@@ -155,6 +163,77 @@ export async function onRequestPatch(context) {
           UPDATE analyses SET updated_at = NOW() WHERE id = ${analysisId}
         `;
       }
+    }
+
+    // Add note
+    if (add_note) {
+      const { tab, anchor_text, anchor_prefix, anchor_suffix, content } = add_note;
+
+      if (!tab || !anchor_text || !content) {
+        return errorResponse('add_note requires tab, anchor_text, and content', 400);
+      }
+
+      const result = await sql`
+        INSERT INTO notes (analysis_id, tab, anchor_text, anchor_prefix, anchor_suffix, content)
+        VALUES (${analysisId}, ${tab}, ${anchor_text}, ${anchor_prefix || null}, ${anchor_suffix || null}, ${content})
+        RETURNING id, created_at
+      `;
+
+      await sql`
+        UPDATE analyses SET updated_at = NOW() WHERE id = ${analysisId}
+      `;
+
+      return jsonResponse({ success: true, note_id: result[0].id, created_at: result[0].created_at });
+    }
+
+    // Update note
+    if (update_note) {
+      const { note_id, content } = update_note;
+
+      if (!note_id || !content) {
+        return errorResponse('update_note requires note_id and content', 400);
+      }
+
+      const result = await sql`
+        UPDATE notes SET content = ${content}
+        WHERE id = ${note_id} AND analysis_id = ${analysisId}
+        RETURNING id, updated_at
+      `;
+
+      if (result.length === 0) {
+        return errorResponse('Note not found', 404);
+      }
+
+      await sql`
+        UPDATE analyses SET updated_at = NOW() WHERE id = ${analysisId}
+      `;
+
+      return jsonResponse({ success: true, updated_at: result[0].updated_at });
+    }
+
+    // Delete note
+    if (delete_note) {
+      const { note_id } = delete_note;
+
+      if (!note_id) {
+        return errorResponse('delete_note requires note_id', 400);
+      }
+
+      const result = await sql`
+        DELETE FROM notes
+        WHERE id = ${note_id} AND analysis_id = ${analysisId}
+        RETURNING id
+      `;
+
+      if (result.length === 0) {
+        return errorResponse('Note not found', 404);
+      }
+
+      await sql`
+        UPDATE analyses SET updated_at = NOW() WHERE id = ${analysisId}
+      `;
+
+      return jsonResponse({ success: true });
     }
 
     return jsonResponse({ success: true });

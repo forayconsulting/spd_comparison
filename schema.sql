@@ -37,6 +37,21 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 
 CREATE INDEX IF NOT EXISTS idx_chat_analysis ON chat_messages(analysis_id, created_at ASC);
 
+-- Notes table - user annotations on analysis content
+CREATE TABLE IF NOT EXISTS notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL REFERENCES analyses(id) ON DELETE CASCADE,
+    tab VARCHAR(20) NOT NULL CHECK (tab IN ('summary', 'comparison', 'language')),
+    anchor_text TEXT NOT NULL,               -- The exact highlighted text
+    anchor_prefix TEXT,                      -- ~50 chars before for disambiguation
+    anchor_suffix TEXT,                      -- ~50 chars after for disambiguation
+    content TEXT NOT NULL,                   -- Note content (markdown supported)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notes_analysis ON notes(analysis_id);
+
 -- Function to auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -50,5 +65,12 @@ $$ language 'plpgsql';
 DROP TRIGGER IF EXISTS update_analyses_updated_at ON analyses;
 CREATE TRIGGER update_analyses_updated_at
     BEFORE UPDATE ON analyses
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger to update updated_at on notes
+DROP TRIGGER IF EXISTS update_notes_updated_at ON notes;
+CREATE TRIGGER update_notes_updated_at
+    BEFORE UPDATE ON notes
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();

@@ -4,6 +4,12 @@
 
 **SPD MATRIX** is a browser-based tool for comparing pension plan documents across multiple plan units. Built for post-merger standardization, it uses Google Gemini's 1M-token context window to analyze complete SPDs side-by-side, producing executive summaries, comparison matrices, and detailed language extractions with exact page citations—work that would cost thousands at a law firm, completed in minutes for a few dollars.
 
+**Key Features:**
+- **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
+- **Interactive chat:** Ask follow-up questions about the analysis with full document context
+- **Session history:** Save and reload analyses with Railway PostgreSQL backend
+- **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
+
 ## Getting Started
 
 ### Local Development
@@ -124,6 +130,19 @@ gitGraph TB:
 - **Unified codebase:** Single `index.html` with runtime environment detection (eliminates duplicate files)
 - **Citation regex fix:** Handle quoted filenames in model output (e.g., `("filename.pdf", Page 6)`)
 - Settings modal adapts to show API key input (local) or "Secured server-side" indicator (Cloudflare)
+
+**December 15, 2025 — Session History**
+- Railway PostgreSQL backend for persistent storage
+- User-specific session history via Cloudflare Access email header
+- Save/load analyses with all three phases and chat messages preserved
+- Hyperdrive connection pooling for optimal database performance
+
+**December 18, 2025 — Notes Feature**
+- Google Docs-style annotations on any highlighted text in analysis tabs
+- Text anchoring with prefix/suffix context for reliable restoration
+- Immediate auto-save to PostgreSQL backend
+- Notes persist across sessions and reload with saved analyses
+- Markdown support in note content with inline rendering
 
 ## License
 
