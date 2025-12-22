@@ -22,7 +22,7 @@ The repo is configured for Cloudflare Pages deployment with a unified codebase:
 - **Single `index.html`**: Auto-detects local vs. Cloudflare environment at runtime
 - **Server-side API proxy**: Pages Function at `functions/api/gemini/[model].js` proxies requests, keeping the API key hidden
 - **Custom domain support**: Pages supports external DNS via CNAME (works with Squarespace, GoDaddy, etc.)
-- **Cloudflare Access**: Email OTP authentication with allowlists—only authorized users can access the app
+- **Cloudflare Access**: Multi-provider authentication (Google OAuth, Microsoft Entra ID, OTP fallback) with email allowlist
 
 ```bash
 wrangler pages deploy .                    # Deploy to production
@@ -126,7 +126,7 @@ gitGraph TB:
 - Convert from Cloudflare Workers to Pages for custom domain support with external DNS
 - Pages Function proxies Gemini API requests with server-side key injection (never exposed to browser)
 - Custom domain configured via CNAME from Squarespace DNS
-- Cloudflare Access configured with email OTP authentication and user allowlist
+- Cloudflare Access configured with email allowlist policy
 - **Unified codebase:** Single `index.html` with runtime environment detection (eliminates duplicate files)
 - **Citation regex fix:** Handle quoted filenames in model output (e.g., `("filename.pdf", Page 6)`)
 - Settings modal adapts to show API key input (local) or "Secured server-side" indicator (Cloudflare)
@@ -143,6 +143,13 @@ gitGraph TB:
 - Immediate auto-save to PostgreSQL backend
 - Notes persist across sessions and reload with saved analyses
 - Markdown support in note content with inline rendering
+
+**December 22, 2025 — Multi-Provider Authentication**
+- Replaced slow email OTP as primary login with instant social login options
+- Added Google OAuth identity provider (works with any email via Google account)
+- Added Microsoft Entra ID identity provider (multi-tenant, supports any MS365 organization)
+- Email allowlist policy unchanged—controls WHO can access regardless of login method
+- Users now see three login options: Google, Microsoft, or One-time PIN fallback
 
 ## License
 
