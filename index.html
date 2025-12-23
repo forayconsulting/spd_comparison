@@ -387,6 +387,27 @@
       gap: 6px;
     }
 
+    .history-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      padding: 8px 0;
+      margin-bottom: 8px;
+    }
+
+    .history-card-owner {
+      font-size: 11px;
+      color: var(--accent-primary);
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .history-card.shared {
+      border-left: 3px solid var(--accent-primary);
+    }
+
     /* Re-upload notice */
     .reupload-notice {
       display: flex;
@@ -548,6 +569,177 @@
 
     .modal-button.secondary:hover {
       background: var(--surface-glass);
+    }
+
+    /* Share Modal */
+    .share-modal {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: var(--shadow-xl);
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .share-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .share-modal-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .share-modal-content {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .share-section {
+      margin-bottom: 24px;
+    }
+
+    .share-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .share-section h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 12px 0;
+    }
+
+    .share-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin: 0 0 12px 0;
+    }
+
+    .share-email-input {
+      display: flex;
+      gap: 8px;
+    }
+
+    .share-email-input input {
+      flex: 1;
+      padding: 10px 14px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .share-email-input input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .share-email-input button,
+    .create-link-btn {
+      padding: 10px 16px;
+      background: var(--accent-primary);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .share-email-input button:hover,
+    .create-link-btn:hover {
+      opacity: 0.9;
+    }
+
+    .shares-list {
+      margin-top: 12px;
+    }
+
+    .share-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .share-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .share-item-email,
+    .share-item-url {
+      font-size: 13px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .share-item-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .share-item-actions {
+      display: flex;
+      gap: 4px;
+      margin-left: 8px;
+    }
+
+    .share-item-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+    }
+
+    .share-item-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .share-item-btn.delete:hover {
+      color: #ef4444;
     }
 
     .api-key-hint {
@@ -2571,7 +2763,7 @@
     }
     .note-popup-content {
       padding: 16px;
-      max-height: 250px;
+      max-height: 350px;
       overflow-y: auto;
       flex-grow: 1;
     }
@@ -2665,6 +2857,109 @@
       background: rgba(30, 58, 95, 0.1);
     }
 
+    /* Note author display */
+    .note-author {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Note actions row */
+    .note-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .note-reply-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .note-reply-btn:hover {
+      background: rgba(30, 58, 95, 0.1);
+      color: var(--accent-primary);
+    }
+
+    /* Reply divider */
+    .note-reply-divider {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin: 12px 0 8px 0;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Reply editor */
+    .reply-editor {
+      min-height: 60px;
+    }
+
+    /* Replies section */
+    .note-replies {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .replies-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .note-reply {
+      background: rgba(30, 58, 95, 0.05);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+    .note-reply:last-child {
+      margin-bottom: 0;
+    }
+    .reply-author {
+      font-size: 10px;
+      color: var(--accent-primary);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .reply-content {
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .reply-content p {
+      margin: 0;
+    }
+    .reply-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .reply-timestamp {
+      font-size: 10px;
+      color: var(--text-tertiary);
+    }
+    .reply-delete-btn {
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-size: 10px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: all 0.2s ease;
+    }
+    .reply-delete-btn:hover {
+      background: rgba(220, 53, 69, 0.1);
+      color: #dc3545;
+    }
+
     /* Selection hint tooltip */
     .selection-hint {
       position: fixed;
@@ -2712,6 +3007,15 @@
         SPD MATRIX
       </h1>
       <div class="header-buttons">
+        <button id="share-button" class="settings-button share-button" onclick="ChatApp.openShareModal()" title="Share" style="display: none;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+        </button>
         <button class="settings-button history-button" onclick="ChatApp.toggleHistoryPanel()" title="History">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -2760,6 +3064,46 @@
         <div class="modal-buttons">
           <button class="modal-button secondary" onclick="ChatApp.closeRenameModal()">Cancel</button>
           <button class="modal-button primary" onclick="ChatApp.confirmRename()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal-overlay" style="display: none;" onclick="ChatApp.closeShareModal()">
+      <div class="share-modal" onclick="event.stopPropagation()">
+        <div class="share-modal-header">
+          <h2>Share Analysis</h2>
+          <button class="modal-close-btn" onclick="ChatApp.closeShareModal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="share-modal-content">
+          <!-- Email Share Section -->
+          <div class="share-section">
+            <h3>Share by Email</h3>
+            <div class="share-email-input">
+              <input type="email" id="share-email" placeholder="Enter email address"
+                     onkeydown="if(event.key === 'Enter') ChatApp.addEmailShare()">
+              <button onclick="ChatApp.addEmailShare()">Share</button>
+            </div>
+            <div id="email-shares-list" class="shares-list"></div>
+          </div>
+          <!-- Link Share Section -->
+          <div class="share-section">
+            <h3>Share by Link</h3>
+            <p class="share-hint">Anyone with the link can view and add notes</p>
+            <button onclick="ChatApp.createShareLink()" class="create-link-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              Generate Shareable Link
+            </button>
+            <div id="link-shares-list" class="shares-list"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -3174,13 +3518,23 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         historyPanelOpen: false,      // History drawer visibility
         renamingAnalysisId: null,     // ID of analysis being renamed
         // Notes state
-        notes: [],                    // [{id, tab, anchor_text, anchor_prefix, anchor_suffix, content, created_at}]
+        notes: [],                    // [{id, tab, anchor_text, anchor_prefix, anchor_suffix, content, created_at, author_email, replies}]
         activeNoteId: null,           // Currently open popup note ID
         pendingSelection: null,       // {text, prefix, suffix, tab, rect} - temp selection before note created
         isNotePopupOpen: false,       // Popup visibility state
         notePopupPosition: { top: 0, left: 0 }, // Popup positioning
         editingNoteContent: '',       // Current content in note editor
-        isEditingNote: false          // Whether we're in edit mode
+        isEditingNote: false,         // Whether we're in edit mode
+        replyingToNoteId: null,       // Currently replying to this note
+        replyContent: '',             // Reply editor content
+        // Session sharing state
+        isOwner: true,                // Is current user the owner of loaded analysis?
+        ownerEmail: null,             // Owner's email (for shared analyses)
+        currentUserEmail: null,       // Authenticated user's email
+        shareModalOpen: false,        // Share modal visibility
+        currentShares: { email_shares: [], link_shares: [] }, // Current analysis shares
+        shareInputEmail: '',          // Email input in share modal
+        sharedAnalysesList: []        // List of analyses shared with this user
       },
 
       init() {
@@ -3190,6 +3544,51 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.loadSplitViewPreferences();
         this.loadHistoryList();
         this.initNoteEvents();
+        this.handleShareToken();
+      },
+
+      // Handle share token from URL (?share=TOKEN)
+      async handleShareToken() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareToken = urlParams.get('share');
+        if (!shareToken) return;
+
+        try {
+          // Validate token
+          const validateRes = await fetch(`/api/share/${shareToken}`);
+          const validateData = await validateRes.json();
+
+          if (!validateData.valid) {
+            const errorMessages = {
+              'not_found': 'This share link is invalid.',
+              'expired': 'This share link has expired.',
+              'revoked': 'This share link has been revoked.',
+              'max_uses_reached': 'This share link has reached its maximum uses.'
+            };
+            alert(errorMessages[validateData.error] || 'Invalid share link.');
+            window.history.replaceState({}, '', '/');
+            return;
+          }
+
+          // Claim the share
+          const claimRes = await fetch(`/api/share/${shareToken}`, { method: 'POST' });
+          const claimData = await claimRes.json();
+
+          if (claimData.success) {
+            // Clear URL and load the analysis
+            window.history.replaceState({}, '', '/');
+            await this.loadAnalysis(claimData.analysis_id);
+            // Refresh history to show the new shared analysis
+            await this.loadHistoryList();
+          } else {
+            alert('Failed to access shared analysis.');
+            window.history.replaceState({}, '', '/');
+          }
+        } catch (error) {
+          console.error('Error handling share token:', error);
+          alert('Error accessing shared analysis.');
+          window.history.replaceState({}, '', '/');
+        }
       },
 
       // Helper to generate formatted list of uploaded filenames for prompt injection
@@ -5198,7 +5597,9 @@ User Question: ${userQuestion}`;
           const res = await fetch('/api/history/analyses');
           if (res.ok) {
             const data = await res.json();
+            this.state.currentUserEmail = data.current_user_email || null;
             this.state.historyList = data.analyses || [];
+            this.state.sharedAnalysesList = data.shared_analyses || [];
             this.updateHistoryBadge();
           }
         } catch (error) {
@@ -5239,6 +5640,8 @@ User Question: ${userQuestion}`;
 
           const { id: analysisId } = await createRes.json();
           this.state.currentAnalysisId = analysisId;
+          this.state.isOwner = true; // User is owner of newly created analysis
+          this.updateShareButtonVisibility();
           console.log('Analysis created:', analysisId);
 
           // Step 2: Upload files to R2
@@ -5366,6 +5769,8 @@ User Question: ${userQuestion}`;
           this.state.languageResponse = data.language_response;
           this.state.chatMessages = data.chat_messages || [];
           this.state.notes = data.notes || [];
+          this.state.isOwner = data.is_owner !== false; // Default to true for backwards compatibility
+          this.state.ownerEmail = data.owner_email || null;
 
           // Parse file_metadata if it's a JSON string (from database)
           let fileMetadata = data.file_metadata || [];
@@ -5463,6 +5868,9 @@ User Question: ${userQuestion}`;
        * Render a loaded analysis (show tabs with content)
        */
       renderLoadedAnalysis() {
+        // Update share button visibility (only show if owner)
+        this.updateShareButtonVisibility();
+
         // Hide messages container (empty state)
         document.getElementById('messages').style.display = 'none';
 
@@ -5589,7 +5997,10 @@ User Question: ${userQuestion}`;
           newAnalysisBtn.style.display = this.state.currentAnalysisId ? 'flex' : 'none';
         }
 
-        if (this.state.historyList.length === 0) {
+        const hasOwned = this.state.historyList.length > 0;
+        const hasShared = this.state.sharedAnalysesList.length > 0;
+
+        if (!hasOwned && !hasShared) {
           content.innerHTML = `
             <div class="history-empty">
               <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
@@ -5603,9 +6014,31 @@ User Question: ${userQuestion}`;
           return;
         }
 
-        // Group by date
-        const grouped = this.groupHistoryByDate(this.state.historyList);
+        let html = '';
 
+        // Render owned analyses
+        if (hasOwned) {
+          if (hasShared) {
+            html += '<div class="history-section-label">My Analyses</div>';
+          }
+          const grouped = this.groupHistoryByDate(this.state.historyList);
+          html += this.renderHistoryCards(grouped, true);
+        }
+
+        // Render shared analyses
+        if (hasShared) {
+          html += '<div class="history-section-label" style="margin-top: 24px;">Shared with Me</div>';
+          const grouped = this.groupHistoryByDate(this.state.sharedAnalysesList);
+          html += this.renderHistoryCards(grouped, false);
+        }
+
+        content.innerHTML = html;
+      },
+
+      /**
+       * Render history cards for a grouped list
+       */
+      renderHistoryCards(grouped, isOwned) {
         let html = '';
         for (const [dateLabel, items] of Object.entries(grouped)) {
           html += `<div class="history-date-group">
@@ -5627,16 +6060,23 @@ User Question: ${userQuestion}`;
             const fullTitle = item.title || 'Untitled';
 
             html += `
-              <div class="history-card" data-id="${item.id}">
+              <div class="history-card ${isOwned ? '' : 'shared'}" data-id="${item.id}">
                 <div class="history-card-header">
                   <div class="history-card-title" onclick="ChatApp.loadAnalysis('${item.id}')" title="${this.escapeHtml(fullTitle)}">${this.escapeHtml(title)}</div>
+                  ${isOwned ? `
                   <button class="history-edit-btn" onclick="event.stopPropagation(); ChatApp.editAnalysisTitle('${item.id}', '${this.escapeHtml(fullTitle).replace(/'/g, "\\'")}');" title="Rename">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
+                  ` : ''}
                 </div>
+                ${!isOwned && item.owner_email ? `
+                <div class="history-card-owner" onclick="ChatApp.loadAnalysis('${item.id}')">
+                  Shared by ${this.escapeHtml(item.owner_email)}
+                </div>
+                ` : ''}
                 <div class="history-card-meta" onclick="ChatApp.loadAnalysis('${item.id}')">
                   <span>${fileCount} file${fileCount !== 1 ? 's' : ''}</span>
                   <span>•</span>
@@ -5647,8 +6087,7 @@ User Question: ${userQuestion}`;
           }
           html += '</div>';
         }
-
-        content.innerHTML = html;
+        return html;
       },
 
       /**
@@ -5768,6 +6207,10 @@ User Question: ${userQuestion}`;
         this.state.currentChatResponse = '';
         this.state.isComparisonRequest = false;
 
+        // Reset sharing state
+        this.state.isOwner = true;
+        this.state.ownerEmail = null;
+
         // Clear uploaded files
         this.state.uploadedFiles = [];
 
@@ -5814,8 +6257,234 @@ User Question: ${userQuestion}`;
         // Update history panel (hide New Analysis button)
         this.renderHistoryPanel();
 
+        // Hide share button (no analysis loaded)
+        this.updateShareButtonVisibility();
+
         // Close history panel
         this.toggleHistoryPanel();
+      },
+
+      // ========================================
+      // SHARING FEATURE METHODS
+      // ========================================
+
+      /**
+       * Open share modal
+       */
+      async openShareModal() {
+        if (!this.state.currentAnalysisId || !this.state.isOwner) {
+          alert('You can only share analyses you own.');
+          return;
+        }
+
+        await this.loadShares();
+        this.state.shareModalOpen = true;
+        document.getElementById('share-modal').style.display = 'flex';
+        this.renderShareModal();
+      },
+
+      /**
+       * Close share modal
+       */
+      closeShareModal() {
+        this.state.shareModalOpen = false;
+        document.getElementById('share-modal').style.display = 'none';
+        this.state.shareInputEmail = '';
+        document.getElementById('share-email').value = '';
+      },
+
+      /**
+       * Load current shares for the analysis
+       */
+      async loadShares() {
+        if (!this.state.currentAnalysisId) return;
+
+        try {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}/shares`);
+          if (res.ok) {
+            this.state.currentShares = await res.json();
+          }
+        } catch (error) {
+          console.error('Failed to load shares:', error);
+        }
+      },
+
+      /**
+       * Render share modal content
+       */
+      renderShareModal() {
+        // Render email shares
+        const emailList = document.getElementById('email-shares-list');
+        if (emailList) {
+          if (this.state.currentShares.email_shares.length === 0) {
+            emailList.innerHTML = '';
+          } else {
+            emailList.innerHTML = this.state.currentShares.email_shares.map(share => `
+              <div class="share-item" data-id="${share.id}">
+                <div class="share-item-info">
+                  <div class="share-item-email">${this.escapeHtml(share.shared_with_email)}</div>
+                  <div class="share-item-meta">${share.shared_with_id ? 'Accepted' : 'Pending'}</div>
+                </div>
+                <div class="share-item-actions">
+                  <button class="share-item-btn delete" onclick="ChatApp.revokeShare('${share.id}', 'email')" title="Revoke access">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+
+        // Render link shares
+        const linkList = document.getElementById('link-shares-list');
+        if (linkList) {
+          if (this.state.currentShares.link_shares.length === 0) {
+            linkList.innerHTML = '';
+          } else {
+            linkList.innerHTML = this.state.currentShares.link_shares.map(share => `
+              <div class="share-item" data-id="${share.id}">
+                <div class="share-item-info">
+                  <div class="share-item-url">${this.escapeHtml(share.url)}</div>
+                  <div class="share-item-meta">
+                    ${share.use_count} use${share.use_count !== 1 ? 's' : ''}
+                    ${share.expires_at ? ' • Expires ' + new Date(share.expires_at).toLocaleDateString() : ''}
+                  </div>
+                </div>
+                <div class="share-item-actions">
+                  <button class="share-item-btn" onclick="ChatApp.copyShareLink('${share.url}')" title="Copy link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <button class="share-item-btn delete" onclick="ChatApp.revokeShare('${share.id}', 'link')" title="Revoke link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            `).join('');
+          }
+        }
+      },
+
+      /**
+       * Add email share
+       */
+      async addEmailShare() {
+        const input = document.getElementById('share-email');
+        const email = input.value.trim();
+
+        if (!email) {
+          alert('Please enter an email address.');
+          return;
+        }
+
+        if (!email.includes('@')) {
+          alert('Please enter a valid email address.');
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}/shares`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'email', email })
+          });
+
+          if (res.ok) {
+            input.value = '';
+            await this.loadShares();
+            this.renderShareModal();
+          } else {
+            const data = await res.json();
+            alert(data.error || 'Failed to share.');
+          }
+        } catch (error) {
+          console.error('Failed to add email share:', error);
+          alert('Failed to share. Please try again.');
+        }
+      },
+
+      /**
+       * Create shareable link
+       */
+      async createShareLink() {
+        try {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}/shares`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'link' })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            await navigator.clipboard.writeText(data.url);
+            alert('Link copied to clipboard!');
+            await this.loadShares();
+            this.renderShareModal();
+          } else {
+            const data = await res.json();
+            alert(data.error || 'Failed to create share link.');
+          }
+        } catch (error) {
+          console.error('Failed to create share link:', error);
+          alert('Failed to create link. Please try again.');
+        }
+      },
+
+      /**
+       * Copy share link to clipboard
+       */
+      async copyShareLink(url) {
+        try {
+          await navigator.clipboard.writeText(url);
+          alert('Link copied to clipboard!');
+        } catch (error) {
+          console.error('Failed to copy:', error);
+        }
+      },
+
+      /**
+       * Update share button visibility
+       */
+      updateShareButtonVisibility() {
+        const shareBtn = document.getElementById('share-button');
+        if (shareBtn) {
+          // Show share button only if we have a saved analysis and user is owner
+          const shouldShow = this.state.currentAnalysisId && this.state.isOwner;
+          shareBtn.style.display = shouldShow ? 'flex' : 'none';
+        }
+      },
+
+      /**
+       * Revoke a share
+       */
+      async revokeShare(shareId, shareType) {
+        if (!confirm('Revoke this access?')) return;
+
+        try {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}/shares`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ share_id: shareId, share_type: shareType })
+          });
+
+          if (res.ok) {
+            await this.loadShares();
+            this.renderShareModal();
+          } else {
+            alert('Failed to revoke access.');
+          }
+        } catch (error) {
+          console.error('Failed to revoke share:', error);
+          alert('Failed to revoke access. Please try again.');
+        }
       },
 
       // ========================================
@@ -5876,10 +6545,15 @@ User Question: ${userQuestion}`;
             this.closeNotePopup();
           }
 
-          // Ctrl/Cmd + Enter to save note in editor
-          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && this.state.isNotePopupOpen && this.state.isEditingNote) {
-            e.preventDefault();
-            this.saveCurrentNote();
+          // Ctrl/Cmd + Enter to save note/reply in editor
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && this.state.isNotePopupOpen) {
+            if (this.state.replyingToNoteId) {
+              e.preventDefault();
+              this.submitReply();
+            } else if (this.state.isEditingNote) {
+              e.preventDefault();
+              this.saveCurrentNote();
+            }
           }
         });
 
@@ -6281,6 +6955,7 @@ User Question: ${userQuestion}`;
         this.state.activeNoteId = null;
         this.state.isEditingNote = false;
         this.state.editingNoteContent = '';
+        this.state.replyingToNoteId = null;
       },
 
       /**
@@ -6293,6 +6968,16 @@ User Question: ${userQuestion}`;
 
         const note = this.state.notes.find(n => n.id === this.state.activeNoteId || n._tempId === this.state.activeNoteId);
         if (!note) return;
+
+        // Check if current user is the author
+        const isAuthor = !note.author_email ||
+          (this.state.currentUserEmail && note.author_email.toLowerCase() === this.state.currentUserEmail.toLowerCase());
+
+        // Update delete button visibility in header
+        const deleteBtn = document.querySelector('.note-popup-btn.delete');
+        if (deleteBtn) {
+          deleteBtn.style.display = isAuthor ? '' : 'none';
+        }
 
         if (this.state.isEditingNote) {
           content.className = 'note-popup-content editing';
@@ -6308,16 +6993,184 @@ User Question: ${userQuestion}`;
               this.state.editingNoteContent = e.target.value;
             });
           }
+        } else if (this.state.replyingToNoteId === note.id) {
+          // Reply mode
+          content.className = 'note-popup-content editing';
+          content.innerHTML = `
+            ${note.author_email ? `<div class="note-author">By: ${this.escapeHtml(note.author_email)}</div>` : ''}
+            <div class="note-rendered">${marked.parse(note.content || '')}</div>
+            <div class="note-reply-divider">Reply:</div>
+            <textarea id="reply-editor" class="note-editor reply-editor" placeholder="Write your reply... (Markdown supported)">${this.escapeHtml(this.state.editingNoteContent)}</textarea>
+          `;
+          footer.innerHTML = `
+            <button class="note-cancel-btn" onclick="ChatApp.cancelReply()">Cancel</button>
+            <button class="note-save-btn" onclick="ChatApp.submitReply()">Reply</button>
+          `;
+          footer.style.display = 'flex';
+
+          // Sync textarea changes to state
+          const editor = document.getElementById('reply-editor');
+          if (editor) {
+            editor.addEventListener('input', (e) => {
+              this.state.editingNoteContent = e.target.value;
+            });
+            editor.focus();
+          }
         } else {
           content.className = 'note-popup-content';
           const renderedContent = marked.parse(note.content || '');
           const timestamp = note.created_at ? new Date(note.created_at).toLocaleString() : '';
+
+          // Build actions HTML (only show edit/delete if user is author)
+          let actionsHtml = '';
+          if (isAuthor) {
+            actionsHtml = `<button class="note-edit-btn" onclick="ChatApp.startEditingNote()">Edit</button>`;
+          }
+          actionsHtml += `<button class="note-reply-btn" onclick="ChatApp.startReply('${note.id}')">Reply</button>`;
+
+          // Render replies if any
+          const repliesHtml = this.renderNoteReplies(note.replies || []);
+
           content.innerHTML = `
+            ${note.author_email ? `<div class="note-author">By: ${this.escapeHtml(note.author_email)}</div>` : ''}
             <div class="note-rendered">${renderedContent}</div>
-            <button class="note-edit-btn" onclick="ChatApp.startEditingNote()">Edit</button>
+            <div class="note-actions">${actionsHtml}</div>
             ${timestamp ? `<div class="note-timestamp">Created: ${timestamp}</div>` : ''}
+            ${repliesHtml}
+          `;
+
+          // Restore default footer buttons but update delete visibility
+          footer.innerHTML = `
+            <button class="note-cancel-btn" onclick="ChatApp.cancelNoteEdit()">Cancel</button>
+            <button class="note-save-btn" onclick="ChatApp.saveCurrentNote()">Save</button>
           `;
           footer.style.display = 'none';
+        }
+      },
+
+      /**
+       * Render threaded replies for a note
+       */
+      renderNoteReplies(replies) {
+        if (!replies || replies.length === 0) return '';
+
+        const repliesHtml = replies.map(reply => {
+          const isAuthor = !reply.author_email ||
+            (this.state.currentUserEmail && reply.author_email.toLowerCase() === this.state.currentUserEmail.toLowerCase());
+          const timestamp = reply.created_at ? new Date(reply.created_at).toLocaleString() : '';
+
+          return `
+            <div class="note-reply" data-reply-id="${reply.id}">
+              ${reply.author_email ? `<div class="reply-author">${this.escapeHtml(reply.author_email)}</div>` : ''}
+              <div class="reply-content">${marked.parse(reply.content || '')}</div>
+              <div class="reply-meta">
+                ${timestamp ? `<span class="reply-timestamp">${timestamp}</span>` : ''}
+                ${isAuthor ? `<button class="reply-delete-btn" onclick="ChatApp.deleteReply('${reply.id}')">Delete</button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `<div class="note-replies"><div class="replies-header">Replies (${replies.length})</div>${repliesHtml}</div>`;
+      },
+
+      /**
+       * Start replying to a note
+       */
+      startReply(noteId) {
+        this.state.replyingToNoteId = noteId;
+        this.state.editingNoteContent = '';
+        this.renderNotePopupContent();
+      },
+
+      /**
+       * Cancel replying
+       */
+      cancelReply() {
+        this.state.replyingToNoteId = null;
+        this.state.editingNoteContent = '';
+        this.renderNotePopupContent();
+      },
+
+      /**
+       * Submit a reply to a note
+       */
+      async submitReply() {
+        const content = this.state.editingNoteContent.trim();
+        if (!content) {
+          alert('Reply cannot be empty');
+          return;
+        }
+
+        const parentNoteId = this.state.replyingToNoteId;
+        const parentNote = this.state.notes.find(n => n.id === parentNoteId);
+        if (!parentNote) return;
+
+        try {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              add_reply: {
+                parent_note_id: parentNoteId,
+                content: content
+              }
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            // Add reply to local state
+            if (!parentNote.replies) parentNote.replies = [];
+            parentNote.replies.push({
+              id: data.reply_id,
+              content: content,
+              author_email: this.state.currentUserEmail,
+              created_at: data.created_at
+            });
+
+            this.state.replyingToNoteId = null;
+            this.state.editingNoteContent = '';
+            this.renderNotePopupContent();
+          } else {
+            const error = await res.json();
+            alert('Failed to add reply: ' + (error.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Error adding reply:', error);
+          alert('Failed to add reply');
+        }
+      },
+
+      /**
+       * Delete a reply
+       */
+      async deleteReply(replyId) {
+        if (!confirm('Delete this reply?')) return;
+
+        try {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              delete_note: { note_id: replyId }
+            })
+          });
+
+          if (res.ok) {
+            // Remove reply from local state
+            for (const note of this.state.notes) {
+              if (note.replies) {
+                note.replies = note.replies.filter(r => r.id !== replyId);
+              }
+            }
+            this.renderNotePopupContent();
+          } else {
+            alert('Failed to delete reply');
+          }
+        } catch (error) {
+          console.error('Error deleting reply:', error);
+          alert('Failed to delete reply');
         }
       },
 

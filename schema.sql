@@ -74,3 +74,53 @@ CREATE TRIGGER update_notes_updated_at
     BEFORE UPDATE ON notes
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- Session Sharing Feature (added 2025-12-22)
+-- ============================================
+
+-- Shared analyses table - tracks email-based shares
+CREATE TABLE IF NOT EXISTS shared_analyses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL REFERENCES analyses(id) ON DELETE CASCADE,
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    shared_with_id UUID REFERENCES users(id) ON DELETE CASCADE,  -- NULL until user registers
+    shared_with_email VARCHAR(255) NOT NULL,                     -- Email used to share
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(analysis_id, shared_with_email)
+);
+
+CREATE INDEX IF NOT EXISTS idx_shared_analyses_analysis ON shared_analyses(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_shared_analyses_email ON shared_analyses(shared_with_email);
+CREATE INDEX IF NOT EXISTS idx_shared_analyses_user ON shared_analyses(shared_with_id);
+
+-- Share tokens table - for shareable link access
+CREATE TABLE IF NOT EXISTS share_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL REFERENCES analyses(id) ON DELETE CASCADE,
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(64) UNIQUE NOT NULL,    -- Cryptographically random token
+    expires_at TIMESTAMPTZ,               -- NULL = never expires
+    max_uses INTEGER,                     -- NULL = unlimited
+    use_count INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_share_tokens_token ON share_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_share_tokens_analysis ON share_tokens(analysis_id);
+
+-- Add authorship and threading to notes table
+ALTER TABLE notes ADD COLUMN IF NOT EXISTS author_id UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE notes ADD COLUMN IF NOT EXISTS parent_note_id UUID REFERENCES notes(id) ON DELETE CASCADE;
+
+CREATE INDEX IF NOT EXISTS idx_notes_parent ON notes(parent_note_id);
+CREATE INDEX IF NOT EXISTS idx_notes_author ON notes(author_id);
+
+-- Migration: Assign existing notes to analysis owner (run once after adding author_id column)
+-- This sets author_id for any notes that don't have one yet
+UPDATE notes n
+SET author_id = a.user_id
+FROM analyses a
+WHERE n.analysis_id = a.id
+AND n.author_id IS NULL;

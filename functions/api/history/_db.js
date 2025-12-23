@@ -44,6 +44,69 @@ export async function getOrCreateUser(sql, email) {
 }
 
 /**
+ * Check if a user can access an analysis (owner or shared)
+ * @param {Function} sql - postgres SQL client
+ * @param {string} userId - User's UUID
+ * @param {string} userEmail - User's email (for checking pending shares)
+ * @param {string} analysisId - Analysis UUID
+ * @returns {Promise<{canAccess: boolean, isOwner: boolean, analysis: object|null, ownerEmail: string|null}>}
+ */
+export async function checkAnalysisAccess(sql, userId, userEmail, analysisId) {
+  // First check if user owns the analysis
+  const owned = await sql`
+    SELECT a.*, u.email as owner_email
+    FROM analyses a
+    JOIN users u ON a.user_id = u.id
+    WHERE a.id = ${analysisId} AND a.user_id = ${userId}
+  `;
+
+  if (owned.length > 0) {
+    return {
+      canAccess: true,
+      isOwner: true,
+      analysis: owned[0],
+      ownerEmail: owned[0].owner_email
+    };
+  }
+
+  // Check if analysis is shared with this user (by user_id or email)
+  const shared = await sql`
+    SELECT a.*, u.email as owner_email
+    FROM analyses a
+    JOIN users u ON a.user_id = u.id
+    JOIN shared_analyses sa ON sa.analysis_id = a.id
+    WHERE a.id = ${analysisId}
+    AND (sa.shared_with_id = ${userId} OR LOWER(sa.shared_with_email) = LOWER(${userEmail}))
+    LIMIT 1
+  `;
+
+  if (shared.length > 0) {
+    // Update shared_with_id if it was a pending email share
+    await sql`
+      UPDATE shared_analyses
+      SET shared_with_id = ${userId}
+      WHERE analysis_id = ${analysisId}
+      AND LOWER(shared_with_email) = LOWER(${userEmail})
+      AND shared_with_id IS NULL
+    `;
+
+    return {
+      canAccess: true,
+      isOwner: false,
+      analysis: shared[0],
+      ownerEmail: shared[0].owner_email
+    };
+  }
+
+  return {
+    canAccess: false,
+    isOwner: false,
+    analysis: null,
+    ownerEmail: null
+  };
+}
+
+/**
  * Get authenticated user email from Cloudflare Access header
  * Falls back to a dev email for local testing
  * @param {Request} request
