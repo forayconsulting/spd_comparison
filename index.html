@@ -1306,6 +1306,15 @@
       color: var(--text-secondary);
     }
 
+    .file-status.loading {
+      color: var(--accent-primary);
+    }
+
+    .file-status.metadata_only {
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
     .file-status.error {
       color: var(--error);
     }
@@ -1726,6 +1735,13 @@
     .citation-unmatched {
       border-bottom: 1px dashed #b45309;
       cursor: help;
+    }
+
+    /* Citation loading (file being fetched from R2) */
+    .citation-pending {
+      border-bottom: 1px dashed #6b7280;
+      cursor: wait;
+      opacity: 0.7;
     }
 
     /* NFR/Proxy mode notice in Settings Modal */
@@ -3948,8 +3964,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       // Find uploaded file by citation filename (exact, case-insensitive, or fuzzy match)
+      // Includes files with r2Key (can open via R2 URL) or uploaded status (has base64)
       findUploadedFile(citedFilename) {
-        const files = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+        const files = this.state.uploadedFiles.filter(f => f.status === 'uploaded' || f.r2Key);
 
         // 1. Exact match
         let match = files.find(f => f.filename === citedFilename);
@@ -3990,6 +4007,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       // Open PDF at specific page in new tab
+      // Prefers R2 URLs (work even before base64 loaded) over blob URLs
       openPdfAtPage(filename, pageNumber) {
         const result = this.findUploadedFile(filename);
 
@@ -3998,9 +4016,23 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           return false;
         }
 
-        const blobUrl = this.getBlobUrlForFile(result.file);
-        window.open(`${blobUrl}#page=${pageNumber}`, '_blank');
-        return true;
+        const file = result.file;
+
+        // Prefer R2 URL if available (works even if base64 not loaded yet)
+        if (file.r2Key) {
+          window.open(`/api/files/${file.r2Key}#page=${pageNumber}`, '_blank');
+          return true;
+        }
+
+        // Fall back to blob URL if we have base64 data
+        if (file.base64Data) {
+          const blobUrl = this.getBlobUrlForFile(file);
+          window.open(`${blobUrl}#page=${pageNumber}`, '_blank');
+          return true;
+        }
+
+        console.warn(`File ${filename} has no R2 key or base64 data`);
+        return false;
       },
 
       // Highlight citation patterns and make them clickable
@@ -4014,14 +4046,21 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           const result = this.findUploadedFile(filename);
           const pageNum = parseInt(page, 10);
 
-          if (result.file) {
+          // Citation is clickable if file has r2Key (R2 storage) or base64Data (local)
+          const file = result.file;
+          const isClickable = file && (file.r2Key || file.base64Data);
+
+          if (isClickable) {
             // Clickable citation - opens PDF at page
             const escapedFilename = this.escapeHtml(filename).replace(/'/g, "\\'");
             const title = result.confidence === 'fuzzy'
-              ? `Opens: ${this.escapeHtml(result.file.filename)} (fuzzy match)`
-              : `Opens: ${this.escapeHtml(result.file.filename)}`;
+              ? `Opens: ${this.escapeHtml(file.filename)} (fuzzy match)`
+              : `Opens: ${this.escapeHtml(file.filename)}`;
 
             return `<a href="#" class="citation citation-link" onclick="ChatApp.openPdfAtPage('${escapedFilename}', ${pageNum}); return false;" title="${title}">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</a>`;
+          } else if (file) {
+            // File found but not yet loaded - show as pending
+            return `<span class="citation citation-pending" title="Loading file...">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</span>`;
           } else {
             // Non-clickable - file not found
             return `<span class="citation citation-unmatched" title="File not found in uploads">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</span>`;
@@ -4386,8 +4425,11 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         filesList.innerHTML = this.state.uploadedFiles.map(file => {
           const icon = this.getFileIcon(file.mimeType);
           const statusClass = file.status;
-          const statusText = file.status === 'uploading' ? 'Uploading...' :
-                            file.status === 'uploaded' ? '✓ Uploaded' :
+          const statusText = file.status === 'uploading' ? '⏳ Uploading...' :
+                            file.status === 'loading' ? '⏳ Loading...' :
+                            file.status === 'uploaded' ? '✓ Ready' :
+                            file.status === 'metadata_only' ? '📋 Metadata only' :
+                            file.status === 'error' ? `✗ ${file.error || 'Error'}` :
                             '✗ Error';
 
           return `
@@ -5166,36 +5208,116 @@ User Question: ${userQuestion}`;
 
       /**
        * Save analysis after Phase 3 completes
+       * Uploads files to R2 storage for persistent access
        */
       async saveAnalysis() {
         if (!this.isProxyMode()) return;
 
         try {
-          const fileMetadata = this.state.uploadedFiles
+          // Step 1: Create analysis to get ID (with initial metadata)
+          const initialMetadata = this.state.uploadedFiles
             .filter(f => f.status === 'uploaded')
             .map(({ filename, size, mimeType, uploadedAt }) => ({
               filename, size, mimeType, uploadedAt
             }));
 
-          const res = await fetch('/api/history/analyses', {
+          const createRes = await fetch('/api/history/analyses', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              title: fileMetadata[0]?.filename || 'Untitled Analysis',
-              file_metadata: fileMetadata,
+              title: initialMetadata[0]?.filename || 'Untitled Analysis',
+              file_metadata: initialMetadata,
               summary_response: this.state.summaryResponse,
               comparison_response: this.state.comparisonResponse,
               language_response: this.state.languageResponse
             })
           });
 
-          if (res.ok) {
-            const data = await res.json();
-            this.state.currentAnalysisId = data.id;
-            console.log('Analysis saved:', data.id);
-            // Refresh history list
-            this.loadHistoryList();
+          if (!createRes.ok) {
+            throw new Error('Failed to create analysis');
           }
+
+          const { id: analysisId } = await createRes.json();
+          this.state.currentAnalysisId = analysisId;
+          console.log('Analysis created:', analysisId);
+
+          // Step 2: Upload files to R2
+          const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+          const updatedMetadata = [];
+          const failedUploads = [];
+
+          for (const file of uploadedFiles) {
+            try {
+              // Convert base64 back to blob
+              const byteCharacters = atob(file.base64Data);
+              const byteArray = new Uint8Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteArray[i] = byteCharacters.charCodeAt(i);
+              }
+              const blob = new Blob([byteArray], { type: file.mimeType });
+
+              // Upload to R2
+              const formData = new FormData();
+              formData.append('file', blob, file.filename);
+              formData.append('analysisId', analysisId);
+
+              const uploadRes = await fetch('/api/files', {
+                method: 'POST',
+                body: formData
+              });
+
+              if (uploadRes.ok) {
+                const { r2Key, r2Etag } = await uploadRes.json();
+                updatedMetadata.push({
+                  filename: file.filename,
+                  size: file.size,
+                  mimeType: file.mimeType,
+                  uploadedAt: file.uploadedAt,
+                  r2Key,
+                  r2Etag
+                });
+                // Update local state with R2 key
+                file.r2Key = r2Key;
+                console.log(`Uploaded ${file.filename} to R2:`, r2Key);
+              } else {
+                console.warn(`Failed to upload ${file.filename} to R2`);
+                failedUploads.push(file.filename);
+                updatedMetadata.push({
+                  filename: file.filename,
+                  size: file.size,
+                  mimeType: file.mimeType,
+                  uploadedAt: file.uploadedAt
+                });
+              }
+            } catch (e) {
+              console.error(`Error uploading ${file.filename}:`, e);
+              failedUploads.push(file.filename);
+              updatedMetadata.push({
+                filename: file.filename,
+                size: file.size,
+                mimeType: file.mimeType,
+                uploadedAt: file.uploadedAt
+              });
+            }
+          }
+
+          // Step 3: Update analysis with R2 keys
+          if (updatedMetadata.some(f => f.r2Key)) {
+            await fetch(`/api/history/analyses/${analysisId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ file_metadata: updatedMetadata })
+            });
+          }
+
+          // Warn user if some uploads failed
+          if (failedUploads.length > 0) {
+            console.warn(`${failedUploads.length} file(s) couldn't be stored in R2`);
+          }
+
+          // Refresh history list
+          this.loadHistoryList();
+
         } catch (error) {
           console.error('Failed to save analysis:', error);
         }
@@ -5223,6 +5345,7 @@ User Question: ${userQuestion}`;
 
       /**
        * Load a specific analysis from history
+       * Fetches files from R2 storage if available
        */
       async loadAnalysis(analysisId) {
         try {
@@ -5244,7 +5367,6 @@ User Question: ${userQuestion}`;
           this.state.chatMessages = data.chat_messages || [];
           this.state.notes = data.notes || [];
 
-          // Set file metadata (without base64 - user must re-upload for new chats)
           // Parse file_metadata if it's a JSON string (from database)
           let fileMetadata = data.file_metadata || [];
           if (typeof fileMetadata === 'string') {
@@ -5255,23 +5377,71 @@ User Question: ${userQuestion}`;
               fileMetadata = [];
             }
           }
+
+          // Set up files - mark as loading if they have R2 keys
           this.state.uploadedFiles = fileMetadata.map((f, i) => ({
             ...f,
             id: 'hist_' + Date.now() + '_' + i,
-            status: 'metadata_only',
+            status: f.r2Key ? 'loading' : 'metadata_only',
             base64Data: null
           }));
 
-          // Render the loaded analysis
+          // Render the loaded analysis immediately (files show as loading)
           this.renderLoadedAnalysis();
 
           // Close history panel
           this.toggleHistoryPanel();
 
+          // Fetch files from R2 asynchronously
+          for (const file of this.state.uploadedFiles) {
+            if (file.r2Key) {
+              this.loadFileFromR2(file);
+            }
+          }
+
         } catch (error) {
           console.error('Failed to load analysis:', error);
           alert('Failed to load analysis. It may have been deleted.');
           this.loadHistoryList(); // Refresh list
+        }
+      },
+
+      /**
+       * Load a single file from R2 storage
+       * Updates file status and base64Data when complete
+       */
+      async loadFileFromR2(fileObj) {
+        try {
+          const res = await fetch(`/api/files/${fileObj.r2Key}`);
+          if (!res.ok) {
+            throw new Error('File not found in storage');
+          }
+
+          const blob = await res.blob();
+
+          // Convert blob to base64
+          const reader = new FileReader();
+          reader.onload = () => {
+            const base64 = reader.result.split(',')[1]; // Remove data URL prefix
+            fileObj.base64Data = base64;
+            fileObj.status = 'uploaded';
+            this.renderFilesList();
+            console.log(`Loaded ${fileObj.filename} from R2`);
+          };
+
+          reader.onerror = () => {
+            fileObj.status = 'error';
+            fileObj.error = 'Failed to read file data';
+            this.renderFilesList();
+          };
+
+          reader.readAsDataURL(blob);
+
+        } catch (error) {
+          console.error(`Error loading ${fileObj.filename} from R2:`, error);
+          fileObj.status = 'error';
+          fileObj.error = error.message;
+          this.renderFilesList();
         }
       },
 

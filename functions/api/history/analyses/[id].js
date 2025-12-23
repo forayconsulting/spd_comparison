@@ -111,10 +111,10 @@ export async function onRequestPatch(context) {
     return errorResponse('Invalid JSON body', 400);
   }
 
-  const { title, new_messages, add_note, update_note, delete_note } = body;
+  const { title, file_metadata, new_messages, add_note, update_note, delete_note } = body;
 
   // Need at least one field to update
-  if (!title && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note) {
+  if (!title && !file_metadata && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note) {
     return errorResponse('At least one update field is required', 400);
   }
 
@@ -137,6 +137,14 @@ export async function onRequestPatch(context) {
     if (title) {
       await sql`
         UPDATE analyses SET title = ${title}, updated_at = NOW()
+        WHERE id = ${analysisId}
+      `;
+    }
+
+    // Update file_metadata if provided (used to add R2 keys after upload)
+    if (file_metadata && Array.isArray(file_metadata)) {
+      await sql`
+        UPDATE analyses SET file_metadata = ${JSON.stringify(file_metadata)}, updated_at = NOW()
         WHERE id = ${analysisId}
       `;
     }
@@ -267,16 +275,48 @@ export async function onRequestDelete(context) {
   try {
     const user = await getOrCreateUser(sql, email);
 
-    // Delete analysis (CASCADE will handle chat_messages)
-    const result = await sql`
-      DELETE FROM analyses
+    // First, get the analysis to retrieve file_metadata for R2 cleanup
+    const analyses = await sql`
+      SELECT id, file_metadata FROM analyses
       WHERE id = ${analysisId} AND user_id = ${user.id}
-      RETURNING id
     `;
 
-    if (result.length === 0) {
+    if (analyses.length === 0) {
       return errorResponse('Analysis not found', 404);
     }
+
+    const analysis = analyses[0];
+
+    // Delete R2 objects if they exist
+    if (env.DOCUMENTS && analysis.file_metadata) {
+      let fileMetadata = analysis.file_metadata;
+      if (typeof fileMetadata === 'string') {
+        try {
+          fileMetadata = JSON.parse(fileMetadata);
+        } catch {
+          fileMetadata = [];
+        }
+      }
+
+      if (Array.isArray(fileMetadata)) {
+        for (const file of fileMetadata) {
+          if (file.r2Key) {
+            try {
+              await env.DOCUMENTS.delete(file.r2Key);
+            } catch (e) {
+              console.warn(`Failed to delete R2 object ${file.r2Key}:`, e);
+              // Continue - don't fail deletion if R2 cleanup fails
+            }
+          }
+        }
+      }
+    }
+
+    // Delete analysis (CASCADE will handle chat_messages and notes)
+    await sql`
+      DELETE FROM analyses
+      WHERE id = ${analysisId} AND user_id = ${user.id}
+    `;
 
     return jsonResponse({ success: true, deleted: analysisId });
   } catch (error) {

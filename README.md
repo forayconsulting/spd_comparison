@@ -8,6 +8,7 @@
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
 - **Interactive chat:** Ask follow-up questions about the analysis with full document context
 - **Session history:** Save and reload analyses with Railway PostgreSQL backend
+- **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
 
 ## Getting Started
@@ -150,6 +151,14 @@ gitGraph TB:
 - Added Microsoft Entra ID identity provider (multi-tenant, supports any MS365 organization)
 - Email allowlist policy unchanged—controls WHO can access regardless of login method
 - Users now see three login options: Google, Microsoft, or One-time PIN fallback
+
+**December 22, 2025 — Persistent Document Storage (Cloudflare R2)**
+- PDFs now stored in Cloudflare R2 object storage after analysis completes
+- Session reload fetches documents from R2—no need to re-upload files
+- Citations work immediately when loading saved sessions (R2 URL with `#page=N`)
+- Chat feature works with reloaded sessions (documents re-sent to Gemini from R2)
+- R2 cascade delete: files automatically removed when analysis is deleted
+- Foundation for future session sharing (authenticated users can access shared documents)
 
 ## License
 
