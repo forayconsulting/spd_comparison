@@ -9,3 +9,8 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 id = "158d316aa903469cb2034df36a03b32a"
 localConnectionString = "postgresql://postgres:AauvJcIqXMjhYyqVrlcXImavLSmZSZtA@interchange.proxy.rlwy.net:15429/railway"
+
+# R2 bucket for persistent document storage
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "spd-matrix-documents"
