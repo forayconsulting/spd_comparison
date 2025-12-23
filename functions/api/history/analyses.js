@@ -15,7 +15,7 @@ const MAX_ANALYSES = 20;
 
 /**
  * GET /api/history/analyses
- * Returns user's last 20 analyses (metadata only, no full responses)
+ * Returns user's analyses (owned + shared with them)
  */
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -30,7 +30,8 @@ export async function onRequestGet(context) {
   try {
     const user = await getOrCreateUser(sql, email);
 
-    const analyses = await sql`
+    // Get owned analyses
+    const ownedAnalyses = await sql`
       SELECT id, title, created_at, file_metadata
       FROM analyses
       WHERE user_id = ${user.id}
@@ -38,7 +39,38 @@ export async function onRequestGet(context) {
       LIMIT ${MAX_ANALYSES}
     `;
 
-    return jsonResponse({ analyses });
+    // Get shared analyses (shared with this user by email or user_id)
+    const sharedAnalyses = await sql`
+      SELECT a.id, a.title, a.created_at, a.file_metadata, u.email as owner_email
+      FROM analyses a
+      JOIN shared_analyses sa ON sa.analysis_id = a.id
+      JOIN users u ON a.user_id = u.id
+      WHERE sa.shared_with_id = ${user.id}
+         OR LOWER(sa.shared_with_email) = LOWER(${email})
+      ORDER BY a.created_at DESC
+      LIMIT ${MAX_ANALYSES}
+    `;
+
+    // Format results
+    const owned = ownedAnalyses.map(a => ({
+      ...a,
+      is_owner: true
+    }));
+
+    const shared = sharedAnalyses.map(a => ({
+      id: a.id,
+      title: a.title,
+      created_at: a.created_at,
+      file_metadata: a.file_metadata,
+      is_owner: false,
+      owner_email: a.owner_email
+    }));
+
+    return jsonResponse({
+      current_user_email: email,
+      analyses: owned,
+      shared_analyses: shared
+    });
   } catch (error) {
     console.error('Error listing analyses:', error);
     return errorResponse('Failed to list analyses: ' + error.message);

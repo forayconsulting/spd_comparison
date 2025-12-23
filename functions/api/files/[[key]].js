@@ -131,20 +131,31 @@ async function handleDownload(context) {
   try {
     const user = await getOrCreateUser(sql, email);
 
-    // Security: User must own the analysis
-    // Check if userId in key matches authenticated user's ID
-    if (keyUserId !== user.id) {
-      // Future: Check shared_analyses table here for sharing support
-      return errorResponse('Access denied', 403);
+    // Security: Check if user can access this file
+    let hasAccess = false;
+
+    // Check if user owns the file (userId in key matches)
+    if (keyUserId === user.id) {
+      const owned = await sql`
+        SELECT id FROM analyses WHERE id = ${analysisId} AND user_id = ${user.id}
+      `;
+      hasAccess = owned.length > 0;
     }
 
-    // Verify analysis exists and belongs to user
-    const analyses = await sql`
-      SELECT id FROM analyses WHERE id = ${analysisId} AND user_id = ${user.id}
-    `;
+    // If not owner, check if user has shared access
+    if (!hasAccess) {
+      const shared = await sql`
+        SELECT 1 FROM analyses a
+        JOIN shared_analyses sa ON sa.analysis_id = a.id
+        WHERE a.id = ${analysisId}
+        AND (sa.shared_with_id = ${user.id} OR LOWER(sa.shared_with_email) = LOWER(${email}))
+        LIMIT 1
+      `;
+      hasAccess = shared.length > 0;
+    }
 
-    if (analyses.length === 0) {
-      return errorResponse('Analysis not found', 404);
+    if (!hasAccess) {
+      return errorResponse('Access denied', 403);
     }
 
     // Get object from R2
