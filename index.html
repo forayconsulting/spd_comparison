@@ -1695,6 +1695,13 @@
       margin-bottom: 24px;
       padding-bottom: 16px;
       border-bottom: 2px solid var(--border-medium);
+      /* Sticky header to prevent gap when scrolling */
+      position: sticky;
+      top: -32px;
+      z-index: 15;
+      background: var(--bg-primary);
+      margin-top: 0;
+      padding-top: 32px;
     }
 
     .output-title {
@@ -1882,6 +1889,14 @@
       margin: 16px 0;
     }
 
+    /* Sticky table headers - keeps column labels visible while scrolling */
+    .tab-content table thead {
+      position: sticky;
+      top: 50px;  /* Below the sticky output-header */
+      z-index: 10;
+      background: var(--bg-tertiary);
+    }
+
     .tab-content table th,
     .tab-content table td {
       border: 1px solid var(--border-subtle);
@@ -1895,6 +1910,7 @@
       background: var(--bg-tertiary);
       font-weight: 600;
       color: var(--accent-primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .tab-content table tr:hover {

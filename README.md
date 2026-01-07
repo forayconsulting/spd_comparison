@@ -10,6 +10,7 @@
 - **Session history:** Save and reload analyses with Railway PostgreSQL backend
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
+- **Sticky table headers:** Column labels stay visible while scrolling through large comparison matrices
 
 ## Getting Started
 
@@ -159,6 +160,11 @@ gitGraph TB:
 - Chat feature works with reloaded sessions (documents re-sent to Gemini from R2)
 - R2 cascade delete: files automatically removed when analysis is deleted
 - Foundation for future session sharing (authenticated users can access shared documents)
+
+**January 7, 2026 — Sticky Table Headers**
+- Table column headers now freeze at the top when scrolling through comparison matrices
+- Output header ("Comparison Spreadsheet", etc.) also sticks to prevent content gaps
+- Subtle box-shadow provides visual separation between frozen header and scrolled content
 
 ## License
 
