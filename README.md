@@ -11,6 +11,7 @@
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
 - **Sticky table headers:** Column labels stay visible while scrolling through large comparison matrices
+- **Cross-browser PDF viewer:** PDF.js-based citation viewer ensures correct page navigation in Safari, Chrome, and all browsers
 
 ## Getting Started
 
@@ -165,6 +166,11 @@ gitGraph TB:
 - Table column headers now freeze at the top when scrolling through comparison matrices
 - Output header ("Comparison Spreadsheet", etc.) also sticks to prevent content gaps
 - Subtle box-shadow provides visual separation between frozen header and scrolled content
+
+**January 7, 2026 — Safari Compatibility & PDF.js Viewer**
+- **Notes popup fix:** Safari-specific event delegation issues prevented note popups from reopening after clicking the close button; replaced inline `onclick` with `addEventListener` and added direct click handlers on highlight elements
+- **PDF.js citation viewer:** Safari's built-in PDF viewer ignores `#page=N` URL fragments; added `viewer.html` using PDF.js to ensure citations navigate to the correct page in all browsers
+- **Old session citation fix:** Citations in pre-R2 sessions showed "File not found" due to overly strict file filtering; now correctly displays "PDF unavailable (pre-storage session)" with proper tooltip messaging
 
 ## License
 

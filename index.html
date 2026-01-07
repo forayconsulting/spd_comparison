@@ -3135,7 +3135,7 @@
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
           </button>
-          <button class="note-popup-close" onclick="ChatApp.closeNotePopup()">
+          <button class="note-popup-close" id="note-popup-close-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -4379,9 +4379,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       // Find uploaded file by citation filename (exact, case-insensitive, or fuzzy match)
-      // Includes files with r2Key (can open via R2 URL) or uploaded status (has base64)
+      // Searches ALL uploaded files - caller determines if file is usable based on status/r2Key
       findUploadedFile(citedFilename) {
-        const files = this.state.uploadedFiles.filter(f => f.status === 'uploaded' || f.r2Key);
+        const files = this.state.uploadedFiles;
 
         // 1. Exact match
         let match = files.find(f => f.filename === citedFilename);
@@ -4421,8 +4421,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         return blobUrl;
       },
 
-      // Open PDF at specific page in new tab
-      // Prefers R2 URLs (work even before base64 loaded) over blob URLs
+      // Open PDF at specific page in new tab using PDF.js viewer
+      // This ensures cross-browser compatibility (Safari doesn't reliably support #page=N)
       openPdfAtPage(filename, pageNumber) {
         const result = this.findUploadedFile(filename);
 
@@ -4435,14 +4435,16 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
         // Prefer R2 URL if available (works even if base64 not loaded yet)
         if (file.r2Key) {
-          window.open(`/api/files/${file.r2Key}#page=${pageNumber}`, '_blank');
+          const pdfUrl = encodeURIComponent(`/api/files/${file.r2Key}`);
+          window.open(`/viewer.html?file=${pdfUrl}&page=${pageNumber}`, '_blank');
           return true;
         }
 
         // Fall back to blob URL if we have base64 data
         if (file.base64Data) {
           const blobUrl = this.getBlobUrlForFile(file);
-          window.open(`${blobUrl}#page=${pageNumber}`, '_blank');
+          const encodedUrl = encodeURIComponent(blobUrl);
+          window.open(`/viewer.html?file=${encodedUrl}&page=${pageNumber}`, '_blank');
           return true;
         }
 
@@ -4464,6 +4466,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           // Citation is clickable if file has r2Key (R2 storage) or base64Data (local)
           const file = result.file;
           const isClickable = file && (file.r2Key || file.base64Data);
+          const citationText = `(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})`;
 
           if (isClickable) {
             // Clickable citation - opens PDF at page
@@ -4472,13 +4475,19 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
               ? `Opens: ${this.escapeHtml(file.filename)} (fuzzy match)`
               : `Opens: ${this.escapeHtml(file.filename)}`;
 
-            return `<a href="#" class="citation citation-link" onclick="ChatApp.openPdfAtPage('${escapedFilename}', ${pageNum}); return false;" title="${title}">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</a>`;
+            return `<a href="#" class="citation citation-link" onclick="ChatApp.openPdfAtPage('${escapedFilename}', ${pageNum}); return false;" title="${title}">${citationText}</a>`;
+          } else if (file && file.status === 'loading') {
+            // File is being fetched from R2 - show as pending
+            return `<span class="citation citation-pending" title="Loading file from storage...">${citationText}</span>`;
+          } else if (file && file.status === 'metadata_only') {
+            // Old session without R2 storage - file data unavailable
+            return `<span class="citation citation-unmatched" title="PDF unavailable (pre-storage session)">${citationText}</span>`;
           } else if (file) {
-            // File found but not yet loaded - show as pending
-            return `<span class="citation citation-pending" title="Loading file...">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</span>`;
+            // File found but missing data - shouldn't happen but handle gracefully
+            return `<span class="citation citation-pending" title="Loading file...">${citationText}</span>`;
           } else {
-            // Non-clickable - file not found
-            return `<span class="citation citation-unmatched" title="File not found in uploads">(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})</span>`;
+            // No file found
+            return `<span class="citation citation-unmatched" title="File not found in uploads">${citationText}</span>`;
           }
         });
       },
@@ -6543,6 +6552,16 @@ User Question: ${userQuestion}`;
           }
         });
 
+        // Close button handler (Safari-compatible - avoids inline onclick)
+        const closeBtn = document.getElementById('note-popup-close-btn');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.closeNotePopup();
+          });
+        }
+
         // Close popup on outside click
         document.addEventListener('mousedown', (e) => {
           if (this.state.isNotePopupOpen) {
@@ -6775,24 +6794,37 @@ User Question: ${userQuestion}`;
           const range = this.createRangeAtPosition(outputDiv, position, note.anchor_text.length);
           if (!range) continue;
 
-          try {
+          // Helper to create and configure the mark element
+          const createHighlightMark = (noteId) => {
             const mark = document.createElement('mark');
             mark.className = 'note-highlight';
-            mark.dataset.noteId = note.id;
+            mark.dataset.noteId = noteId;
             mark.title = 'Click to view note';
+            // Safari fix: Add direct click handler (bypasses event delegation issues)
+            mark.style.cursor = 'pointer';
+            mark.setAttribute('onclick', ''); // Safari clickability fix
+            mark.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.hideSelectionHint();
+              this.openNotePopup(noteId, mark.getBoundingClientRect());
+            });
+            return mark;
+          };
+
+          const noteId = note.id || note._tempId; // Handle both saved and temp notes
+          try {
+            const mark = createHighlightMark(noteId);
             range.surroundContents(mark);
           } catch (e) {
             // If selection spans multiple elements, try extractContents approach
             try {
-              const mark = document.createElement('mark');
-              mark.className = 'note-highlight';
-              mark.dataset.noteId = note.id;
-              mark.title = 'Click to view note';
+              const mark = createHighlightMark(noteId);
               const fragment = range.extractContents();
               mark.appendChild(fragment);
               range.insertNode(mark);
             } catch (e2) {
-              console.warn(`Could not highlight note ${note.id}:`, e2);
+              console.warn(`Could not highlight note ${noteId}:`, e2);
             }
           }
         }
