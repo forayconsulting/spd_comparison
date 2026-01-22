@@ -172,6 +172,10 @@ gitGraph TB:
 - **PDF.js citation viewer:** Safari's built-in PDF viewer ignores `#page=N` URL fragments; added `viewer.html` using PDF.js to ensure citations navigate to the correct page in all browsers
 - **Old session citation fix:** Citations in pre-R2 sessions showed "File not found" due to overly strict file filtering; now correctly displays "PDF unavailable (pre-storage session)" with proper tooltip messaging
 
+**January 22, 2026 — Citation Regex Fix**
+- Fixed clickable citations not working when Gemini outputs `p.` page format (e.g., `(filename.pdf, p. 1)`)
+- Citation regex now matches `p`, `p.`, `pg`, `pg.`, and `page` prefixes
+
 ## License
 
 Not licensed for external distribution.

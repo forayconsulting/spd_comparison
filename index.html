@@ -4455,9 +4455,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       // Highlight citation patterns and make them clickable
       highlightCitations(html) {
         // Pattern captures: (filename.pdf, page N, optional paragraph info)
-        // Handles variations: pg, pg., page, paragraph, para, para.
+        // Handles variations: p, p., pg, pg., page, paragraph, para, para.
         // Uses .+? (non-greedy) to allow parentheses within filenames like "(SPD)" or "(eff. 06.01.05)"
-        const citationPattern = /\((?:["']|&quot;)?(.+?\.pdf)(?:["']|&quot;)?\s*,\s*(?:pg\.?\s*|page\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
+        const citationPattern = /\((?:["']|&quot;)?(.+?\.pdf)(?:["']|&quot;)?\s*,\s*(?:pg\.?\s*|page\s*|p\.?\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
 
         return html.replace(citationPattern, (match, filename, page, paragraph) => {
           const result = this.findUploadedFile(filename);
