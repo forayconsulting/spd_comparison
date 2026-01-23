@@ -178,4 +178,4 @@ gitGraph TB:
 
 ## License
 
-Not licensed for external distribution.
+MIT License. See [LICENSE](LICENSE) for details.
