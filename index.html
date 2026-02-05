@@ -14,6 +14,9 @@
   <!-- Excel Generation Library -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+  <!-- DOCX Text Extraction Library -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+
   <!-- Modern Tech-Forward Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1338,6 +1341,7 @@
       background: var(--gradient-border);
       opacity: 0;
       transition: opacity 0.3s ease;
+      pointer-events: none;
     }
 
     .drop-zone:hover {
@@ -3236,7 +3240,7 @@
 
       <div class="files-content" id="files-content">
         <div class="drop-zone" id="drop-zone">
-          <input type="file" id="file-input" multiple accept=".pdf,.txt,.docx,.doc,.csv,.xlsx,.xls,image/*" hidden>
+          <input type="file" id="file-input" multiple accept=".pdf,.txt,.docx,.doc,.csv,.xlsx,.xls,image/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.ms-excel,text/csv,text/plain" hidden>
           <div class="drop-zone-content">
             <div class="drop-zone-icon">
               <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -3458,7 +3462,11 @@ ${fileList}
 
 I want you to create a more detailed version of this table which fully quotes and cites the language from each and every document which represents the procedural elements being compared. The purpose of this is to facilitate quick analysis of the plan document changes and amendments over time while citing the specific language applicable in as detailed a manner as possible.
 
-IMPORTANT: Your citations MUST use the EXACT filenames listed above. Do NOT invent, abbreviate, or modify filenames. Citations must be in parentheses behind each and every statement cited in the format: (filename, page_number, paragraph_number).
+IMPORTANT: Your citations MUST use the EXACT filenames listed above. Do NOT invent, abbreviate, or modify filenames.
+
+CITATION FORMAT:
+- For PDF files: cite in the format (filename.pdf, page_number, paragraph_number)
+- For non-PDF files (DOCX, XLSX, CSV, TXT): cite using the §N markers shown in the document text, e.g. (filename.docx, §3)
 
 Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`;
       }
@@ -3986,14 +3994,20 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         if (uploadFiles) {
           const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
           uploadedFiles.forEach(file => {
-            parts.push({
-              inline_data: {
-                mime_type: file.mimeType,
-                data: file.base64Data
-              }
-            });
+            if (file.extractedText) {
+              // Non-PDF: send extracted text with §N markers
+              parts.push({ text: `[Document: ${file.filename}]\n${file.extractedText}` });
+            } else {
+              // PDF: send as binary inline_data
+              parts.push({
+                inline_data: {
+                  mime_type: file.mimeType,
+                  data: file.base64Data
+                }
+              });
+            }
           });
-          console.log(`📤 API Request: Uploading ${uploadedFiles.length} PDF file(s)`);
+          console.log(`📤 API Request: Uploading ${uploadedFiles.length} file(s)`);
         }
 
         // Add user prompt text
@@ -4405,9 +4419,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         if (match) return { file: match, confidence: 'case-insensitive' };
 
         // 3. Fuzzy match: check if cited name is contained in uploaded filename or vice versa
-        const citedBase = citedFilename.replace(/\.pdf$/i, '').toLowerCase();
+        const citedBase = citedFilename.replace(/\.(pdf|docx?|xlsx?|csv|txt)$/i, '').toLowerCase();
         match = files.find(f => {
-          const uploadedBase = f.filename.replace(/\.pdf$/i, '').toLowerCase();
+          const uploadedBase = f.filename.replace(/\.(pdf|docx?|xlsx?|csv|txt)$/i, '').toLowerCase();
           return uploadedBase.includes(citedBase) || citedBase.includes(uploadedBase);
         });
         if (match) return { file: match, confidence: 'fuzzy' };
@@ -4427,7 +4441,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         for (let i = 0; i < byteCharacters.length; i++) {
           byteArray[i] = byteCharacters.charCodeAt(i);
         }
-        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        const blob = new Blob([byteArray], { type: file.mimeType || 'application/pdf' });
         const blobUrl = URL.createObjectURL(blob);
 
         this.state.blobUrlCache[file.filename] = blobUrl;
@@ -4465,24 +4479,105 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         return false;
       },
 
+      // Open extracted text in a new tab with the cited section highlighted
+      openTextViewer(filename, sectionNumber) {
+        const result = this.findUploadedFile(filename);
+        if (!result.file || !result.file.extractedText) {
+          console.warn(`No extracted text for: ${filename}`);
+          // Fall back to download if possible
+          this.downloadFile(filename);
+          return;
+        }
+
+        const extractedText = result.file.extractedText;
+        const lines = extractedText.split('\n');
+
+        const htmlLines = lines.map(line => {
+          const sectionMatch = line.match(/^§(\d+)\s/);
+          if (sectionMatch) {
+            const num = parseInt(sectionMatch[1], 10);
+            const escaped = this.escapeHtml(line);
+            if (num === sectionNumber) {
+              return `<div id="section-${num}" class="section-line highlighted"><mark>${escaped}</mark></div>`;
+            }
+            return `<div id="section-${num}" class="section-line">${escaped}</div>`;
+          }
+          return `<div class="section-line">${this.escapeHtml(line)}</div>`;
+        }).join('\n');
+
+        const viewerHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${this.escapeHtml(result.file.filename)} — §${sectionNumber}</title>
+  <style>
+    body { background: #1a2b3c; color: #e0e8f0; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 14px; line-height: 1.6; padding: 2rem; margin: 0; }
+    h1 { font-family: 'Inter', sans-serif; font-size: 1.2rem; color: #8ab4f8; margin-bottom: 1.5rem; }
+    .section-line { padding: 4px 8px; border-radius: 3px; white-space: pre-wrap; word-wrap: break-word; }
+    .section-line.highlighted { background: rgba(255, 200, 50, 0.15); }
+    .section-line.highlighted mark { background: rgba(255, 200, 50, 0.35); color: #fff; padding: 2px 4px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+  <h1>${this.escapeHtml(result.file.filename)}</h1>
+  ${htmlLines}
+  <scr` + `ipt>
+    const target = document.getElementById('section-${sectionNumber}');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  </scr` + `ipt>
+</body>
+</html>`;
+
+        const blob = new Blob([viewerHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+
+      // Download a non-PDF file (original binary)
+      downloadFile(filename) {
+        const result = this.findUploadedFile(filename);
+        if (!result.file) {
+          console.warn(`Could not find file: ${filename}`);
+          return;
+        }
+
+        const file = result.file;
+
+        // Prefer R2 URL
+        if (file.r2Key) {
+          window.open(`/api/files/${file.r2Key}`, '_blank');
+          return;
+        }
+
+        // Fall back to blob URL download
+        if (file.base64Data) {
+          const blobUrl = this.getBlobUrlForFile(file);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = file.filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          return;
+        }
+
+        console.warn(`File ${filename} has no R2 key or base64 data`);
+      },
+
       // Highlight citation patterns and make them clickable
       highlightCitations(html) {
-        // Pattern captures: (filename.pdf, page N, optional paragraph info)
-        // Handles variations: p, p., pg, pg., page, paragraph, para, para.
-        // Uses .+? (non-greedy) to allow parentheses within filenames like "(SPD)" or "(eff. 06.01.05)"
-        const citationPattern = /\((?:["']|&quot;)?(.+?\.pdf)(?:["']|&quot;)?\s*,\s*(?:pg\.?\s*|page\s*|p\.?\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
+        // Pass 1: PDF citations — (filename.pdf, page N, optional paragraph info)
+        const pdfCitationPattern = /\((?:["']|&quot;)?(.+?\.pdf)(?:["']|&quot;)?\s*,\s*(?:pg\.?\s*|page\s*|p\.?\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
 
-        return html.replace(citationPattern, (match, filename, page, paragraph) => {
+        html = html.replace(pdfCitationPattern, (match, filename, page, paragraph) => {
           const result = this.findUploadedFile(filename);
           const pageNum = parseInt(page, 10);
 
-          // Citation is clickable if file has r2Key (R2 storage) or base64Data (local)
           const file = result.file;
           const isClickable = file && (file.r2Key || file.base64Data);
           const citationText = `(${this.escapeHtml(filename)}, page ${page}${paragraph ? ', ' + this.escapeHtml(paragraph) : ''})`;
 
           if (isClickable) {
-            // Clickable citation - opens PDF at page
             const escapedFilename = this.escapeHtml(filename).replace(/'/g, "\\'");
             const title = result.confidence === 'fuzzy'
               ? `Opens: ${this.escapeHtml(file.filename)} (fuzzy match)`
@@ -4490,19 +4585,40 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
             return `<a href="#" class="citation citation-link" onclick="ChatApp.openPdfAtPage('${escapedFilename}', ${pageNum}); return false;" title="${title}">${citationText}</a>`;
           } else if (file && file.status === 'loading') {
-            // File is being fetched from R2 - show as pending
             return `<span class="citation citation-pending" title="Loading file from storage...">${citationText}</span>`;
           } else if (file && file.status === 'metadata_only') {
-            // Old session without R2 storage - file data unavailable
             return `<span class="citation citation-unmatched" title="PDF unavailable (pre-storage session)">${citationText}</span>`;
           } else if (file) {
-            // File found but missing data - shouldn't happen but handle gracefully
             return `<span class="citation citation-pending" title="Loading file...">${citationText}</span>`;
           } else {
-            // No file found
             return `<span class="citation citation-unmatched" title="File not found in uploads">${citationText}</span>`;
           }
         });
+
+        // Pass 2: Non-PDF citations — (filename.docx, §N)
+        const textCitationPattern = /\((?:["']|&quot;)?(.+?\.(?:docx?|xlsx?|csv|txt))(?:["']|&quot;)?\s*,\s*§(\d+)\)/gi;
+
+        html = html.replace(textCitationPattern, (match, filename, sectionNum) => {
+          const result = this.findUploadedFile(filename);
+          const file = result.file;
+          const isClickable = file && file.extractedText;
+          const citationText = `(${this.escapeHtml(filename)}, §${sectionNum})`;
+
+          if (isClickable) {
+            const escapedFilename = this.escapeHtml(filename).replace(/'/g, "\\'");
+            const title = result.confidence === 'fuzzy'
+              ? `Opens: ${this.escapeHtml(file.filename)} (fuzzy match)`
+              : `Opens: ${this.escapeHtml(file.filename)}`;
+
+            return `<a href="#" class="citation citation-link" onclick="ChatApp.openTextViewer('${escapedFilename}', ${sectionNum}); return false;" title="${title}">${citationText}</a>`;
+          } else if (file) {
+            return `<span class="citation citation-pending" title="Text not available">${citationText}</span>`;
+          } else {
+            return `<span class="citation citation-unmatched" title="File not found in uploads">${citationText}</span>`;
+          }
+        });
+
+        return html;
       },
 
       renderLanguageTab() {
@@ -4709,10 +4825,21 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           fileInput.value = ''; // Reset input
         });
 
-        // Drag and drop
+        // Drag and drop on the drop zone
+        // Both dragenter AND dragover must preventDefault() for an element to be a valid drop target
+        // Without dragenter, Chrome only accepts PDF drops (native type) and rejects DOCX/XLSX/etc.
+        dropZone.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
         dropZone.addEventListener('dragover', (e) => this.handleDragOver(e));
         dropZone.addEventListener('dragleave', (e) => this.handleDragLeave(e));
         dropZone.addEventListener('drop', (e) => this.handleDrop(e));
+
+        // Prevent browser default drag behavior (opening the file) at document level
+        document.addEventListener('dragenter', (e) => e.preventDefault());
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => e.preventDefault());
       },
 
       toggleFilesPanel() {
@@ -4782,7 +4909,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           mimeType: file.type || 'application/pdf',
           status: 'uploading',
           uploadedAt: new Date().toISOString(),
-          base64Data: null
+          base64Data: null,
+          extractedText: null
         };
 
         this.state.uploadedFiles.push(fileObj);
@@ -4797,7 +4925,34 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           const fileIndex = this.state.uploadedFiles.findIndex(f => f.id === tempId);
           if (fileIndex !== -1) {
             this.state.uploadedFiles[fileIndex].base64Data = base64Data;
-            this.state.uploadedFiles[fileIndex].status = 'uploaded';
+          }
+
+          // For non-PDF files, extract text with §N markers
+          const mimeType = file.type || 'application/pdf';
+          if (this.isExtractableType(mimeType)) {
+            const fi = this.state.uploadedFiles.findIndex(f => f.id === tempId);
+            if (fi !== -1) {
+              this.state.uploadedFiles[fi].status = 'extracting';
+              this.renderFilesList();
+            }
+
+            const arrayBuffer = await this.readFileAsArrayBuffer(file);
+            const extractedText = await this.extractTextFromFile(
+              { filename: file.name, mimeType, name: file.name },
+              arrayBuffer
+            );
+
+            const fi2 = this.state.uploadedFiles.findIndex(f => f.id === tempId);
+            if (fi2 !== -1) {
+              this.state.uploadedFiles[fi2].extractedText = extractedText;
+              this.state.uploadedFiles[fi2].status = 'uploaded';
+            }
+          } else {
+            // PDF or other — mark as uploaded directly
+            const fi = this.state.uploadedFiles.findIndex(f => f.id === tempId);
+            if (fi !== -1) {
+              this.state.uploadedFiles[fi].status = 'uploaded';
+            }
           }
 
           this.renderFilesList();
@@ -4837,6 +4992,111 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         });
       },
 
+      // --- File type helpers ---
+
+      isPdfType(mimeType) {
+        return mimeType === 'application/pdf';
+      },
+
+      isExtractableType(mimeType) {
+        const extractable = [
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',       // .xlsx
+          'application/msword',                                                       // .doc
+          'application/vnd.ms-excel',                                                 // .xls
+          'text/csv',
+          'text/plain'
+        ];
+        return extractable.includes(mimeType);
+      },
+
+      // --- Text extraction functions ---
+
+      async extractTextFromDocx(arrayBuffer) {
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        const paragraphs = result.value.split(/\n/).filter(p => p.trim().length > 0);
+        return paragraphs.map((p, i) => `§${i + 1} ${p}`).join('\n');
+      },
+
+      extractTextFromXlsx(arrayBuffer) {
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const lines = [];
+        let sectionNum = 1;
+
+        for (const sheetName of workbook.SheetNames) {
+          const sheet = workbook.Sheets[sheetName];
+          lines.push(`=== Sheet: ${sheetName} ===`);
+
+          const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          if (jsonData.length === 0) continue;
+
+          // First row as header
+          const header = jsonData[0];
+          lines.push(`§${sectionNum} | ${header.join(' | ')} |`);
+          sectionNum++;
+
+          // Data rows
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            // Skip completely empty rows
+            if (row.every(cell => String(cell).trim() === '')) continue;
+            lines.push(`§${sectionNum} | ${row.join(' | ')} |`);
+            sectionNum++;
+          }
+          lines.push(''); // blank line between sheets
+        }
+
+        return lines.join('\n');
+      },
+
+      async extractTextFromFile(file, arrayBuffer) {
+        const mimeType = file.mimeType || file.type;
+        const ext = file.filename ? file.filename.split('.').pop().toLowerCase()
+                   : file.name ? file.name.split('.').pop().toLowerCase()
+                   : '';
+
+        // DOCX
+        if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            || ext === 'docx') {
+          return await this.extractTextFromDocx(arrayBuffer);
+        }
+
+        // DOC (mammoth doesn't support .doc, but try and give helpful error)
+        if (mimeType === 'application/msword' || ext === 'doc') {
+          try {
+            return await this.extractTextFromDocx(arrayBuffer);
+          } catch (e) {
+            throw new Error('Cannot extract text from .doc format. Please re-save as .docx and try again.');
+          }
+        }
+
+        // XLSX or XLS
+        if (mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            || mimeType === 'application/vnd.ms-excel'
+            || ext === 'xlsx' || ext === 'xls') {
+          return this.extractTextFromXlsx(arrayBuffer);
+        }
+
+        // CSV / TXT — read as plain text and number lines
+        if (mimeType === 'text/csv' || mimeType === 'text/plain'
+            || ext === 'csv' || ext === 'txt') {
+          const text = new TextDecoder().decode(arrayBuffer);
+          const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+          return lines.map((l, i) => `§${i + 1} ${l}`).join('\n');
+        }
+
+        throw new Error(`Unsupported file format: .${ext}`);
+      },
+
+      readFileAsArrayBuffer(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsArrayBuffer(file);
+        });
+      },
+
       removeFile(fileId) {
         // Clean up blob URL if cached
         const file = this.state.uploadedFiles.find(f => f.id === fileId);
@@ -4863,6 +5123,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           const icon = this.getFileIcon(file.mimeType);
           const statusClass = file.status;
           const statusText = file.status === 'uploading' ? '⏳ Uploading...' :
+                            file.status === 'extracting' ? '⏳ Extracting text...' :
                             file.status === 'loading' ? '⏳ Loading...' :
                             file.status === 'uploaded' ? '✓ Ready' :
                             file.status === 'metadata_only' ? '📋 Metadata only' :
@@ -4870,10 +5131,18 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
                             '✗ Error';
 
           const isViewable = file.r2Key || (file.status === 'uploaded' && file.base64Data);
+          const isPdf = this.isPdfType(file.mimeType);
           const escapedFilename = this.escapeHtml(file.filename).replace(/'/g, "\\'");
-          const filenameHtml = isViewable
-            ? `<a href="#" onclick="ChatApp.openPdfAtPage('${escapedFilename}', 1); return false;" title="Open in viewer">${this.escapeHtml(file.filename)}</a>`
-            : this.escapeHtml(file.filename);
+          let filenameHtml;
+          if (isViewable && isPdf) {
+            // PDFs open in viewer
+            filenameHtml = `<a href="#" onclick="ChatApp.openPdfAtPage('${escapedFilename}', 1); return false;" title="Open in viewer">${this.escapeHtml(file.filename)}</a>`;
+          } else if (isViewable && !isPdf) {
+            // Non-PDFs download the original file
+            filenameHtml = `<a href="#" onclick="ChatApp.downloadFile('${escapedFilename}'); return false;" title="Download file">${this.escapeHtml(file.filename)}</a>`;
+          } else {
+            filenameHtml = this.escapeHtml(file.filename);
+          }
 
           return `
             <div class="file-card ${statusClass}">
@@ -5227,7 +5496,11 @@ ${this.state.languageResponse}
 ${fileList}
 </uploaded_documents>
 
-When referencing documents, use the EXACT filenames listed above. When citing, use the format: (filename, page_number, paragraph_number). When referencing the comparison table, cite specific rows or elements.
+When referencing documents, use the EXACT filenames listed above. When referencing the comparison table, cite specific rows or elements.
+
+CITATION FORMAT:
+- For PDF files: (filename.pdf, page_number, paragraph_number)
+- For non-PDF files (DOCX, XLSX, CSV, TXT): cite using the §N markers shown in the document text, e.g. (filename.docx, §3)
 
 User Question: ${userQuestion}`;
       },
@@ -5242,14 +5515,20 @@ User Question: ${userQuestion}`;
         if (uploadFiles) {
           const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
           uploadedFiles.forEach(file => {
-            parts.push({
-              inline_data: {
-                mime_type: file.mimeType,
-                data: file.base64Data
-              }
-            });
+            if (file.extractedText) {
+              // Non-PDF: send extracted text with §N markers
+              parts.push({ text: `[Document: ${file.filename}]\n${file.extractedText}` });
+            } else {
+              // PDF: send as binary inline_data
+              parts.push({
+                inline_data: {
+                  mime_type: file.mimeType,
+                  data: file.base64Data
+                }
+              });
+            }
           });
-          console.log(`📤 Chat API Request: Uploading ${uploadedFiles.length} PDF file(s)`);
+          console.log(`📤 Chat API Request: Uploading ${uploadedFiles.length} file(s)`);
         }
 
         parts.push({ text: prompt });
@@ -5832,7 +6111,8 @@ User Question: ${userQuestion}`;
             ...f,
             id: 'hist_' + Date.now() + '_' + i,
             status: f.r2Key ? 'loading' : 'metadata_only',
-            base64Data: null
+            base64Data: null,
+            extractedText: null
           }));
 
           // Render the loaded analysis immediately (files show as loading)
@@ -5869,22 +6149,32 @@ User Question: ${userQuestion}`;
           const blob = await res.blob();
 
           // Convert blob to base64
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64 = reader.result.split(',')[1]; // Remove data URL prefix
-            fileObj.base64Data = base64;
-            fileObj.status = 'uploaded';
-            this.renderFilesList();
-            console.log(`Loaded ${fileObj.filename} from R2`);
-          };
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = () => reject(new Error('Failed to read file data'));
+            reader.readAsDataURL(blob);
+          });
 
-          reader.onerror = () => {
-            fileObj.status = 'error';
-            fileObj.error = 'Failed to read file data';
-            this.renderFilesList();
-          };
+          fileObj.base64Data = base64;
 
-          reader.readAsDataURL(blob);
+          // Re-extract text for non-PDF files
+          if (this.isExtractableType(fileObj.mimeType)) {
+            try {
+              fileObj.status = 'extracting';
+              this.renderFilesList();
+              const arrayBuffer = await blob.arrayBuffer();
+              fileObj.extractedText = await this.extractTextFromFile(fileObj, arrayBuffer);
+              console.log(`Re-extracted text from ${fileObj.filename}`);
+            } catch (e) {
+              console.error(`Text extraction failed for ${fileObj.filename}:`, e);
+              fileObj.extractedText = null;
+            }
+          }
+
+          fileObj.status = 'uploaded';
+          this.renderFilesList();
+          console.log(`Loaded ${fileObj.filename} from R2`);
 
         } catch (error) {
           console.error(`Error loading ${fileObj.filename} from R2:`, error);

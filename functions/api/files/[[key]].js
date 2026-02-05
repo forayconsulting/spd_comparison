@@ -46,8 +46,17 @@ async function handleUpload(context) {
     }
 
     // Validate file type
-    if (file.type !== 'application/pdf') {
-      return errorResponse('Only PDF files are supported', 400);
+    const ALLOWED_TYPES = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',       // .xlsx
+      'application/msword',                                                       // .doc
+      'application/vnd.ms-excel',                                                 // .xls
+      'text/csv',
+      'text/plain'
+    ];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return errorResponse('Unsupported file type', 400);
     }
 
     // Validate file size (20 MB limit)
@@ -71,10 +80,11 @@ async function handleUpload(context) {
     const r2Key = `${user.id}/${analysisId}/${safeFilename}`;
 
     // Upload to R2
+    const isPdf = file.type === 'application/pdf';
     const r2Object = await env.DOCUMENTS.put(r2Key, file.stream(), {
       httpMetadata: {
-        contentType: 'application/pdf',
-        contentDisposition: `inline; filename="${file.name}"`
+        contentType: file.type,
+        contentDisposition: `${isPdf ? 'inline' : 'attachment'}; filename="${file.name}"`
       },
       customMetadata: {
         originalFilename: file.name,
@@ -165,14 +175,15 @@ async function handleDownload(context) {
       return errorResponse('File not found', 404);
     }
 
-    // Return PDF with appropriate headers for browser viewing
+    // Return file with appropriate headers
     const headers = new Headers();
     object.writeHttpMetadata(headers);
-    headers.set('Content-Type', 'application/pdf');
 
     // Use original filename from metadata if available
-    const originalFilename = object.customMetadata?.originalFilename || 'document.pdf';
-    headers.set('Content-Disposition', `inline; filename="${originalFilename}"`);
+    const originalFilename = object.customMetadata?.originalFilename || 'document';
+    const contentType = headers.get('Content-Type') || 'application/octet-stream';
+    const isPdf = contentType === 'application/pdf';
+    headers.set('Content-Disposition', `${isPdf ? 'inline' : 'attachment'}; filename="${originalFilename}"`);
 
     // Cache for 1 hour (private - user-specific)
     headers.set('Cache-Control', 'private, max-age=3600');
