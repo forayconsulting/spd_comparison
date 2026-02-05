@@ -6,6 +6,7 @@
 
 **Key Features:**
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
+- **Interactive tables:** Sort columns, filter by value, drag-reorder rows, and ask AI to group related provisions
 - **Interactive chat:** Ask follow-up questions about the analysis with full document context
 - **Session history:** Save and reload analyses with Railway PostgreSQL backend
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
@@ -186,6 +187,16 @@ gitGraph TB:
 - Markdown formatting (`**bold**`, `<br>` tags) stripped during export; separator rows filtered out
 - Google Sheets API enabled in existing "SPD Matrix Auth" GCP project; OAuth consent screen set to Production
 - Export buttons now correctly appear when loading saved analyses (bug fix)
+
+**February 5, 2026 — Interactive Table Controls**
+- Comparison and Citations tabs now render as interactive tables with sort, filter, and drag-reorder
+- Click any column header to sort (ascending, descending, original); click the filter button to filter by value
+- Drag rows from the first column to manually reorder
+- AI-powered table rearrangement: ask the chat to "group similar provisions together" and the table reorganizes with labeled group headers
+- Dual representation: markdown stays as source of truth for streaming/persistence; structured data drives interactive rendering after streaming completes
+- View state (sort, filters, row order, AI groups) persists to `table_view_state` JSONB column and restores on session reload
+- XLSX and Google Sheets exports respect the current view state (active sort, filtered rows excluded, group headers included)
+- Citation highlighting applied per-cell to prevent regex from matching across HTML tag boundaries
 
 ## License
 

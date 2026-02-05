@@ -124,3 +124,10 @@ SET author_id = a.user_id
 FROM analyses a
 WHERE n.analysis_id = a.id
 AND n.author_id IS NULL;
+
+-- ============================================
+-- Interactive Table View State (added 2026-02-05)
+-- ============================================
+
+-- Stores sort/filter/reorder/grouping state per tab
+ALTER TABLE analyses ADD COLUMN IF NOT EXISTS table_view_state JSONB;
