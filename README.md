@@ -8,7 +8,7 @@
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
 - **Interactive tables:** Sort columns, filter by value, drag-reorder rows, and ask AI to group related provisions
 - **Interactive chat:** Ask follow-up questions about the analysis with full document context
-- **Session history:** Save and reload analyses with Railway PostgreSQL backend
+- **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
 - **Sticky table headers:** Column labels stay visible while scrolling through large comparison matrices
@@ -197,6 +197,14 @@ gitGraph TB:
 - View state (sort, filters, row order, AI groups) persists to `table_view_state` JSONB column and restores on session reload
 - XLSX and Google Sheets exports respect the current view state (active sort, filtered rows excluded, group headers included)
 - Citation highlighting applied per-cell to prevent regex from matching across HTML tag boundaries
+
+**February 5, 2026 — Duplicate Session**
+- Duplicate button on every history card (owned and shared) creates a full server-side copy
+- Server-side endpoint copies analysis outputs, R2 files (with new keys), chat messages, notes with replies (remapping parent IDs), and table view state
+- Duplicated sessions are fully independent—deleting the original doesn't affect the copy
+- Rename modal opens immediately after duplication for convenient naming
+- Toast notification system for non-blocking feedback
+- New item added to local state directly to avoid Hyperdrive query cache staleness on sidebar refresh
 
 ## License
 
