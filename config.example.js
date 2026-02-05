@@ -19,5 +19,12 @@ const CONFIG = {
   // Thinking level for internal reasoning
   // Options: 'low' (fast, cost-effective) or 'high' (deep reasoning, default)
   // Note: Used in thinkingConfig.thinkingLevel API parameter (nested structure)
-  THINKING_LEVEL: 'high'
+  THINKING_LEVEL: 'high',
+
+  // Google OAuth Client ID for Google Sheets export (optional)
+  // Get one at: https://console.cloud.google.com/apis/credentials
+  // Type: OAuth 2.0 Client ID (Web application)
+  // Authorized JavaScript origins: your deployment URL + http://localhost:8788
+  // Also enable the Google Sheets API in the same project
+  GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID_HERE'
 };

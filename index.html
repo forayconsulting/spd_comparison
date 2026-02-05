@@ -17,6 +17,9 @@
   <!-- DOCX Text Extraction Library -->
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 
+  <!-- Google Identity Services for Google Sheets export -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <!-- Modern Tech-Forward Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1728,7 +1731,12 @@
       color: var(--text-primary);
     }
 
-    .download-button {
+    .export-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .export-button {
       padding: 12px 24px;
       background: var(--gradient-primary);
       color: white;
@@ -1744,11 +1752,80 @@
       gap: 8px;
     }
 
-    .download-button:hover {
+    .export-button:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
       background: var(--gradient-accent);
     }
+
+    .export-caret {
+      font-size: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    .export-dropdown.open .export-caret {
+      transform: rotate(180deg);
+    }
+
+    .export-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 220px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      overflow: hidden;
+      animation: exportMenuIn 0.15s ease;
+    }
+
+    .export-dropdown.open .export-menu {
+      display: block;
+    }
+
+    @keyframes exportMenuIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .export-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 16px;
+      border: none;
+      background: none;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      text-align: left;
+    }
+
+    .export-menu-item:hover {
+      background: var(--surface-elevated);
+    }
+
+    .export-menu-item:not(:last-child) {
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .export-menu-item:disabled {
+      color: var(--text-muted);
+      cursor: default;
+    }
+
+    .export-menu-item:disabled:hover {
+      background: none;
+    }
+
 
     /* Summary Output Styles */
     .summary-content {
@@ -3298,9 +3375,19 @@
       <div class="tab-content active" id="tab-summary">
         <div class="output-header">
           <h2 class="output-title">Summary</h2>
-          <button class="download-button" id="download-summary-btn" onclick="ChatApp.downloadSummary()" style="display: none;">
-            Download
-          </button>
+          <div class="export-dropdown" id="export-summary">
+            <button class="export-button" id="export-summary-btn" onclick="ChatApp.toggleExportMenu('summary')" style="display: none;">
+              Export <span class="export-caret">&#9662;</span>
+            </button>
+            <div class="export-menu" id="export-menu-summary">
+              <button class="export-menu-item" onclick="ChatApp.downloadSummary()">
+                Download as TXT
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.exportSummaryXlsx()">
+                Download as XLSX
+              </button>
+            </div>
+          </div>
         </div>
         <div class="summary-content" id="summary-output"></div>
       </div>
@@ -3309,9 +3396,22 @@
       <div class="tab-content" id="tab-comparison">
         <div class="output-header">
           <h2 class="output-title">Comparison Spreadsheet</h2>
-          <button class="download-button" id="download-comparison-btn" onclick="ChatApp.downloadComparisonSpreadsheet()" style="display: none;">
-            Download
-          </button>
+          <div class="export-dropdown" id="export-comparison">
+            <button class="export-button" id="export-comparison-btn" onclick="ChatApp.toggleExportMenu('comparison')" style="display: none;">
+              Export <span class="export-caret">&#9662;</span>
+            </button>
+            <div class="export-menu" id="export-menu-comparison">
+              <button class="export-menu-item" onclick="ChatApp.downloadComparisonSpreadsheet()">
+                Download as CSV
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.exportComparisonXlsx()">
+                Download as XLSX
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.pushToGoogleSheets('comparison')">
+                Push to Google Sheets
+              </button>
+            </div>
+          </div>
         </div>
         <div id="comparison-output"></div>
       </div>
@@ -3320,9 +3420,22 @@
       <div class="tab-content" id="tab-language">
         <div class="output-header">
           <h2 class="output-title">Citations</h2>
-          <button class="download-button" id="download-language-btn" onclick="ChatApp.downloadLanguageComparison()" style="display: none;">
-            Download
-          </button>
+          <div class="export-dropdown" id="export-language">
+            <button class="export-button" id="export-language-btn" onclick="ChatApp.toggleExportMenu('language')" style="display: none;">
+              Export <span class="export-caret">&#9662;</span>
+            </button>
+            <div class="export-menu" id="export-menu-language">
+              <button class="export-menu-item" onclick="ChatApp.downloadLanguageComparison()">
+                Download as CSV
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.exportLanguageXlsx()">
+                Download as XLSX
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.pushToGoogleSheets('language')">
+                Push to Google Sheets
+              </button>
+            </div>
+          </div>
         </div>
         <div id="language-output"></div>
       </div>
@@ -3389,7 +3502,8 @@
       window.CONFIG = {
         MODEL: 'gemini-3-pro-preview',
         MAX_OUTPUT_TOKENS: 32768,
-        THINKING_LEVEL: 'high'
+        THINKING_LEVEL: 'high',
+        GOOGLE_CLIENT_ID: '607332583866-tiu932dnah2ml5ft0k0sjci7id8khic2.apps.googleusercontent.com'
       };
     }
 
@@ -3542,6 +3656,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         chatPanelWidth: 400, // Width of chat panel in pixels when expanded
         // API key management
         sessionApiKey: null, // API key from modal (session only)
+        // Google Sheets export
+        googleAccessToken: null, // Ephemeral OAuth token
         // Progress message rotation
         progressMessageIndex: 0,
         progressMessageInterval: null,
@@ -3581,6 +3697,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.loadSplitViewPreferences();
         this.loadHistoryList();
         this.initNoteEvents();
+        this.initExportDropdowns();
         this.handleShareToken();
       },
 
@@ -3911,7 +4028,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.summaryResponse = await this.streamResponse(prompt1, true); // true = upload files
 
           // Phase 1 complete - show download button
-          document.getElementById('download-summary-btn').style.display = 'inline-flex';
+          document.getElementById('export-summary-btn').style.display = 'inline-flex';
 
           // PHASE 2: Comparison Table - tab switches when first chunk arrives
           this.state.currentPhase = 2;
@@ -3925,7 +4042,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.comparisonResponse = await this.streamResponse(prompt2, true); // true = upload files fresh
 
           // Phase 2 complete - show download button
-          document.getElementById('download-comparison-btn').style.display = 'inline-flex';
+          document.getElementById('export-comparison-btn').style.display = 'inline-flex';
 
           // PHASE 3: Language Comparison - tab switches when first chunk arrives
           this.state.currentPhase = 3;
@@ -3939,7 +4056,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.languageResponse = await this.streamResponse(prompt3, true); // true = upload files fresh
 
           // Phase 3 complete - show download button
-          document.getElementById('download-language-btn').style.display = 'inline-flex';
+          document.getElementById('export-language-btn').style.display = 'inline-flex';
 
           // Complete - hide progress indicator and enable chat
           this.finalizeThreePhaseComparison();
@@ -5810,7 +5927,33 @@ User Question: ${userQuestion}`;
         output.innerHTML = html;
       },
 
-      // ===== Download Functions =====
+      // ===== Export Menu & Download Functions =====
+
+      initExportDropdowns() {
+        document.addEventListener('mousedown', (e) => {
+          if (!e.target.closest('.export-dropdown')) {
+            this.closeAllExportMenus();
+          }
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.closeAllExportMenus();
+          }
+        });
+      },
+
+      toggleExportMenu(tab) {
+        const dropdown = document.getElementById(`export-${tab}`);
+        const isOpen = dropdown.classList.contains('open');
+        this.closeAllExportMenus();
+        if (!isOpen) {
+          dropdown.classList.add('open');
+        }
+      },
+
+      closeAllExportMenus() {
+        document.querySelectorAll('.export-dropdown.open').forEach(d => d.classList.remove('open'));
+      },
 
       // Convert markdown table to CSV format
       markdownTableToCSV(markdown) {
@@ -5844,12 +5987,31 @@ User Question: ${userQuestion}`;
         return csvLines.join('\n');
       },
 
+      // Convert markdown table to array-of-arrays (for XLSX and Google Sheets)
+      markdownTableToArrays(markdown) {
+        const lines = markdown.split('\n');
+        const rows = [];
+        for (const line of lines) {
+          // Skip separator lines (|:---|:---|) — allow |, :, -, whitespace
+          if (line.match(/^\|[\s\-:|]+$/)) continue;
+          if (line.startsWith('|') && line.endsWith('|')) {
+            const cells = line.slice(1, -1).split('|').map(cell => {
+              return cell.trim()
+                .replace(/\*\*(.+?)\*\*/g, '$1')  // **bold** → bold
+                .replace(/\*(.+?)\*/g, '$1')       // *italic* → italic
+                .replace(/<br\s*\/?>/gi, '\n');     // <br> → newline
+            });
+            rows.push(cells);
+          }
+        }
+        return rows;
+      },
+
       downloadSummary() {
         if (!this.state.summaryResponse) return;
+        this.closeAllExportMenus();
 
-        // Download the summary response as plain text
         const content = 'SPD Comparison Summary\n\n' + this.state.summaryResponse;
-
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -5863,10 +6025,9 @@ User Question: ${userQuestion}`;
 
       downloadComparisonSpreadsheet() {
         if (!this.state.comparisonResponse) return;
+        this.closeAllExportMenus();
 
-        // Convert markdown table to CSV
         const csv = this.markdownTableToCSV(this.state.comparisonResponse);
-
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -5880,10 +6041,9 @@ User Question: ${userQuestion}`;
 
       downloadLanguageComparison() {
         if (!this.state.languageResponse) return;
+        this.closeAllExportMenus();
 
-        // Convert markdown table to CSV
         const csv = this.markdownTableToCSV(this.state.languageResponse);
-
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -5893,6 +6053,238 @@ User Question: ${userQuestion}`;
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+      },
+
+      // ===== XLSX Export Functions =====
+
+      downloadAsXlsx(data, filename, sheetName) {
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        // Auto-size columns
+        const colWidths = [];
+        for (const row of data) {
+          for (let i = 0; i < row.length; i++) {
+            const cellLen = (row[i] || '').toString().length;
+            colWidths[i] = Math.min(Math.max(colWidths[i] || 10, cellLen + 2), 60);
+          }
+        }
+        ws['!cols'] = colWidths.map(w => ({ wch: w }));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        XLSX.writeFile(wb, filename);
+      },
+
+      exportSummaryXlsx() {
+        if (!this.state.summaryResponse) return;
+        this.closeAllExportMenus();
+        const lines = this.state.summaryResponse.split('\n');
+        const data = [['SPD Comparison Summary'], ...lines.map(l => [l])];
+        this.downloadAsXlsx(data, 'Summary.xlsx', 'Summary');
+      },
+
+      exportComparisonXlsx() {
+        if (!this.state.comparisonResponse) return;
+        this.closeAllExportMenus();
+        const data = this.markdownTableToArrays(this.state.comparisonResponse);
+        this.downloadAsXlsx(data, 'Comparison.xlsx', 'Comparison');
+      },
+
+      exportLanguageXlsx() {
+        if (!this.state.languageResponse) return;
+        this.closeAllExportMenus();
+        const data = this.markdownTableToArrays(this.state.languageResponse);
+        this.downloadAsXlsx(data, 'Citations.xlsx', 'Citations');
+      },
+
+      // ===== Google Sheets Export =====
+
+      getGoogleSheetsToken() {
+        return new Promise((resolve, reject) => {
+          if (!window.google?.accounts?.oauth2) {
+            reject(new Error('Google Identity Services not loaded. Check your internet connection.'));
+            return;
+          }
+          const clientId = CONFIG.GOOGLE_CLIENT_ID;
+          if (!clientId) {
+            reject(new Error('Google Sheets export is not configured (no Client ID).'));
+            return;
+          }
+          const tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'https://www.googleapis.com/auth/spreadsheets',
+            callback: (tokenResponse) => {
+              if (tokenResponse.error) {
+                reject(new Error(tokenResponse.error_description || 'Authentication failed'));
+                return;
+              }
+              this.state.googleAccessToken = tokenResponse.access_token;
+              resolve(tokenResponse.access_token);
+            },
+            error_callback: () => {
+              reject(new Error('cancelled'));
+            }
+          });
+          tokenClient.requestAccessToken();
+        });
+      },
+
+      async pushToGoogleSheets(tab) {
+        this.closeAllExportMenus();
+
+        let data, title;
+        switch (tab) {
+          case 'summary':
+            if (!this.state.summaryResponse) return;
+            const lines = this.state.summaryResponse.split('\n');
+            data = [['SPD Comparison Summary'], ...lines.map(l => [l])];
+            title = 'SPD Matrix - Summary';
+            break;
+          case 'comparison':
+            if (!this.state.comparisonResponse) return;
+            data = this.markdownTableToArrays(this.state.comparisonResponse);
+            title = 'SPD Matrix - Comparison';
+            break;
+          case 'language':
+            if (!this.state.languageResponse) return;
+            data = this.markdownTableToArrays(this.state.languageResponse);
+            title = 'SPD Matrix - Citations';
+            break;
+          default: return;
+        }
+        if (!data || data.length === 0) return;
+
+        // Get OAuth token (shows Google sign-in if needed)
+        let accessToken;
+        try {
+          accessToken = this.state.googleAccessToken || await this.getGoogleSheetsToken();
+        } catch (err) {
+          if (err.message === 'cancelled') return;
+          alert('Google Sheets authentication failed: ' + err.message);
+          return;
+        }
+
+        const btn = document.getElementById(`export-${tab}-btn`);
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Exporting...';
+        btn.disabled = true;
+
+        try {
+          // Create spreadsheet
+          const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              properties: { title },
+              sheets: [{
+                properties: {
+                  title: tab === 'summary' ? 'Summary' : (tab === 'comparison' ? 'Comparison' : 'Citations'),
+                  gridProperties: {
+                    rowCount: data.length,
+                    columnCount: Math.max(...data.map(r => r.length))
+                  }
+                }
+              }]
+            })
+          });
+
+          if (!createRes.ok) {
+            const errBody = await createRes.json();
+            throw new Error(errBody.error?.message || 'Failed to create spreadsheet');
+          }
+
+          const spreadsheet = await createRes.json();
+          const spreadsheetId = spreadsheet.spreadsheetId;
+          const sheetTitle = spreadsheet.sheets[0].properties.title;
+
+          // Populate with data
+          const range = `${sheetTitle}!A1`;
+          const updateRes = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+            {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                range,
+                majorDimension: 'ROWS',
+                values: data
+              })
+            }
+          );
+
+          if (!updateRes.ok) throw new Error('Failed to populate spreadsheet');
+
+          // Format: bold header, freeze row, auto-resize (skip for summary)
+          if (tab !== 'summary' && data.length > 0) {
+            await this.formatGoogleSheet(accessToken, spreadsheetId, spreadsheet.sheets[0].properties.sheetId, data);
+          }
+
+          // Open in new tab
+          window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, '_blank');
+
+        } catch (err) {
+          console.error('Google Sheets export failed:', err);
+          if (err.message.includes('401') || err.message.includes('UNAUTHENTICATED')) {
+            this.state.googleAccessToken = null;
+          }
+          alert('Failed to export to Google Sheets: ' + err.message);
+        } finally {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      },
+
+      async formatGoogleSheet(accessToken, spreadsheetId, sheetId, data) {
+        const numCols = Math.max(...data.map(r => r.length));
+        const numRows = data.length;
+        const requests = [
+          // Bold header row
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 0, endRowIndex: 1, startColumnIndex: 0, endColumnIndex: numCols },
+              cell: { userEnteredFormat: { textFormat: { bold: true }, wrapStrategy: 'WRAP' } },
+              fields: 'userEnteredFormat(textFormat.bold,wrapStrategy)'
+            }
+          },
+          // Wrap text in all data cells
+          {
+            repeatCell: {
+              range: { sheetId, startRowIndex: 1, endRowIndex: numRows, startColumnIndex: 0, endColumnIndex: numCols },
+              cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } },
+              fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)'
+            }
+          },
+          // Freeze header row
+          {
+            updateSheetProperties: {
+              properties: { sheetId, gridProperties: { frozenRowCount: 1 } },
+              fields: 'gridProperties.frozenRowCount'
+            }
+          },
+          // Set column widths: first column narrower, rest wider for content
+          ...Array.from({ length: numCols }, (_, i) => ({
+            updateDimensionProperties: {
+              range: { sheetId, dimension: 'COLUMNS', startIndex: i, endIndex: i + 1 },
+              properties: { pixelSize: i === 0 ? 250 : 400 },
+              fields: 'pixelSize'
+            }
+          }))
+        ];
+        await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ requests })
+          }
+        );
       },
 
       // ========================================
@@ -6227,6 +6619,11 @@ User Question: ${userQuestion}`;
         this.renderSummaryTab();
         this.renderComparisonTab();
         this.renderLanguageTab();
+
+        // Show export buttons for loaded analysis
+        if (this.state.summaryResponse) document.getElementById('export-summary-btn').style.display = 'inline-flex';
+        if (this.state.comparisonResponse) document.getElementById('export-comparison-btn').style.display = 'inline-flex';
+        if (this.state.languageResponse) document.getElementById('export-language-btn').style.display = 'inline-flex';
 
         // Show split view (chat sidebar)
         const splitView = document.getElementById('split-view');
