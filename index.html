@@ -1468,6 +1468,19 @@
       line-height: 1.5;
     }
 
+    .file-name a {
+      color: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .file-name a:hover {
+      text-decoration: underline;
+      text-decoration-style: dashed;
+      text-underline-offset: 2px;
+      text-decoration-color: var(--accent-primary);
+    }
+
     .file-meta {
       font-size: 12px;
       color: var(--text-muted);
@@ -4856,11 +4869,17 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
                             file.status === 'error' ? `✗ ${file.error || 'Error'}` :
                             '✗ Error';
 
+          const isViewable = file.r2Key || (file.status === 'uploaded' && file.base64Data);
+          const escapedFilename = this.escapeHtml(file.filename).replace(/'/g, "\\'");
+          const filenameHtml = isViewable
+            ? `<a href="#" onclick="ChatApp.openPdfAtPage('${escapedFilename}', 1); return false;" title="Open in viewer">${this.escapeHtml(file.filename)}</a>`
+            : this.escapeHtml(file.filename);
+
           return `
             <div class="file-card ${statusClass}">
               <div class="file-icon">${icon}</div>
               <div class="file-info">
-                <div class="file-name">${this.escapeHtml(file.filename)}</div>
+                <div class="file-name">${filenameHtml}</div>
                 <div class="file-meta">
                   <span class="file-size">${this.formatFileSize(file.size)}</span>
                   <span class="file-status ${statusClass}">${statusText}</span>
