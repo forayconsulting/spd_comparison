@@ -410,6 +410,69 @@
       cursor: pointer;
     }
 
+    .history-duplicate-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .history-card:hover .history-duplicate-btn {
+      opacity: 1;
+    }
+
+    .history-duplicate-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+
+    .history-duplicate-btn .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes toast-in {
+      from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+
+    @keyframes toast-out {
+      from { transform: translateX(-50%) translateY(0); opacity: 1; }
+      to { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    }
+
+    .toast-notification {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(30, 30, 30, 0.95);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      z-index: 10000;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      animation: toast-in 0.25s ease-out;
+    }
+
+    .toast-notification.hiding {
+      animation: toast-out 0.25s ease-in forwards;
+    }
+
     .history-card.shared {
       border-left: 3px solid var(--accent-primary);
     }
@@ -7756,6 +7819,12 @@ User Question: ${userQuestion}`;
               <div class="history-card ${isOwned ? '' : 'shared'}" data-id="${item.id}">
                 <div class="history-card-header">
                   <div class="history-card-title" onclick="ChatApp.loadAnalysis('${item.id}')" title="${this.escapeHtml(fullTitle)}">${this.escapeHtml(title)}</div>
+                  <button class="history-duplicate-btn" id="dup-btn-${item.id}" onclick="event.stopPropagation(); ChatApp.duplicateAnalysis('${item.id}');" title="Duplicate">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
                   ${isOwned ? `
                   <button class="history-edit-btn" onclick="event.stopPropagation(); ChatApp.editAnalysisTitle('${item.id}', '${this.escapeHtml(fullTitle).replace(/'/g, "\\'")}');" title="Rename">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
@@ -7877,6 +7946,81 @@ User Question: ${userQuestion}`;
           console.error('Error renaming analysis:', error);
           alert('Failed to rename analysis');
         }
+      },
+
+      /**
+       * Duplicate an analysis (full server-side copy)
+       */
+      async duplicateAnalysis(analysisId) {
+        const btn = document.getElementById(`dup-btn-${analysisId}`);
+        if (!btn) return;
+
+        // Show spinner on button
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<div class="spinner"></div>';
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(`/api/history/analyses/${analysisId}/duplicate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+          });
+
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to duplicate');
+          }
+
+          const data = await res.json();
+
+          // Find source item to copy file_metadata for the card display
+          const sourceItem = this.state.historyList.find(a => a.id === analysisId)
+            || (this.state.sharedAnalysesList || []).find(a => a.id === analysisId);
+
+          // Add new item to local state immediately (avoids Hyperdrive cache staleness)
+          this.state.historyList.unshift({
+            id: data.analysis_id,
+            title: data.title,
+            created_at: data.created_at,
+            file_metadata: sourceItem ? sourceItem.file_metadata : [],
+            is_owner: true
+          });
+
+          this.renderHistoryPanel();
+          this.showToast('Session duplicated');
+
+          // Open rename modal for the new copy
+          this.editAnalysisTitle(data.analysis_id, data.title);
+        } catch (error) {
+          console.error('Error duplicating analysis:', error);
+          alert('Failed to duplicate: ' + error.message);
+        } finally {
+          // Restore button (may have been re-rendered by renderHistoryPanel)
+          const currentBtn = document.getElementById(`dup-btn-${analysisId}`);
+          if (currentBtn) {
+            currentBtn.innerHTML = originalHtml;
+            currentBtn.disabled = false;
+          }
+        }
+      },
+
+      /**
+       * Show a brief toast notification
+       */
+      showToast(message, duration = 3000) {
+        const existing = document.querySelector('.toast-notification');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add('hiding');
+          toast.addEventListener('animationend', () => toast.remove());
+        }, duration);
       },
 
       /**
