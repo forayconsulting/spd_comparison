@@ -115,6 +115,7 @@ export async function onRequestGet(context) {
       summary_response: analysis.summary_response,
       comparison_response: analysis.comparison_response,
       language_response: analysis.language_response,
+      table_view_state: analysis.table_view_state || null,
       is_owner: access.isOwner,
       owner_email: access.ownerEmail,
       chat_messages: chatMessages.map(m => ({
@@ -158,10 +159,10 @@ export async function onRequestPatch(context) {
     return errorResponse('Invalid JSON body', 400);
   }
 
-  const { title, file_metadata, new_messages, add_note, update_note, delete_note, add_reply } = body;
+  const { title, file_metadata, new_messages, add_note, update_note, delete_note, add_reply, table_view_state } = body;
 
   // Need at least one field to update
-  if (!title && !file_metadata && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note && !add_reply) {
+  if (!title && !file_metadata && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note && !add_reply && !table_view_state) {
     return errorResponse('At least one update field is required', 400);
   }
 
@@ -177,10 +178,10 @@ export async function onRequestPatch(context) {
       return errorResponse('Analysis not found', 404);
     }
 
-    // Owner-only operations: title, file_metadata, new_messages
-    if (title || file_metadata || new_messages) {
+    // Owner-only operations: title, file_metadata, new_messages, table_view_state
+    if (title || file_metadata || new_messages || table_view_state) {
       if (!access.isOwner) {
-        return errorResponse('Only the owner can update title, file metadata, or chat messages', 403);
+        return errorResponse('Only the owner can update title, file metadata, chat messages, or table view state', 403);
       }
 
       // Update title if provided
@@ -195,6 +196,25 @@ export async function onRequestPatch(context) {
       if (file_metadata && Array.isArray(file_metadata)) {
         await sql`
           UPDATE analyses SET file_metadata = ${JSON.stringify(file_metadata)}, updated_at = NOW()
+          WHERE id = ${analysisId}
+        `;
+      }
+
+      // Update table_view_state if provided (merge with existing)
+      if (table_view_state && typeof table_view_state === 'object') {
+        // Merge new view state with existing (per-tab)
+        const existing = await sql`
+          SELECT table_view_state FROM analyses WHERE id = ${analysisId}
+        `;
+        let merged = {};
+        if (existing[0]?.table_view_state) {
+          merged = typeof existing[0].table_view_state === 'string'
+            ? JSON.parse(existing[0].table_view_state)
+            : existing[0].table_view_state;
+        }
+        Object.assign(merged, table_view_state);
+        await sql`
+          UPDATE analyses SET table_view_state = ${JSON.stringify(merged)}, updated_at = NOW()
           WHERE id = ${analysisId}
         `;
       }

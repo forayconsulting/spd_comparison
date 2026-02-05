@@ -1863,10 +1863,15 @@
       width: 100%;
       border-collapse: collapse;
       background: var(--bg-primary);
-      border-radius: 12px;
-      overflow: hidden;
+      border-radius: 0 0 12px 12px;
       box-shadow: var(--shadow-md);
       margin-top: 16px;
+    }
+
+    /* When preceded by toolbar, remove gap and top radius */
+    .table-toolbar + .comparison-table {
+      margin-top: 0;
+      border-radius: 0 0 12px 12px;
     }
 
     .comparison-table thead {
@@ -1911,6 +1916,269 @@
       position: sticky;
       left: 0;
       z-index: 5;
+    }
+
+    /* ===== Interactive Table Controls ===== */
+
+    /* Table toolbar */
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--bg-tertiary);
+      border-radius: 12px 12px 0 0;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .table-toolbar .filter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: var(--accent-primary);
+      color: white;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .table-toolbar .reset-view-btn {
+      margin-left: auto;
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .table-toolbar .reset-view-btn:hover {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border-color: var(--accent-primary);
+    }
+
+    /* Sort indicators in headers */
+    .comparison-table th.interactive-th {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      padding-right: 36px;
+    }
+
+    .comparison-table th.interactive-th:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .th-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .th-label {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sort-indicator {
+      opacity: 0.3;
+      font-size: 10px;
+      flex-shrink: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .comparison-table th.sort-active .sort-indicator {
+      opacity: 1;
+    }
+
+    /* Filter button in header */
+    .filter-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      transition: all 0.15s ease;
+      padding: 0;
+    }
+
+    .filter-btn:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+      border-color: rgba(255,255,255,0.5);
+    }
+
+    .filter-btn.has-filter {
+      color: #ffd700;
+      background: rgba(255, 215, 0, 0.15);
+      border-color: rgba(255, 215, 0, 0.4);
+    }
+
+    /* Filter dropdown */
+    .column-filter-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      min-width: 220px;
+      max-height: 320px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-medium);
+      border-radius: 10px;
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .filter-search {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .filter-search input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      font-size: 12px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .filter-search input:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .filter-select-all {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .filter-select-all:hover {
+      background: var(--bg-secondary);
+    }
+
+    .filter-values {
+      overflow-y: auto;
+      max-height: 200px;
+      padding: 4px 0;
+    }
+
+    .filter-value-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: var(--text-primary);
+      cursor: pointer;
+      line-height: 1.4;
+    }
+
+    .filter-value-item:hover {
+      background: var(--bg-secondary);
+    }
+
+    .filter-value-item input[type="checkbox"] {
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .filter-value-label {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      max-height: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .filter-actions {
+      padding: 6px 10px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .filter-actions button {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border-medium);
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      transition: all 0.15s ease;
+    }
+
+    .filter-actions button.apply-filter {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+
+    .filter-actions button:hover {
+      opacity: 0.85;
+    }
+
+    /* Row drag-and-drop (drag from first column) */
+    .comparison-table tbody tr[draggable="true"] td:first-child {
+      cursor: grab;
+    }
+
+    .comparison-table tbody tr.dragging {
+      opacity: 0.4;
+      background: var(--bg-tertiary);
+    }
+
+    .comparison-table tbody tr.drag-over {
+      box-shadow: 0 -2px 0 0 var(--accent-primary) inset;
+    }
+
+    /* Group headers */
+    .comparison-table tr.group-header-row td {
+      background: var(--gradient-accent);
+      color: white;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 14px;
+      letter-spacing: 0.3px;
+      border-bottom: none;
+    }
+
+    .comparison-table .table-toolbar-row td {
+      padding: 0;
+      border-bottom: none;
+      background: transparent;
     }
 
     /* Language Comparison Specific Styles */
@@ -3687,7 +3955,11 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         shareModalOpen: false,        // Share modal visibility
         currentShares: { email_shares: [], link_shares: [] }, // Current analysis shares
         shareInputEmail: '',          // Email input in share modal
-        sharedAnalysesList: []        // List of analyses shared with this user
+        sharedAnalysesList: [],       // List of analyses shared with this user
+        // Interactive table state
+        comparisonTableData: null,    // Parsed structured data for comparison tab
+        languageTableData: null,      // Parsed structured data for language tab
+        activeFilterDropdown: null    // Currently open filter dropdown {tab, colIndex}
       },
 
       init() {
@@ -4041,7 +4313,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse, fileList);
           this.state.comparisonResponse = await this.streamResponse(prompt2, true); // true = upload files fresh
 
-          // Phase 2 complete - show download button
+          // Phase 2 complete - parse into interactive table and show download button
+          this.state.comparisonTableData = this.parseTableData(this.state.comparisonResponse);
+          this.renderInteractiveTable('comparison');
           document.getElementById('export-comparison-btn').style.display = 'inline-flex';
 
           // PHASE 3: Language Comparison - tab switches when first chunk arrives
@@ -4055,7 +4329,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse, fileList);
           this.state.languageResponse = await this.streamResponse(prompt3, true); // true = upload files fresh
 
-          // Phase 3 complete - show download button
+          // Phase 3 complete - parse into interactive table and show download button
+          this.state.languageTableData = this.parseTableData(this.state.languageResponse);
+          this.renderInteractiveTable('language');
           document.getElementById('export-language-btn').style.display = 'inline-flex';
 
           // Complete - hide progress indicator and enable chat
@@ -4514,11 +4790,13 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       renderComparisonTab() {
+        // Use interactive table if structured data is available
+        if (this.state.comparisonTableData) {
+          this.renderInteractiveTable('comparison');
+          return;
+        }
         const output = document.getElementById('comparison-output');
-        // Parse the comparison response and render as HTML table
-        // The response should be a markdown table, so we can render it directly
         output.innerHTML = marked.parse(this.state.comparisonResponse || '');
-        // Apply note highlights after rendering
         this.applyNoteHighlights('comparison');
       },
 
@@ -4739,12 +5017,14 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       renderLanguageTab() {
+        // Use interactive table if structured data is available
+        if (this.state.languageTableData) {
+          this.renderInteractiveTable('language');
+          return;
+        }
         const output = document.getElementById('language-output');
-        // Parse the language comparison response and render as HTML table
-        // The response should be a markdown table, so we can render it directly
         const html = marked.parse(this.state.languageResponse || '');
         output.innerHTML = this.highlightCitations(html);
-        // Apply note highlights after rendering
         this.applyNoteHighlights('language');
       },
 
@@ -5563,12 +5843,27 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         try {
           const response = await this.streamChatResponse(contextPrompt, true);
 
-          // Add assistant response to history
-          this.state.chatMessages.push({
-            role: 'assistant',
-            content: response,
-            timestamp: new Date().toISOString()
-          });
+          // Check if response is a table rearrangement command
+          const rearrangement = this.parseRearrangementResponse(response);
+          if (rearrangement) {
+            const applied = this.applyRearrangement(rearrangement);
+            const displayMsg = applied
+              ? `Table ${rearrangement.tab} has been rearranged into ${rearrangement.groups.length} group(s): ${rearrangement.groups.map(g => g.label).join(', ')}`
+              : response;
+
+            this.state.chatMessages.push({
+              role: 'assistant',
+              content: displayMsg,
+              timestamp: new Date().toISOString()
+            });
+          } else {
+            // Add assistant response to history
+            this.state.chatMessages.push({
+              role: 'assistant',
+              content: response,
+              timestamp: new Date().toISOString()
+            });
+          }
 
           this.renderChatMessages();
 
@@ -5618,6 +5913,15 @@ When referencing documents, use the EXACT filenames listed above. When referenci
 CITATION FORMAT:
 - For PDF files: (filename.pdf, page_number, paragraph_number)
 - For non-PDF files (DOCX, XLSX, CSV, TXT): cite using the §N markers shown in the document text, e.g. (filename.docx, §3)
+
+SPECIAL CAPABILITY - TABLE REARRANGEMENT:
+If the user asks you to rearrange, reorder, group, or reorganize the comparison table or language table rows, respond with ONLY a JSON code block in the following format (no other text):
+\`\`\`json
+{"action":"rearrange","tab":"comparison","groups":[{"label":"Group Name","rowIds":[0,2,5]},{"label":"Another Group","rowIds":[1,3,4]}]}
+\`\`\`
+The "tab" field should be "comparison" or "language". Each row has a numeric ID starting from 0 (first data row after the header). The "rowIds" arrays should contain ALL row IDs, distributed across groups. If the user just wants to reorder without grouping, use a single group with all IDs in the desired order.
+
+${this.getTableRowReference()}
 
 User Question: ${userQuestion}`;
       },
@@ -5725,6 +6029,609 @@ User Question: ${userQuestion}`;
         console.log(`✅ Chat API Response Complete: ${chunkCount} chunks, ${this.state.currentChatResponse.length} chars`);
 
         return this.state.currentChatResponse;
+      },
+
+      // ===== Interactive Table Controls =====
+
+      /**
+       * Parse markdown table into structured data for interactive rendering.
+       * Returns { headers, rows, sortColumn, sortDirection, filters, rowOrder, groups }
+       */
+      parseTableData(markdown) {
+        if (!markdown) return null;
+
+        // Parse markdown table preserving raw cell content (unlike markdownTableToArrays which strips formatting)
+        const lines = markdown.split('\n');
+        const tableRows = [];
+        for (const line of lines) {
+          if (line.match(/^\|[\s\-:|]+$/)) continue; // Skip separator lines
+          if (line.startsWith('|') && line.endsWith('|')) {
+            const cells = line.slice(1, -1).split('|').map(cell => cell.trim());
+            tableRows.push(cells);
+          }
+        }
+        if (tableRows.length < 2) return null;
+
+        const headers = tableRows[0];
+        const rows = tableRows.slice(1).map((cells, i) => ({
+          id: i,
+          cells: cells,
+          visible: true
+        }));
+
+        return {
+          headers,
+          rows,
+          sortColumn: null,
+          sortDirection: null, // 'asc', 'desc', or null
+          filters: {},         // { colIndex: Set<selected values> }
+          rowOrder: null,      // null = original; array of row IDs if reordered
+          groups: null         // null = none; [{label, rowIds}] if AI-grouped
+        };
+      },
+
+      /**
+       * Get table data for a tab, applying current view state (sort, filter, order, groups).
+       * Returns ordered array of rows (and group headers interleaved if groups active).
+       */
+      getViewRows(tableData) {
+        if (!tableData) return [];
+
+        let rows = [...tableData.rows];
+
+        // Apply filters
+        const activeFilters = tableData.filters;
+        if (activeFilters && Object.keys(activeFilters).length > 0) {
+          rows = rows.filter(row => {
+            for (const [colIdx, allowedValues] of Object.entries(activeFilters)) {
+              const cellVal = (row.cells[parseInt(colIdx)] || '').trim();
+              if (!allowedValues.has(cellVal)) return false;
+            }
+            return true;
+          });
+        }
+
+        // Apply sort
+        if (tableData.sortColumn !== null && tableData.sortDirection) {
+          const col = tableData.sortColumn;
+          const dir = tableData.sortDirection === 'asc' ? 1 : -1;
+          rows.sort((a, b) => {
+            const aVal = (a.cells[col] || '').trim();
+            const bVal = (b.cells[col] || '').trim();
+            return dir * aVal.localeCompare(bVal, undefined, { sensitivity: 'base', numeric: true });
+          });
+        } else if (tableData.rowOrder) {
+          // Apply custom row order (from drag or AI grouping)
+          const orderMap = {};
+          tableData.rowOrder.forEach((id, idx) => orderMap[id] = idx);
+          rows.sort((a, b) => (orderMap[a.id] ?? 9999) - (orderMap[b.id] ?? 9999));
+        }
+
+        // If groups active, interleave group headers
+        if (tableData.groups && tableData.groups.length > 0) {
+          const result = [];
+          const rowMap = {};
+          for (const row of rows) rowMap[row.id] = row;
+          const placed = new Set();
+
+          for (const group of tableData.groups) {
+            result.push({ type: 'group-header', label: group.label });
+            for (const rowId of group.rowIds) {
+              if (rowMap[rowId] && !placed.has(rowId)) {
+                result.push({ type: 'row', ...rowMap[rowId] });
+                placed.add(rowId);
+              }
+            }
+          }
+          // Add any ungrouped rows at end
+          for (const row of rows) {
+            if (!placed.has(row.id)) {
+              result.push({ type: 'row', ...row });
+            }
+          }
+          return result;
+        }
+
+        return rows.map(r => ({ type: 'row', ...r }));
+      },
+
+      /**
+       * Render interactive table for comparison or language tab.
+       * Replaces marked.parse() output with a custom-built interactive table.
+       */
+      renderInteractiveTable(tab) {
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        const outputId = tab === 'comparison' ? 'comparison-output' : 'language-output';
+        const output = document.getElementById(outputId);
+        if (!tableData || !output) return;
+
+        const viewRows = this.getViewRows(tableData);
+        const headers = tableData.headers;
+        const colCount = headers.length;
+
+        // Count active filters
+        const filterCount = Object.keys(tableData.filters).length;
+        const hasCustomView = filterCount > 0 || tableData.sortColumn !== null || tableData.rowOrder !== null || tableData.groups !== null;
+
+        // Build toolbar
+        let toolbarHtml = '';
+        if (hasCustomView) {
+          toolbarHtml = '<div class="table-toolbar">';
+          if (filterCount > 0) {
+            toolbarHtml += `<span class="filter-badge">${filterCount} filter${filterCount > 1 ? 's' : ''} active</span>`;
+          }
+          if (tableData.groups) {
+            toolbarHtml += `<span style="color:var(--text-muted)">Grouped by AI</span>`;
+          }
+          toolbarHtml += `<button class="reset-view-btn" onclick="ChatApp.resetTableView('${tab}')">Reset View</button>`;
+          toolbarHtml += '</div>';
+        }
+
+        // Build table
+        let html = toolbarHtml;
+        html += '<table class="comparison-table"><thead><tr>';
+
+        // Header row with sort indicators and filter buttons
+        for (let i = 0; i < colCount; i++) {
+          const isSorted = tableData.sortColumn === i;
+          const sortDir = isSorted ? tableData.sortDirection : null;
+          const arrow = sortDir === 'asc' ? '\u25B2' : sortDir === 'desc' ? '\u25BC' : '\u25B2';
+          const activeClass = isSorted ? ' sort-active' : '';
+          const hasFilter = tableData.filters[i] ? ' has-filter' : '';
+
+          html += `<th class="interactive-th${activeClass}" onclick="ChatApp.sortColumn('${tab}', ${i})">`;
+          html += `<span class="th-content">`;
+          html += `<span class="th-label">${this.escapeHtml(headers[i])}</span>`;
+          html += `<span class="sort-indicator">${arrow}</span>`;
+          html += `</span>`;
+          html += `<button class="filter-btn${hasFilter}" onclick="event.stopPropagation(); ChatApp.toggleFilterDropdown('${tab}', ${i})" title="Filter column">&#9698;</button>`;
+          html += `</th>`;
+        }
+        html += '</tr></thead><tbody>';
+
+        // Rows
+        for (const item of viewRows) {
+          if (item.type === 'group-header') {
+            html += `<tr class="group-header-row"><td colspan="${colCount}">${this.escapeHtml(item.label)}</td></tr>`;
+            continue;
+          }
+
+          html += `<tr draggable="true" data-row-id="${item.id}" `;
+          html += `ondragstart="ChatApp.onRowDragStart(event, '${tab}')" `;
+          html += `ondragover="ChatApp.onRowDragOver(event)" `;
+          html += `ondragleave="ChatApp.onRowDragLeave(event)" `;
+          html += `ondrop="ChatApp.onRowDrop(event, '${tab}')" `;
+          html += `ondragend="ChatApp.onRowDragEnd(event)">`;
+
+          for (let c = 0; c < item.cells.length; c++) {
+            let cellContent = this.escapeHtml(item.cells[c] || '');
+            // Apply markdown bold/italic within cells and convert line breaks
+            cellContent = cellContent
+              .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.+?)\*/g, '<em>$1</em>')
+              .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
+              .replace(/\n/g, '<br>');
+
+            // Apply citation highlighting per-cell (not on whole HTML — regex would match across tags)
+            if (tab === 'language') {
+              cellContent = this.highlightCitations(cellContent);
+            }
+
+            html += `<td>${cellContent}</td>`;
+          }
+          html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+
+        output.innerHTML = html;
+
+        // Apply note highlights
+        this.applyNoteHighlights(tab);
+      },
+
+      /**
+       * Sort a column: cycle through asc → desc → original
+       */
+      sortColumn(tab, colIndex) {
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return;
+
+        if (tableData.sortColumn === colIndex) {
+          // Cycle: asc → desc → null
+          if (tableData.sortDirection === 'asc') {
+            tableData.sortDirection = 'desc';
+          } else {
+            tableData.sortColumn = null;
+            tableData.sortDirection = null;
+          }
+        } else {
+          tableData.sortColumn = colIndex;
+          tableData.sortDirection = 'asc';
+        }
+
+        // Sorting clears groups (mutually exclusive)
+        if (tableData.sortColumn !== null) {
+          tableData.groups = null;
+          tableData.rowOrder = null;
+        }
+
+        this.renderInteractiveTable(tab);
+        this.saveTableViewState(tab);
+      },
+
+      /**
+       * Toggle filter dropdown for a column
+       */
+      toggleFilterDropdown(tab, colIndex) {
+        const current = this.state.activeFilterDropdown;
+
+        // Close any existing dropdown
+        this.closeFilterDropdown();
+
+        // If clicking same column, just close
+        if (current && current.tab === tab && current.colIndex === colIndex) return;
+
+        this.state.activeFilterDropdown = { tab, colIndex };
+        this.showFilterDropdown(tab, colIndex);
+      },
+
+      /**
+       * Show filter dropdown for a column
+       */
+      showFilterDropdown(tab, colIndex) {
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return;
+
+        // Get unique values for this column
+        const uniqueVals = new Set();
+        for (const row of tableData.rows) {
+          uniqueVals.add((row.cells[colIndex] || '').trim());
+        }
+        const sortedVals = [...uniqueVals].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+        // Current filter state
+        const currentFilter = tableData.filters[colIndex];
+        const allSelected = !currentFilter; // No filter means all are selected
+
+        // Find the header cell to position dropdown
+        const outputId = tab === 'comparison' ? 'comparison-output' : 'language-output';
+        const table = document.querySelector(`#${outputId} .comparison-table`);
+        if (!table) return;
+        const th = table.querySelectorAll('thead th')[colIndex];
+        if (!th) return;
+
+        // Create dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'column-filter-dropdown';
+        dropdown.id = 'active-filter-dropdown';
+
+        let dropdownHtml = '';
+        dropdownHtml += '<div class="filter-search"><input type="text" placeholder="Search values..." id="filter-search-input"></div>';
+        dropdownHtml += `<label class="filter-select-all"><input type="checkbox" id="filter-select-all-cb" ${allSelected ? 'checked' : ''}> Select All</label>`;
+        dropdownHtml += '<div class="filter-values" id="filter-values-list">';
+
+        for (const val of sortedVals) {
+          const checked = allSelected || (currentFilter && currentFilter.has(val));
+          const displayVal = val.length > 60 ? val.substring(0, 60) + '...' : val;
+          dropdownHtml += `<label class="filter-value-item" data-value="${this.escapeHtml(val)}">`;
+          dropdownHtml += `<input type="checkbox" ${checked ? 'checked' : ''} value="${this.escapeHtml(val)}">`;
+          dropdownHtml += `<span class="filter-value-label" title="${this.escapeHtml(val)}">${this.escapeHtml(displayVal)}</span>`;
+          dropdownHtml += '</label>';
+        }
+
+        dropdownHtml += '</div>';
+        dropdownHtml += '<div class="filter-actions">';
+        dropdownHtml += `<button onclick="ChatApp.closeFilterDropdown()">Cancel</button>`;
+        dropdownHtml += `<button class="apply-filter" onclick="ChatApp.applyFilter('${tab}', ${colIndex})">Apply</button>`;
+        dropdownHtml += '</div>';
+
+        dropdown.innerHTML = dropdownHtml;
+
+        // Position relative to th
+        th.style.position = 'relative';
+        th.appendChild(dropdown);
+
+        // Wire up search
+        setTimeout(() => {
+          const searchInput = document.getElementById('filter-search-input');
+          if (searchInput) {
+            searchInput.focus();
+            searchInput.addEventListener('input', (e) => {
+              const query = e.target.value.toLowerCase();
+              const items = document.querySelectorAll('#filter-values-list .filter-value-item');
+              items.forEach(item => {
+                const val = item.getAttribute('data-value').toLowerCase();
+                item.style.display = val.includes(query) ? '' : 'none';
+              });
+            });
+          }
+
+          const selectAllCb = document.getElementById('filter-select-all-cb');
+          if (selectAllCb) {
+            selectAllCb.addEventListener('change', (e) => {
+              const checked = e.target.checked;
+              document.querySelectorAll('#filter-values-list input[type="checkbox"]').forEach(cb => {
+                cb.checked = checked;
+              });
+            });
+          }
+        }, 0);
+
+        // Close on outside click
+        setTimeout(() => {
+          document.addEventListener('click', this._filterOutsideClickHandler = (e) => {
+            if (!dropdown.contains(e.target) && !e.target.classList.contains('filter-btn')) {
+              this.closeFilterDropdown();
+            }
+          });
+        }, 50);
+      },
+
+      /**
+       * Apply filter from dropdown checkboxes
+       */
+      applyFilter(tab, colIndex) {
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return;
+
+        const checkboxes = document.querySelectorAll('#filter-values-list input[type="checkbox"]');
+        const selected = new Set();
+        let allChecked = true;
+
+        checkboxes.forEach(cb => {
+          if (cb.checked) {
+            selected.add(cb.value);
+          } else {
+            allChecked = false;
+          }
+        });
+
+        if (allChecked || selected.size === 0) {
+          // All selected = remove filter
+          delete tableData.filters[colIndex];
+        } else {
+          tableData.filters[colIndex] = selected;
+        }
+
+        this.closeFilterDropdown();
+        this.renderInteractiveTable(tab);
+        this.saveTableViewState(tab);
+      },
+
+      /**
+       * Close filter dropdown
+       */
+      closeFilterDropdown() {
+        this.state.activeFilterDropdown = null;
+        const dropdown = document.getElementById('active-filter-dropdown');
+        if (dropdown) dropdown.remove();
+        if (this._filterOutsideClickHandler) {
+          document.removeEventListener('click', this._filterOutsideClickHandler);
+          this._filterOutsideClickHandler = null;
+        }
+      },
+
+      /**
+       * Reset table view to original state
+       */
+      resetTableView(tab) {
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return;
+
+        tableData.sortColumn = null;
+        tableData.sortDirection = null;
+        tableData.filters = {};
+        tableData.rowOrder = null;
+        tableData.groups = null;
+
+        this.renderInteractiveTable(tab);
+        this.saveTableViewState(tab);
+      },
+
+      // ===== Row Drag-and-Drop =====
+
+      _dragRowId: null,
+
+      onRowDragStart(e, tab) {
+        const tr = e.target.closest('tr[data-row-id]');
+        if (!tr) return;
+        this._dragRowId = parseInt(tr.dataset.rowId);
+        this._dragTab = tab;
+        tr.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', tr.dataset.rowId);
+      },
+
+      onRowDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const tr = e.target.closest('tr[data-row-id]');
+        if (tr) tr.classList.add('drag-over');
+      },
+
+      onRowDragLeave(e) {
+        const tr = e.target.closest('tr[data-row-id]');
+        if (tr) tr.classList.remove('drag-over');
+      },
+
+      onRowDrop(e, tab) {
+        e.preventDefault();
+        const targetTr = e.target.closest('tr[data-row-id]');
+        if (!targetTr) return;
+        targetTr.classList.remove('drag-over');
+
+        const targetId = parseInt(targetTr.dataset.rowId);
+        if (this._dragRowId === null || this._dragRowId === targetId) return;
+
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return;
+
+        // Build current order
+        let order = tableData.rowOrder || tableData.rows.map(r => r.id);
+        order = [...order];
+
+        const fromIdx = order.indexOf(this._dragRowId);
+        const toIdx = order.indexOf(targetId);
+        if (fromIdx === -1 || toIdx === -1) return;
+
+        // Move
+        order.splice(fromIdx, 1);
+        order.splice(toIdx, 0, this._dragRowId);
+        tableData.rowOrder = order;
+
+        // Clear groups (manual reorder breaks grouping)
+        tableData.groups = null;
+
+        this.renderInteractiveTable(tab);
+        this.saveTableViewState(tab);
+      },
+
+      onRowDragEnd(e) {
+        this._dragRowId = null;
+        document.querySelectorAll('.comparison-table tbody tr').forEach(tr => {
+          tr.classList.remove('dragging', 'drag-over');
+        });
+      },
+
+      // ===== View State Persistence =====
+
+      saveTableViewState(tab) {
+        if (!this.isProxyMode() || !this.state.currentAnalysisId) return;
+
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return;
+
+        // Serialize filters (Sets → arrays)
+        const serializedFilters = {};
+        for (const [key, valSet] of Object.entries(tableData.filters)) {
+          serializedFilters[key] = [...valSet];
+        }
+
+        const viewState = {
+          [tab]: {
+            sortColumn: tableData.sortColumn,
+            sortDirection: tableData.sortDirection,
+            filters: serializedFilters,
+            rowOrder: tableData.rowOrder,
+            groups: tableData.groups
+          }
+        };
+
+        // Fire and forget
+        fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_view_state: viewState })
+        }).catch(err => console.warn('Failed to save table view state:', err));
+      },
+
+      /**
+       * Apply saved view state to parsed table data
+       */
+      applyTableViewState(tab, viewState) {
+        if (!viewState || !viewState[tab]) return;
+
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return;
+
+        const saved = viewState[tab];
+        tableData.sortColumn = saved.sortColumn ?? null;
+        tableData.sortDirection = saved.sortDirection ?? null;
+        tableData.rowOrder = saved.rowOrder ?? null;
+        tableData.groups = saved.groups ?? null;
+
+        // Deserialize filters (arrays → Sets)
+        tableData.filters = {};
+        if (saved.filters) {
+          for (const [key, valArr] of Object.entries(saved.filters)) {
+            tableData.filters[key] = new Set(valArr);
+          }
+        }
+      },
+
+      /**
+       * Generate a reference of table row IDs and their first-column values
+       * so the AI knows which row IDs to use in rearrangement responses.
+       */
+      getTableRowReference() {
+        const compData = this.state.comparisonTableData;
+        const langData = this.state.languageTableData;
+        let ref = '';
+
+        if (compData && compData.rows.length > 0) {
+          ref += 'Comparison table row IDs:\n';
+          for (const row of compData.rows) {
+            ref += `  Row ${row.id}: ${(row.cells[0] || '').substring(0, 80)}\n`;
+          }
+        }
+        if (langData && langData.rows.length > 0) {
+          ref += 'Language table row IDs:\n';
+          for (const row of langData.rows) {
+            ref += `  Row ${row.id}: ${(row.cells[0] || '').substring(0, 80)}\n`;
+          }
+        }
+        return ref;
+      },
+
+      /**
+       * Check if a chat response contains a table rearrangement command.
+       * Returns the parsed rearrangement object or null.
+       */
+      parseRearrangementResponse(response) {
+        // Look for ```json ... ``` block with rearrangement action
+        const jsonBlockMatch = response.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
+        if (!jsonBlockMatch) return null;
+
+        try {
+          const parsed = JSON.parse(jsonBlockMatch[1]);
+          if (parsed.action === 'rearrange' && parsed.groups && Array.isArray(parsed.groups)) {
+            return parsed;
+          }
+        } catch (e) {
+          // Not valid JSON or not a rearrangement
+        }
+        return null;
+      },
+
+      /**
+       * Apply a rearrangement from AI chat to the table.
+       */
+      applyRearrangement(rearrangement) {
+        const tab = rearrangement.tab || 'comparison';
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        if (!tableData) return false;
+
+        // Build row order from groups
+        const rowOrder = [];
+        const groups = rearrangement.groups.map(g => ({
+          label: g.label,
+          rowIds: g.rowIds || g.rows || []
+        }));
+
+        for (const group of groups) {
+          for (const id of group.rowIds) {
+            if (!rowOrder.includes(id)) rowOrder.push(id);
+          }
+        }
+
+        // Add any missing row IDs at the end
+        for (const row of tableData.rows) {
+          if (!rowOrder.includes(row.id)) rowOrder.push(row.id);
+        }
+
+        tableData.groups = groups;
+        tableData.rowOrder = rowOrder;
+        tableData.sortColumn = null;
+        tableData.sortDirection = null;
+
+        this.renderInteractiveTable(tab);
+        this.saveTableViewState(tab);
+
+        // Switch to the affected tab
+        this.activateTab(tab);
+
+        return true;
       },
 
       handleChatStreamChunk(chunk) {
@@ -6084,15 +6991,49 @@ User Question: ${userQuestion}`;
       exportComparisonXlsx() {
         if (!this.state.comparisonResponse) return;
         this.closeAllExportMenus();
-        const data = this.markdownTableToArrays(this.state.comparisonResponse);
+        const data = this.getExportData('comparison');
         this.downloadAsXlsx(data, 'Comparison.xlsx', 'Comparison');
       },
 
       exportLanguageXlsx() {
         if (!this.state.languageResponse) return;
         this.closeAllExportMenus();
-        const data = this.markdownTableToArrays(this.state.languageResponse);
+        const data = this.getExportData('language');
         this.downloadAsXlsx(data, 'Citations.xlsx', 'Citations');
+      },
+
+      /**
+       * Get export data for a tab, applying current view state (sort, filter, groups).
+       * Falls back to raw markdown parsing if no interactive table data.
+       */
+      getExportData(tab) {
+        const tableData = tab === 'comparison' ? this.state.comparisonTableData : this.state.languageTableData;
+        const markdown = tab === 'comparison' ? this.state.comparisonResponse : this.state.languageResponse;
+
+        if (!tableData) {
+          return this.markdownTableToArrays(markdown);
+        }
+
+        // Strip markdown formatting from a cell for export
+        const cleanCell = (text) => (text || '')
+          .replace(/\*\*(.+?)\*\*/g, '$1')
+          .replace(/\*(.+?)\*/g, '$1')
+          .replace(/<br\s*\/?>/gi, '\n');
+
+        const viewRows = this.getViewRows(tableData);
+        const result = [tableData.headers.map(cleanCell)];
+
+        for (const item of viewRows) {
+          if (item.type === 'group-header') {
+            const row = [item.label];
+            for (let i = 1; i < tableData.headers.length; i++) row.push('');
+            result.push(row);
+          } else {
+            result.push(item.cells.map(cleanCell));
+          }
+        }
+
+        return result;
       },
 
       // ===== Google Sheets Export =====
@@ -6140,12 +7081,12 @@ User Question: ${userQuestion}`;
             break;
           case 'comparison':
             if (!this.state.comparisonResponse) return;
-            data = this.markdownTableToArrays(this.state.comparisonResponse);
+            data = this.getExportData('comparison');
             title = 'SPD Matrix - Comparison';
             break;
           case 'language':
             if (!this.state.languageResponse) return;
-            data = this.markdownTableToArrays(this.state.languageResponse);
+            data = this.getExportData('language');
             title = 'SPD Matrix - Citations';
             break;
           default: return;
@@ -6484,6 +7425,7 @@ User Question: ${userQuestion}`;
           this.state.languageResponse = data.language_response;
           this.state.chatMessages = data.chat_messages || [];
           this.state.notes = data.notes || [];
+          this.state._savedTableViewState = data.table_view_state || null;
           this.state.isOwner = data.is_owner !== false; // Default to true for backwards compatibility
           this.state.ownerEmail = data.owner_email || null;
 
@@ -6588,6 +7530,9 @@ User Question: ${userQuestion}`;
         this.state.isComparisonRequest = false;
         this.state.isChatStreaming = false;
         this.state.currentChatResponse = '';
+        this.state.comparisonTableData = null;
+        this.state.languageTableData = null;
+        this.state.activeFilterDropdown = null;
       },
 
       /**
@@ -6614,6 +7559,23 @@ User Question: ${userQuestion}`;
         // Show output tabs
         const outputTabs = document.getElementById('output-tabs');
         outputTabs.classList.add('active');
+
+        // Parse structured table data for interactive rendering
+        this.state.comparisonTableData = this.parseTableData(this.state.comparisonResponse);
+        this.state.languageTableData = this.parseTableData(this.state.languageResponse);
+
+        // Apply saved table view state if available
+        if (this.state._savedTableViewState) {
+          let viewState = this.state._savedTableViewState;
+          if (typeof viewState === 'string') {
+            try { viewState = JSON.parse(viewState); } catch (e) { viewState = null; }
+          }
+          if (viewState) {
+            this.applyTableViewState('comparison', viewState);
+            this.applyTableViewState('language', viewState);
+          }
+          this.state._savedTableViewState = null;
+        }
 
         // Render all three tabs
         this.renderSummaryTab();
@@ -6941,6 +7903,11 @@ User Question: ${userQuestion}`;
         // Reset sharing state
         this.state.isOwner = true;
         this.state.ownerEmail = null;
+
+        // Reset interactive table state
+        this.state.comparisonTableData = null;
+        this.state.languageTableData = null;
+        this.state.activeFilterDropdown = null;
 
         // Clear uploaded files
         this.state.uploadedFiles = [];
