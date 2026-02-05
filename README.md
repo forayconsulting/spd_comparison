@@ -11,6 +11,7 @@
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
 - **Sticky table headers:** Column labels stay visible while scrolling through large comparison matrices
+- **Multi-format export:** Export results as CSV, XLSX, or push directly to Google Sheets (Comparison and Citations tabs)
 - **Cross-browser PDF viewer:** PDF.js-based citation viewer ensures correct page navigation in Safari, Chrome, and all browsers
 
 ## Getting Started
@@ -175,6 +176,16 @@ gitGraph TB:
 **January 22, 2026 — Citation Regex Fix**
 - Fixed clickable citations not working when Gemini outputs `p.` page format (e.g., `(filename.pdf, p. 1)`)
 - Citation regex now matches `p`, `p.`, `pg`, `pg.`, and `page` prefixes
+
+**February 5, 2026 — Export Menu & Google Sheets Integration**
+- Replaced single "Download" buttons with Export dropdown menus on all three analysis tabs
+- Summary tab offers CSV and XLSX export; Comparison and Citations tabs add "Push to Google Sheets"
+- XLSX generation uses SheetJS (already loaded for file reading) with auto-sized columns
+- Google Sheets integration uses Google Identity Services OAuth with the existing Cloudflare Access OAuth Client ID
+- Sheets export creates a formatted spreadsheet (bold frozen header, text wrapping, sized columns) and opens it in a new tab
+- Markdown formatting (`**bold**`, `<br>` tags) stripped during export; separator rows filtered out
+- Google Sheets API enabled in existing "SPD Matrix Auth" GCP project; OAuth consent screen set to Production
+- Export buttons now correctly appear when loading saved analyses (bug fix)
 
 ## License
 
