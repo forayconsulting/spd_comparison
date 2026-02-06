@@ -10,6 +10,8 @@
 - **Interactive chat:** Ask follow-up questions about the analysis with full document context
 - **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
+- **Draft workspace:** Select provisions from the comparison table, generate an AI-synthesized integrated column, then produce a formatted SPD draft — all editable with inline AI rework
+- **Action-flagged notes:** Mark annotations as "actionable" to pass them as instructions to the AI during draft generation
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
 - **Sticky table headers:** Column labels stay visible while scrolling through large comparison matrices
 - **Multi-format export:** Export results as CSV, XLSX, or push directly to Google Sheets (Comparison and Citations tabs)
@@ -205,6 +207,21 @@ gitGraph TB:
 - Rename modal opens immediately after duplication for convenient naming
 - Toast notification system for non-blocking feedback
 - New item added to local state directly to avoid Hyperdrive query cache staleness on sidebar refresh
+
+**February 5, 2026 — Draft Workspace & Action-Flagged Notes**
+- New "Draft" tab (4th tab) replaces "Coming Soon" — enabled after comparison completes
+- Three-phase draft workflow: Selection → Integration → Draft Document
+- Selection phase renders the comparison table with per-cell checkboxes; users choose which plan provisions to include (multiple plans per row supported for AI synthesis)
+- Per-cell mini-prompts: textarea appears on selected cells for specific instructions (e.g., "prefer San Diego's language")
+- Action-flagged notes: toggle any annotation between "observational" (yellow) and "actionable" (orange); actionable notes are passed as AI instructions during generation
+- AI integration phase synthesizes selected provisions into a unified view via Gemini streaming
+- AI draft phase transforms the integrated column into a formatted SPD section, using the original source documents' writing style as reference
+- Both phases produce editable contenteditable divs with debounced auto-save
+- Inline AI rework: highlight text in either editor → selection hint popup → enter instruction → AI replaces the selection (uses `execCommand` for browser undo support)
+- Full persistence: selections, cell prompts, integrated column, draft content, and current phase saved to `draft_state` JSONB column and restored on session reload
+- Export draft as TXT or Markdown
+- In-app dialog system replaces all native `alert()`/`prompt()` calls with styled modals
+- Fixed drag-and-drop breaking text selection on Comparison/Language tabs: rows are only made `draggable` when mousedown is on the first column, preserving normal text selection and note-taking elsewhere
 
 ## License
 
