@@ -17,6 +17,12 @@
   <!-- DOCX Text Extraction Library -->
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 
+  <!-- DOCX Export Library -->
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.4.7/dist/html-docx.js"></script>
+
+  <!-- PDF Export Library -->
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
   <!-- Google Identity Services for Google Sheets export -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -2238,6 +2244,26 @@
     }
 
     /* Row drag-and-drop (drag from first column) */
+    .drag-handle {
+      display: inline-block;
+      cursor: grab;
+      color: var(--text-muted);
+      font-size: 12px;
+      letter-spacing: -2px;
+      padding: 2px 4px 2px 0;
+      user-select: none;
+      vertical-align: middle;
+      opacity: 0.5;
+      transition: opacity 0.15s ease, color 0.15s ease;
+    }
+    .drag-handle:hover {
+      opacity: 1;
+      color: var(--text-secondary);
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
     .comparison-table tbody tr[draggable="true"] td:first-child {
       cursor: grab;
     }
@@ -2973,6 +2999,98 @@
       color: var(--text-muted);
       margin-bottom: 3px;
       font-weight: 600;
+    }
+    .note-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: all 0.15s ease;
+    }
+    .note-indicator.has-actionable {
+      background: rgba(255, 140, 66, 0.2);
+      color: #b34e00;
+      border: 1px solid rgba(255, 140, 66, 0.4);
+    }
+    .note-indicator.all-observational {
+      background: rgba(255, 230, 100, 0.25);
+      color: #7a6400;
+      border: 1px solid rgba(255, 230, 100, 0.5);
+    }
+    .note-indicator:hover {
+      filter: brightness(0.9);
+    }
+    .note-indicator-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .note-indicator.has-actionable .note-indicator-dot { background: #e67300; }
+    .note-indicator.all-observational .note-indicator-dot { background: #c4a600; }
+    .note-indicator-panel {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .note-indicator-panel .note-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .note-indicator-panel .note-row:last-child { border-bottom: none; }
+    .note-indicator-panel .note-content-preview {
+      flex: 1;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .note-type-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .note-type-toggle button {
+      padding: 2px 6px;
+      font-size: 9px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+    .note-type-toggle button.active-obs {
+      background: rgba(255, 230, 100, 0.4);
+      color: #7a6400;
+    }
+    .note-type-toggle button.active-act {
+      background: rgba(255, 140, 66, 0.35);
+      color: #b34e00;
+    }
+    .actionable-notes-summary {
+      padding: 8px 14px;
+      margin-bottom: 10px;
+      background: rgba(255, 140, 66, 0.1);
+      border: 1px solid rgba(255, 140, 66, 0.3);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #b34e00;
+      font-weight: 500;
     }
 
     /* Draft Build Bar */
@@ -4030,8 +4148,8 @@
           Citations
         </button>
         <button class="tab-button draft-tab" data-tab="draft" onclick="ChatApp.switchTab('draft')" disabled
-                title="Build a draft from selected provisions">
-          Draft
+                title="Merge selected provisions into a unified draft">
+          Merge
         </button>
         <!-- Phase progress indicator (shown during streaming) -->
         <div class="phase-progress" id="phase-progress">
@@ -4116,13 +4234,19 @@
       <!-- Tab 4: Draft -->
       <div class="tab-content" id="tab-draft">
         <div class="output-header">
-          <h2 class="output-title">Draft</h2>
+          <h2 class="output-title">Merge</h2>
           <span class="draft-badge">DRAFT - Not Final</span>
           <div class="export-dropdown" id="export-draft">
             <button class="export-button" id="export-draft-btn" onclick="ChatApp.toggleExportMenu('draft')" style="display: none;">
               Export <span class="export-caret">&#9662;</span>
             </button>
             <div class="export-menu" id="export-menu-draft">
+              <button class="export-menu-item" onclick="ChatApp.exportDraftDocx()">
+                Download as Word (.docx)
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.exportDraftPdf()">
+                Download as PDF
+              </button>
               <button class="export-menu-item" onclick="ChatApp.exportDraftTxt()">
                 Download as TXT
               </button>
@@ -4419,8 +4543,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
             this._draggableRow = null;
           }
 
-          // If mousedown is inside a first-column cell of a data row, enable dragging on that row
-          const td = e.target.closest('td:first-child');
+          // If mousedown is on a drag handle or inside a first-column cell of a data row, enable dragging
+          const handle = e.target.closest('.drag-handle');
+          const td = handle ? handle.closest('td') : e.target.closest('td:first-child');
           const tr = td && td.closest('tr[data-row-id]');
           if (tr && td === tr.querySelector('td:first-child')) {
             tr.setAttribute('draggable', 'true');
@@ -6692,7 +6817,11 @@ User Question: ${userQuestion}`;
               cellContent = this.highlightCitations(cellContent);
             }
 
-            html += `<td>${cellContent}</td>`;
+            if (c === 0) {
+              html += `<td><span class="drag-handle">⋮⋮</span>${cellContent}</td>`;
+            } else {
+              html += `<td>${cellContent}</td>`;
+            }
           }
           html += '</tr>';
         }
@@ -7339,6 +7468,56 @@ User Question: ${userQuestion}`;
       },
 
       /**
+       * Find notes whose anchor_text appears in any cell of the given row
+       */
+      getNotesForRow(row) {
+        if (!this.state.notes || this.state.notes.length === 0) return [];
+        return this.state.notes.filter(note => {
+          if (!note.anchor_text) return false;
+          return row.cells.some(cell => cell && cell.includes(note.anchor_text));
+        });
+      },
+
+      /**
+       * Toggle note type inline from the Merge selection view
+       */
+      async toggleNoteTypeInline(noteId, newType) {
+        const note = this.state.notes.find(n => n.id === noteId || n._tempId === noteId);
+        if (!note) return;
+
+        note.note_type = newType;
+
+        // Re-render the selection view to update indicators
+        this.renderDraftSelectionView();
+
+        // Re-apply highlights on the note's tab
+        if (note.tab) {
+          this.applyNoteHighlights(note.tab);
+        }
+
+        // Save to backend
+        if (!note._tempId && this.state.currentAnalysisId) {
+          try {
+            await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ update_note: { note_id: note.id, note_type: newType } })
+            });
+          } catch (e) {
+            console.error('Failed to save note type:', e);
+          }
+        }
+      },
+
+      /**
+       * Toggle the inline note panel for a row in the Merge selection view
+       */
+      toggleNotePanel(rowId) {
+        this._openNotePanel = this._openNotePanel === rowId ? null : rowId;
+        this.renderDraftSelectionView();
+      },
+
+      /**
        * Render the comparison table with checkboxes for draft selection (Phase A)
        */
       renderDraftSelectionView() {
@@ -7351,8 +7530,16 @@ User Question: ${userQuestion}`;
         const colCount = headers.length;
         const selections = this.state.draftSelections;
 
+        let html = '';
+
+        // Actionable notes summary
+        const actionableNotes = (this.state.notes || []).filter(n => n.note_type === 'actionable');
+        if (actionableNotes.length > 0) {
+          html += `<div class="actionable-notes-summary">${actionableNotes.length} actionable note${actionableNotes.length !== 1 ? 's' : ''} will be included as AI instructions</div>`;
+        }
+
         // Build table
-        let html = '<table class="draft-selection-table"><thead><tr>';
+        html += '<table class="draft-selection-table"><thead><tr>';
 
         // Header row
         for (let i = 0; i < colCount; i++) {
@@ -7368,6 +7555,7 @@ User Question: ${userQuestion}`;
 
         // Data rows
         for (const row of rows) {
+          const rowNotes = this.getNotesForRow(row);
           html += `<tr>`;
           for (let c = 0; c < row.cells.length; c++) {
             let cellContent = this.escapeHtml(row.cells[c] || '');
@@ -7378,8 +7566,33 @@ User Question: ${userQuestion}`;
               .replace(/\n/g, '<br>');
 
             if (c === 0) {
-              // Element name column — no checkbox
-              html += `<td class="element-cell">${cellContent}</td>`;
+              // Element name column — no checkbox, but show note indicator
+              let noteIndicator = '';
+              if (rowNotes.length > 0) {
+                const hasActionable = rowNotes.some(n => n.note_type === 'actionable');
+                const indicatorClass = hasActionable ? 'has-actionable' : 'all-observational';
+                noteIndicator = `<span class="note-indicator ${indicatorClass}" onclick="event.stopPropagation(); ChatApp.toggleNotePanel(${row.id})"><span class="note-indicator-dot"></span>${rowNotes.length}</span>`;
+              }
+              html += `<td class="element-cell">${cellContent}${noteIndicator}`;
+              // Show expanded note panel if open
+              if (rowNotes.length > 0 && this._openNotePanel === row.id) {
+                html += `<div class="note-indicator-panel" onclick="event.stopPropagation()">`;
+                for (const note of rowNotes) {
+                  const noteId = note.id || note._tempId;
+                  const isObs = note.note_type !== 'actionable';
+                  const isAct = note.note_type === 'actionable';
+                  const preview = (note.content || '').substring(0, 60) + ((note.content || '').length > 60 ? '...' : '');
+                  html += `<div class="note-row">`;
+                  html += `<span class="note-content-preview" title="${this.escapeHtml(note.content || '')}">${this.escapeHtml(preview)}</span>`;
+                  html += `<span class="note-type-toggle">`;
+                  html += `<button class="${isObs ? 'active-obs' : ''}" onclick="ChatApp.toggleNoteTypeInline('${noteId}', 'observational')">Obs</button>`;
+                  html += `<button class="${isAct ? 'active-act' : ''}" onclick="ChatApp.toggleNoteTypeInline('${noteId}', 'actionable')">Act</button>`;
+                  html += `</span>`;
+                  html += `</div>`;
+                }
+                html += `</div>`;
+              }
+              html += `</td>`;
             } else {
               // Plan column — with checkbox
               const isSelected = selections[row.id] && selections[row.id].includes(c);
@@ -7791,7 +8004,7 @@ Return the draft as a well-formatted markdown document.`;
         // Phase navigation
         html += `<div class="draft-phase-nav">`;
         html += `<button onclick="ChatApp.setDraftPhase('integration')">&#8592; Back to Integrated Column</button>`;
-        html += `<span class="draft-phase-label">Step 3 of 3 &mdash; Draft Document</span>`;
+        html += `<span class="draft-phase-label">Step 3 of 3 &mdash; Draft</span>`;
         html += `<span></span>`; // Spacer
         html += `</div>`;
 
@@ -7874,6 +8087,19 @@ Return the draft as a well-formatted markdown document.`;
         const selectedText = this._pendingReworkText;
         if (!selectedText) return;
 
+        // Save the selection range BEFORE dialog steals focus
+        const sel = window.getSelection();
+        let savedRange = null;
+        let editorEl = null;
+        if (sel && sel.rangeCount > 0) {
+          savedRange = sel.getRangeAt(0).cloneRange();
+          editorEl = document.getElementById('draft-document-editor')?.contains(sel.anchorNode)
+            ? document.getElementById('draft-document-editor')
+            : document.getElementById('draft-integration-editor')?.contains(sel.anchorNode)
+              ? document.getElementById('draft-integration-editor')
+              : null;
+        }
+
         this.hideDraftReworkHint();
 
         const instruction = await this.showAppDialog({
@@ -7885,7 +8111,7 @@ Return the draft as a well-formatted markdown document.`;
 
         if (!instruction) return;
 
-        await this.reworkDraftSection(selectedText, instruction);
+        await this.reworkDraftSection(selectedText, instruction, savedRange, editorEl);
         this._pendingReworkText = null;
       },
 
@@ -7900,7 +8126,7 @@ Return the draft as a well-formatted markdown document.`;
       /**
        * AI rework of selected text in draft editor
        */
-      async reworkDraftSection(selectedText, instruction) {
+      async reworkDraftSection(selectedText, instruction, savedRange, editorEl) {
         if (!selectedText || !instruction) return;
 
         const reworkPrompt = `The following text is from a draft SPD (Summary Plan Description) section:
@@ -7914,16 +8140,33 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         try {
           const response = await this.streamDraftReworkResponse(reworkPrompt);
 
-          // Replace the selected text using execCommand for undo support
-          document.execCommand('insertText', false, response);
+          // Restore the saved selection range before using execCommand
+          let replaced = false;
+          if (savedRange && editorEl) {
+            editorEl.focus();
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedRange);
+            replaced = document.execCommand('insertText', false, response);
+          }
 
-          // Update state based on which editor is active
+          // Fallback: if execCommand failed or no saved range, do innerHTML replacement
+          if (!replaced) {
+            const fallbackEditor = editorEl || document.getElementById('draft-document-editor') || document.getElementById('draft-integration-editor');
+            if (fallbackEditor) {
+              fallbackEditor.innerHTML = fallbackEditor.innerHTML.replace(
+                this.escapeHtml(selectedText),
+                this.escapeHtml(response)
+              );
+            }
+          }
+
+          // Update state based on which editor was targeted
           const integrationEditor = document.getElementById('draft-integration-editor');
           const documentEditor = document.getElementById('draft-document-editor');
-          const sel = window.getSelection();
-          if (integrationEditor && sel && integrationEditor.contains(sel.anchorNode)) {
+          if (editorEl === integrationEditor || (!editorEl && integrationEditor)) {
             this.state.draftIntegratedColumn = integrationEditor.innerText;
-          } else if (documentEditor && sel && documentEditor.contains(sel.anchorNode)) {
+          } else if (editorEl === documentEditor || (!editorEl && documentEditor)) {
             this.state.draftContent = documentEditor.innerText;
           }
           this.saveDraftState();
@@ -8059,6 +8302,36 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         a.download = 'draft-spd-section.md';
         a.click();
         URL.revokeObjectURL(url);
+        this.closeAllExportMenus();
+      },
+
+      exportDraftDocx() {
+        const editor = document.getElementById('draft-document-editor') || document.getElementById('draft-integration-editor');
+        if (!editor) { this.showAppDialog({ title: 'No Content', message: 'No draft content to export.' }); return; }
+
+        const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;margin:1in;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${editor.innerHTML}</body></html>`;
+
+        const blob = htmlDocx.asBlob(wrappedHtml);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'draft-spd-section.docx';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.closeAllExportMenus();
+      },
+
+      exportDraftPdf() {
+        const editor = document.getElementById('draft-document-editor') || document.getElementById('draft-integration-editor');
+        if (!editor) { this.showAppDialog({ title: 'No Content', message: 'No draft content to export.' }); return; }
+
+        html2pdf().set({
+          margin: [0.75, 0.75, 0.75, 0.75],
+          filename: 'draft-spd-section.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        }).from(editor).save();
         this.closeAllExportMenus();
       },
 

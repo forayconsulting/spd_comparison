@@ -6,15 +6,15 @@
 
 **Key Features:**
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
-- **Interactive tables:** Sort columns, filter by value, drag-reorder rows, and ask AI to group related provisions
+- **Interactive tables:** Sort columns, filter by value, drag-reorder rows via visible handles, and ask AI to group related provisions
 - **Interactive chat:** Ask follow-up questions about the analysis with full document context
 - **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
-- **Draft workspace:** Select provisions from the comparison table, generate an AI-synthesized integrated column, then produce a formatted SPD draft — all editable with inline AI rework
-- **Action-flagged notes:** Mark annotations as "actionable" to pass them as instructions to the AI during draft generation
+- **Merge workspace:** Select provisions from the comparison table, generate an AI-synthesized integrated column, then produce a formatted SPD draft — all editable with inline AI rework
+- **Action-flagged notes:** Mark annotations as "actionable" to pass them as instructions to the AI during draft generation; toggle note types inline from the Merge selection view
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
 - **Sticky table headers:** Column labels stay visible while scrolling through large comparison matrices
-- **Multi-format export:** Export results as CSV, XLSX, or push directly to Google Sheets (Comparison and Citations tabs)
+- **Multi-format export:** Export results as CSV, XLSX, Word (.docx), PDF, or push directly to Google Sheets
 - **Cross-browser PDF viewer:** PDF.js-based citation viewer ensures correct page navigation in Safari, Chrome, and all browsers
 
 ## Getting Started
@@ -222,6 +222,13 @@ gitGraph TB:
 - Export draft as TXT or Markdown
 - In-app dialog system replaces all native `alert()`/`prompt()` calls with styled modals
 - Fixed drag-and-drop breaking text selection on Comparison/Language tabs: rows are only made `draggable` when mousedown is on the first column, preserving normal text selection and note-taking elsewhere
+
+**February 6, 2026 — UAT Feedback Fixes**
+- Renamed "Draft" tab to "Merge" (display text only; all internal identifiers unchanged)
+- Fixed AI Rework silently failing: the modal dialog was stealing focus, causing `execCommand('insertText')` to have no selection to replace; now saves the Range before the dialog and restores it after the AI responds
+- Added DOCX and PDF export to the Merge tab via `html-docx-js` and `html2pdf.js` CDN libraries
+- Actionable notes now visible inline in the Merge selection view: colored indicators on rows with notes, expandable panels with Obs/Act toggle switches
+- Added visible drag handles (`⋮⋮`) to the first column of interactive tables so users can see and grab the drag target
 
 ## License
 
