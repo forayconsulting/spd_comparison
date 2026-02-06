@@ -55,7 +55,7 @@ export async function onRequestGet(context) {
     // Get top-level notes with author info (parent_note_id IS NULL)
     const topLevelNotes = await sql`
       SELECT n.id, n.tab, n.anchor_text, n.anchor_prefix, n.anchor_suffix,
-             n.content, n.created_at, n.updated_at, n.author_id,
+             n.content, n.note_type, n.created_at, n.updated_at, n.author_id,
              u.email as author_email
       FROM notes n
       LEFT JOIN users u ON n.author_id = u.id
@@ -99,6 +99,7 @@ export async function onRequestGet(context) {
       anchor_prefix: note.anchor_prefix,
       anchor_suffix: note.anchor_suffix,
       content: note.content,
+      note_type: note.note_type || 'observational',
       author_email: note.author_email,
       author_id: note.author_id,
       created_at: note.created_at,
@@ -116,6 +117,7 @@ export async function onRequestGet(context) {
       comparison_response: analysis.comparison_response,
       language_response: analysis.language_response,
       table_view_state: analysis.table_view_state || null,
+      draft_state: analysis.draft_state || null,
       is_owner: access.isOwner,
       owner_email: access.ownerEmail,
       chat_messages: chatMessages.map(m => ({
@@ -159,10 +161,10 @@ export async function onRequestPatch(context) {
     return errorResponse('Invalid JSON body', 400);
   }
 
-  const { title, file_metadata, new_messages, add_note, update_note, delete_note, add_reply, table_view_state } = body;
+  const { title, file_metadata, new_messages, add_note, update_note, delete_note, add_reply, table_view_state, draft_state } = body;
 
   // Need at least one field to update
-  if (!title && !file_metadata && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note && !add_reply && !table_view_state) {
+  if (!title && !file_metadata && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note && !add_reply && !table_view_state && draft_state === undefined) {
     return errorResponse('At least one update field is required', 400);
   }
 
@@ -178,10 +180,10 @@ export async function onRequestPatch(context) {
       return errorResponse('Analysis not found', 404);
     }
 
-    // Owner-only operations: title, file_metadata, new_messages, table_view_state
-    if (title || file_metadata || new_messages || table_view_state) {
+    // Owner-only operations: title, file_metadata, new_messages, table_view_state, draft_state
+    if (title || file_metadata || new_messages || table_view_state || draft_state !== undefined) {
       if (!access.isOwner) {
-        return errorResponse('Only the owner can update title, file metadata, chat messages, or table view state', 403);
+        return errorResponse('Only the owner can update title, file metadata, chat messages, table view state, or draft state', 403);
       }
 
       // Update title if provided
@@ -219,6 +221,14 @@ export async function onRequestPatch(context) {
         `;
       }
 
+      // Update draft_state if provided (replace entirely)
+      if (draft_state !== undefined) {
+        await sql`
+          UPDATE analyses SET draft_state = ${JSON.stringify(draft_state)}, updated_at = NOW()
+          WHERE id = ${analysisId}
+        `;
+      }
+
       // Insert new chat messages if provided
       if (new_messages && Array.isArray(new_messages)) {
         for (const msg of new_messages) {
@@ -251,15 +261,17 @@ export async function onRequestPatch(context) {
 
     // Add note (any user with access can add)
     if (add_note) {
-      const { tab, anchor_text, anchor_prefix, anchor_suffix, content } = add_note;
+      const { tab, anchor_text, anchor_prefix, anchor_suffix, content, note_type } = add_note;
 
       if (!tab || !anchor_text || !content) {
         return errorResponse('add_note requires tab, anchor_text, and content', 400);
       }
 
+      const noteType = note_type === 'actionable' ? 'actionable' : 'observational';
+
       const result = await sql`
-        INSERT INTO notes (analysis_id, tab, anchor_text, anchor_prefix, anchor_suffix, content, author_id)
-        VALUES (${analysisId}, ${tab}, ${anchor_text}, ${anchor_prefix || null}, ${anchor_suffix || null}, ${content}, ${user.id})
+        INSERT INTO notes (analysis_id, tab, anchor_text, anchor_prefix, anchor_suffix, content, author_id, note_type)
+        VALUES (${analysisId}, ${tab}, ${anchor_text}, ${anchor_prefix || null}, ${anchor_suffix || null}, ${content}, ${user.id}, ${noteType})
         RETURNING id, created_at
       `;
 
@@ -317,10 +329,10 @@ export async function onRequestPatch(context) {
 
     // Update note (only author can update their own notes)
     if (update_note) {
-      const { note_id, content } = update_note;
+      const { note_id, content, note_type } = update_note;
 
-      if (!note_id || !content) {
-        return errorResponse('update_note requires note_id and content', 400);
+      if (!note_id || (!content && !note_type)) {
+        return errorResponse('update_note requires note_id and at least one of content or note_type', 400);
       }
 
       // Check note exists and user is author
@@ -337,11 +349,29 @@ export async function onRequestPatch(context) {
         return errorResponse('You can only edit your own notes', 403);
       }
 
-      const result = await sql`
-        UPDATE notes SET content = ${content}
-        WHERE id = ${note_id} AND analysis_id = ${analysisId}
-        RETURNING id, updated_at
-      `;
+      // Build update based on what fields are provided
+      let result;
+      if (content && note_type) {
+        const validType = note_type === 'actionable' ? 'actionable' : 'observational';
+        result = await sql`
+          UPDATE notes SET content = ${content}, note_type = ${validType}
+          WHERE id = ${note_id} AND analysis_id = ${analysisId}
+          RETURNING id, updated_at
+        `;
+      } else if (note_type) {
+        const validType = note_type === 'actionable' ? 'actionable' : 'observational';
+        result = await sql`
+          UPDATE notes SET note_type = ${validType}
+          WHERE id = ${note_id} AND analysis_id = ${analysisId}
+          RETURNING id, updated_at
+        `;
+      } else {
+        result = await sql`
+          UPDATE notes SET content = ${content}
+          WHERE id = ${note_id} AND analysis_id = ${analysisId}
+          RETURNING id, updated_at
+        `;
+      }
 
       await sql`
         UPDATE analyses SET updated_at = NOW() WHERE id = ${analysisId}

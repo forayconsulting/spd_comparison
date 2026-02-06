@@ -131,3 +131,18 @@ AND n.author_id IS NULL;
 
 -- Stores sort/filter/reorder/grouping state per tab
 ALTER TABLE analyses ADD COLUMN IF NOT EXISTS table_view_state JSONB;
+
+-- ============================================
+-- Action-Flagged Notes (added 2026-02-05)
+-- ============================================
+
+-- Note type: observational (default) or actionable (used as AI instructions in draft generation)
+ALTER TABLE notes ADD COLUMN IF NOT EXISTS note_type VARCHAR(20) NOT NULL DEFAULT 'observational'
+  CHECK (note_type IN ('observational', 'actionable'));
+
+-- ============================================
+-- Draft State (added 2026-02-05)
+-- ============================================
+
+-- Stores draft workspace state (selections, integrated column, draft content, phase)
+ALTER TABLE analyses ADD COLUMN IF NOT EXISTS draft_state JSONB;
