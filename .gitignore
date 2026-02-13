@@ -16,6 +16,7 @@ node_modules/
 legacy/
 requirements/
 tests/
+test-results/
 
 # Ignore development documentation
 CLAUDE.md
