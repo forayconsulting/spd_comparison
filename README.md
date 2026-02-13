@@ -227,17 +227,24 @@ gitGraph TB:
 **February 6, 2026 — UAT Feedback Fixes**
 - Renamed "Draft" tab to "Merge" (display text only; all internal identifiers unchanged)
 - Fixed AI Rework silently failing: the modal dialog was stealing focus, causing `execCommand('insertText')` to have no selection to replace; now saves the Range before the dialog and restores it after the AI responds
-- Added DOCX and PDF export to the Merge tab via `html-docx-js` and `html2pdf.js` CDN libraries
+- Added DOCX and PDF export to the Merge tab via `html2pdf.js` and DOCX generation CDN libraries
 - Actionable notes now visible inline in the Merge selection view: colored indicators on rows with notes, expandable panels with Obs/Act toggle switches
 - Added visible drag handles (`⋮⋮`) to the first column of interactive tables so users can see and grab the drag target
 
 **February 13, 2026 — UAT Feedback Round 2**
 - Fixed old analysis content flashing when starting a new comparison: `runThreePhaseComparison()` now clears all previous state and output HTML before beginning
 - Fixed "Plan Docs (0 files)" badge not updating when loading a saved session from history: `updateFilesCount()` now called after each R2 file restore
-- Hardened DOCX/PDF export on Merge tab: downgraded `html-docx-js` to v0.3.1 (stable), added try/catch with user-visible error dialogs and library-load guards on all export methods
+- Hardened DOCX/PDF export on Merge tab: added try/catch with user-visible error dialogs and library-load guards on all export methods
 - Added Word (.docx) and PDF export to the Summary tab (previously only offered TXT and XLSX)
 - Added "New Analysis" (+) button to the main header bar for discoverability (previously only available inside the History sidebar)
 - Added client-side session inactivity timeout: warns after 4 hours of inactivity, auto-logs out via Cloudflare Access after 5-minute grace period
+
+**February 13, 2026 — Fix Blank DOCX Exports**
+- Replaced `html-docx-js` (unmaintained since 2016) with `@turbodocx/html-to-docx` for Word export
+- `html-docx-js` used Microsoft Word's "altchunks" format which only renders in MS Word; all other apps (Apple Pages, Google Docs, LibreOffice) showed blank documents
+- `@turbodocx/html-to-docx` generates proper OOXML that renders correctly across all word processors
+- Added `global` shim for browser compatibility with the new library's Node.js assumptions
+- Margins now controlled via OOXML twips (1440 = 1 inch) instead of CSS `margin: 1in`
 
 ## License
 
