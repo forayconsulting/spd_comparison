@@ -18,7 +18,8 @@
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 
   <!-- DOCX Export Library -->
-  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+  <script>if(typeof global==="undefined"){window.global=window;}</script>
+  <script src="https://cdn.jsdelivr.net/npm/@turbodocx/html-to-docx@1.20.1/dist/html-to-docx.browser.js"></script>
 
   <!-- PDF Export Library -->
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
@@ -8383,19 +8384,21 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.closeAllExportMenus();
       },
 
-      exportDraftDocx() {
+      async exportDraftDocx() {
         const editor = document.getElementById('draft-document-editor') || document.getElementById('draft-integration-editor');
         if (!editor) { this.showAppDialog({ title: 'No Content', message: 'No draft content to export.' }); return; }
 
-        if (typeof htmlDocx === 'undefined') {
+        if (typeof HTMLToDOCX === 'undefined') {
           this.showAppDialog({ title: 'Export Error', message: 'Word export library failed to load. Please check your internet connection and reload the page.' });
           return;
         }
 
         try {
-          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;margin:1in;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${editor.innerHTML}</body></html>`;
-
-          const blob = htmlDocx.asBlob(wrappedHtml);
+          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${editor.innerHTML}</body></html>`;
+          const blob = await HTMLToDOCX(wrappedHtml, '', {
+            margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
+            title: 'Draft SPD Section'
+          });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -8655,19 +8658,22 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.downloadAsXlsx(data, 'Summary.xlsx', 'Summary');
       },
 
-      exportSummaryDocx() {
+      async exportSummaryDocx() {
         if (!this.state.summaryResponse) return;
         this.closeAllExportMenus();
 
-        if (typeof htmlDocx === 'undefined') {
+        if (typeof HTMLToDOCX === 'undefined') {
           this.showAppDialog({ title: 'Export Error', message: 'Word export library failed to load. Please check your internet connection and reload the page.' });
           return;
         }
 
         try {
           const htmlContent = marked.parse(this.state.summaryResponse);
-          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;margin:1in;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${htmlContent}</body></html>`;
-          const blob = htmlDocx.asBlob(wrappedHtml);
+          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${htmlContent}</body></html>`;
+          const blob = await HTMLToDOCX(wrappedHtml, '', {
+            margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
+            title: 'SPD Comparison Summary'
+          });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
