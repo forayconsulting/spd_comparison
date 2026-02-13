@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 
   <!-- DOCX Export Library -->
-  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.4.7/dist/html-docx.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
 
   <!-- PDF Export Library -->
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
@@ -3889,6 +3889,12 @@
         SPD MATRIX
       </h1>
       <div class="header-buttons">
+        <button id="new-analysis-header-btn" class="settings-button" onclick="ChatApp.startNewAnalysis()" title="New Analysis" style="display: none;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
         <button id="share-button" class="settings-button share-button" onclick="ChatApp.openShareModal()" title="Share" style="display: none;">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="18" cy="5" r="3"></circle>
@@ -4176,6 +4182,12 @@
               </button>
               <button class="export-menu-item" onclick="ChatApp.exportSummaryXlsx()">
                 Download as XLSX
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.exportSummaryDocx()">
+                Download as Word (.docx)
+              </button>
+              <button class="export-menu-item" onclick="ChatApp.exportSummaryPdf()">
+                Download as PDF
               </button>
             </div>
           </div>
@@ -4518,7 +4530,12 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         draftContent: null,           // markdown string
         draftPhase: 'selection',      // 'selection' | 'integration' | 'draft'
         isDraftStreaming: false,
-        currentDraftResponse: ''
+        currentDraftResponse: '',
+        // Inactivity timeout state
+        inactivityTimer: null,
+        warningTimer: null,
+        INACTIVITY_TIMEOUT_MS: 14400000, // 4 hours
+        WARNING_TIMEOUT_MS: 300000       // 5 minutes
       },
 
       init() {
@@ -4530,6 +4547,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.initNoteEvents();
         this.initExportDropdowns();
         this.handleShareToken();
+        this.initInactivityTimer();
 
         // Track mousedown target for drag-and-drop restriction (first column only)
         // Only set draggable="true" on the row when mousedown is in the first column cell,
@@ -4560,6 +4578,36 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
         // Hide rework hint on scroll
         window.addEventListener('scroll', () => this.hideDraftReworkHint(), true);
+      },
+
+      initInactivityTimer() {
+        const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        const handler = () => this.resetInactivityTimer();
+        events.forEach(evt => document.addEventListener(evt, handler, { passive: true }));
+        this.resetInactivityTimer();
+      },
+
+      resetInactivityTimer() {
+        if (this.state.inactivityTimer) clearTimeout(this.state.inactivityTimer);
+        if (this.state.warningTimer) clearTimeout(this.state.warningTimer);
+        this.state.inactivityTimer = setTimeout(() => this.showInactivityWarning(), this.state.INACTIVITY_TIMEOUT_MS);
+      },
+
+      async showInactivityWarning() {
+        // Start the countdown - if dialog not dismissed in 5 minutes, log out
+        this.state.warningTimer = setTimeout(() => {
+          window.location.href = 'https://forayconsulting.cloudflareaccess.com/cdn-cgi/access/logout';
+        }, this.state.WARNING_TIMEOUT_MS);
+
+        const result = await this.showAppDialog({
+          title: 'Session Timeout',
+          message: 'Your session will expire in 5 minutes due to inactivity. Click OK to stay logged in.'
+        });
+
+        // User dismissed the dialog - cancel logout and reset timer
+        if (this.state.warningTimer) clearTimeout(this.state.warningTimer);
+        this.state.warningTimer = null;
+        this.resetInactivityTimer();
       },
 
       // Handle share token from URL (?share=TOKEN)
@@ -4869,6 +4917,32 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       async runThreePhaseComparison() {
         this.state.isStreaming = true;
         this.updateSendButton(true);
+
+        // Clear previous analysis state so old content doesn't flash
+        this.state.summaryResponse = null;
+        this.state.comparisonResponse = null;
+        this.state.languageResponse = null;
+        this.state.comparisonTableData = null;
+        this.state.languageTableData = null;
+        this.state.notes = [];
+        this.state.draftSelections = {};
+        this.state.draftCellPrompts = {};
+        this.state.draftIntegratedColumn = null;
+        this.state.draftContent = null;
+        this.state.draftPhase = 'selection';
+        this.state.currentAnalysisId = null;
+
+        // Clear rendered output divs
+        document.getElementById('summary-output').innerHTML = '';
+        document.getElementById('comparison-output').innerHTML = '';
+        document.getElementById('language-output').innerHTML = '';
+        document.getElementById('draft-output').innerHTML = '';
+
+        // Hide export buttons until new content arrives
+        ['summary','comparison','language','draft'].forEach(t => {
+          const btn = document.getElementById('export-' + t + '-btn');
+          if (btn) btn.style.display = 'none';
+        });
 
         // Show output tabs immediately with streaming content (no loading spinner)
         document.getElementById('messages').style.display = 'none';
@@ -5372,6 +5446,10 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
         // Save analysis to database (async, non-blocking)
         this.saveAnalysis();
+
+        // Show new analysis button in header
+        const newBtn = document.getElementById('new-analysis-header-btn');
+        if (newBtn) newBtn.style.display = '';
       },
 
       renderSummaryTab() {
@@ -8309,30 +8387,50 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         const editor = document.getElementById('draft-document-editor') || document.getElementById('draft-integration-editor');
         if (!editor) { this.showAppDialog({ title: 'No Content', message: 'No draft content to export.' }); return; }
 
-        const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;margin:1in;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${editor.innerHTML}</body></html>`;
+        if (typeof htmlDocx === 'undefined') {
+          this.showAppDialog({ title: 'Export Error', message: 'Word export library failed to load. Please check your internet connection and reload the page.' });
+          return;
+        }
 
-        const blob = htmlDocx.asBlob(wrappedHtml);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'draft-spd-section.docx';
-        a.click();
-        URL.revokeObjectURL(url);
-        this.closeAllExportMenus();
+        try {
+          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;margin:1in;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${editor.innerHTML}</body></html>`;
+
+          const blob = htmlDocx.asBlob(wrappedHtml);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'draft-spd-section.docx';
+          a.click();
+          URL.revokeObjectURL(url);
+          this.closeAllExportMenus();
+        } catch (e) {
+          console.error('DOCX export failed:', e);
+          this.showAppDialog({ title: 'Export Error', message: 'Failed to generate Word document: ' + e.message });
+        }
       },
 
       exportDraftPdf() {
         const editor = document.getElementById('draft-document-editor') || document.getElementById('draft-integration-editor');
         if (!editor) { this.showAppDialog({ title: 'No Content', message: 'No draft content to export.' }); return; }
 
-        html2pdf().set({
-          margin: [0.75, 0.75, 0.75, 0.75],
-          filename: 'draft-spd-section.pdf',
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        }).from(editor).save();
-        this.closeAllExportMenus();
+        if (typeof html2pdf === 'undefined') {
+          this.showAppDialog({ title: 'Export Error', message: 'PDF export library failed to load. Please check your internet connection and reload the page.' });
+          return;
+        }
+
+        try {
+          html2pdf().set({
+            margin: [0.75, 0.75, 0.75, 0.75],
+            filename: 'draft-spd-section.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+          }).from(editor).save();
+          this.closeAllExportMenus();
+        } catch (e) {
+          console.error('PDF export failed:', e);
+          this.showAppDialog({ title: 'Export Error', message: 'Failed to generate PDF: ' + e.message });
+        }
       },
 
       // ===== In-App Dialog (replaces native alert/prompt) =====
@@ -8555,6 +8653,62 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         const lines = this.state.summaryResponse.split('\n');
         const data = [['SPD Comparison Summary'], ...lines.map(l => [l])];
         this.downloadAsXlsx(data, 'Summary.xlsx', 'Summary');
+      },
+
+      exportSummaryDocx() {
+        if (!this.state.summaryResponse) return;
+        this.closeAllExportMenus();
+
+        if (typeof htmlDocx === 'undefined') {
+          this.showAppDialog({ title: 'Export Error', message: 'Word export library failed to load. Please check your internet connection and reload the page.' });
+          return;
+        }
+
+        try {
+          const htmlContent = marked.parse(this.state.summaryResponse);
+          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;margin:1in;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${htmlContent}</body></html>`;
+          const blob = htmlDocx.asBlob(wrappedHtml);
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Summary.docx';
+          a.click();
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          console.error('Summary DOCX export failed:', e);
+          this.showAppDialog({ title: 'Export Error', message: 'Failed to generate Word document: ' + e.message });
+        }
+      },
+
+      exportSummaryPdf() {
+        if (!this.state.summaryResponse) return;
+        this.closeAllExportMenus();
+
+        if (typeof html2pdf === 'undefined') {
+          this.showAppDialog({ title: 'Export Error', message: 'PDF export library failed to load. Please check your internet connection and reload the page.' });
+          return;
+        }
+
+        try {
+          const htmlContent = marked.parse(this.state.summaryResponse);
+          const container = document.createElement('div');
+          container.style.cssText = 'position:absolute;left:-9999px;top:0;width:7.5in;font-family:Times New Roman,serif;font-size:12pt;line-height:1.6;';
+          container.innerHTML = htmlContent;
+          document.body.appendChild(container);
+
+          html2pdf().set({
+            margin: [0.75, 0.75, 0.75, 0.75],
+            filename: 'Summary.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+          }).from(container).save().then(() => {
+            document.body.removeChild(container);
+          });
+        } catch (e) {
+          console.error('Summary PDF export failed:', e);
+          this.showAppDialog({ title: 'Export Error', message: 'Failed to generate PDF: ' + e.message });
+        }
       },
 
       exportComparisonXlsx() {
@@ -9019,6 +9173,9 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             extractedText: null
           }));
 
+          // Update file count badge immediately while files are still loading
+          this.updateFilesCount();
+
           // Render the loaded analysis immediately (files show as loading)
           this.renderLoadedAnalysis();
 
@@ -9067,6 +9224,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             try {
               fileObj.status = 'extracting';
               this.renderFilesList();
+              this.updateFilesCount();
               const arrayBuffer = await blob.arrayBuffer();
               fileObj.extractedText = await this.extractTextFromFile(fileObj, arrayBuffer);
               console.log(`Re-extracted text from ${fileObj.filename}`);
@@ -9078,6 +9236,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
 
           fileObj.status = 'uploaded';
           this.renderFilesList();
+          this.updateFilesCount();
           console.log(`Loaded ${fileObj.filename} from R2`);
 
         } catch (error) {
@@ -9085,6 +9244,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           fileObj.status = 'error';
           fileObj.error = error.message;
           this.renderFilesList();
+          this.updateFilesCount();
         }
       },
 
@@ -9118,6 +9278,10 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
       renderLoadedAnalysis() {
         // Update share button visibility (only show if owner)
         this.updateShareButtonVisibility();
+
+        // Show new analysis button in header
+        const newBtn = document.getElementById('new-analysis-header-btn');
+        if (newBtn) newBtn.style.display = '';
 
         // Hide messages container (empty state)
         document.getElementById('messages').style.display = 'none';
@@ -9563,6 +9727,10 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
        * Start a new analysis (reset to initial state)
        */
       startNewAnalysis() {
+        // Hide new analysis header button
+        const newBtn = document.getElementById('new-analysis-header-btn');
+        if (newBtn) newBtn.style.display = 'none';
+
         // Clear current analysis ID
         this.state.currentAnalysisId = null;
 

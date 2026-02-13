@@ -14,7 +14,8 @@
 - **Action-flagged notes:** Mark annotations as "actionable" to pass them as instructions to the AI during draft generation; toggle note types inline from the Merge selection view
 - **Notes/annotations:** Highlight text and add Google Docs-style notes that persist across sessions
 - **Sticky table headers:** Column labels stay visible while scrolling through large comparison matrices
-- **Multi-format export:** Export results as CSV, XLSX, Word (.docx), PDF, or push directly to Google Sheets
+- **Multi-format export:** Export results as CSV, XLSX, Word (.docx), PDF, or push directly to Google Sheets (including Summary tab)
+- **Session inactivity timeout:** Auto-logout after 4 hours of inactivity with a 5-minute warning dialog
 - **Cross-browser PDF viewer:** PDF.js-based citation viewer ensures correct page navigation in Safari, Chrome, and all browsers
 
 ## Getting Started
@@ -229,6 +230,14 @@ gitGraph TB:
 - Added DOCX and PDF export to the Merge tab via `html-docx-js` and `html2pdf.js` CDN libraries
 - Actionable notes now visible inline in the Merge selection view: colored indicators on rows with notes, expandable panels with Obs/Act toggle switches
 - Added visible drag handles (`⋮⋮`) to the first column of interactive tables so users can see and grab the drag target
+
+**February 13, 2026 — UAT Feedback Round 2**
+- Fixed old analysis content flashing when starting a new comparison: `runThreePhaseComparison()` now clears all previous state and output HTML before beginning
+- Fixed "Plan Docs (0 files)" badge not updating when loading a saved session from history: `updateFilesCount()` now called after each R2 file restore
+- Hardened DOCX/PDF export on Merge tab: downgraded `html-docx-js` to v0.3.1 (stable), added try/catch with user-visible error dialogs and library-load guards on all export methods
+- Added Word (.docx) and PDF export to the Summary tab (previously only offered TXT and XLSX)
+- Added "New Analysis" (+) button to the main header bar for discoverability (previously only available inside the History sidebar)
+- Added client-side session inactivity timeout: warns after 4 hours of inactivity, auto-logs out via Cloudflare Access after 5-minute grace period
 
 ## License
 
