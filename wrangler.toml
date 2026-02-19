@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 [[hyperdrive]]
 binding = "DB"
 id = "158d316aa903469cb2034df36a03b32a"
-localConnectionString = "postgresql://postgres:REDACTED@interchange.proxy.rlwy.net:15429/railway"
+# localConnectionString — set in .dev.vars for local development (never commit credentials)
 
 # R2 bucket for persistent document storage
 [[r2_buckets]]
