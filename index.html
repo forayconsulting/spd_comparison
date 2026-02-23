@@ -4332,7 +4332,7 @@
     // Ensure CONFIG exists with defaults
     if (typeof CONFIG === 'undefined' || window.CONFIG_LOAD_FAILED) {
       window.CONFIG = {
-        MODEL: 'gemini-3-pro-preview',
+        MODEL: 'gemini-3.1-pro-preview',
         MAX_OUTPUT_TOKENS: 32768,
         THINKING_LEVEL: 'high',
         GOOGLE_CLIENT_ID: '607332583866-tiu932dnah2ml5ft0k0sjci7id8khic2.apps.googleusercontent.com'
@@ -5072,7 +5072,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
         const contents = [{ role: 'user', parts }];
 
-        const model = CONFIG.MODEL || 'gemini-3-pro-preview';
+        const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
 
         // Build request body with vanilla system instruction
         const requestBody = {
@@ -6635,7 +6635,7 @@ User Question: ${userQuestion}`;
 
         const contents = [{ role: 'user', parts }];
 
-        const model = CONFIG.MODEL || 'gemini-3-pro-preview';
+        const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
 
         const requestBody = {
           systemInstruction: {
@@ -7952,7 +7952,7 @@ Return the draft as a well-formatted markdown document.`;
         parts.push({ text: prompt });
 
         const contents = [{ role: 'user', parts }];
-        const model = CONFIG.MODEL || 'gemini-3-pro-preview';
+        const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
 
         const requestBody = {
           systemInstruction: {
@@ -8263,7 +8263,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
 
         const parts = [{ text: prompt }];
         const contents = [{ role: 'user', parts }];
-        const model = CONFIG.MODEL || 'gemini-3-pro-preview';
+        const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
 
         const requestBody = {
           systemInstruction: {
@@ -8274,7 +8274,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 32768,
             temperature: 1.0,
             thinkingConfig: {
-              thinkingLevel: 'low'
+              thinkingLevel: 'high'
             }
           }
         };

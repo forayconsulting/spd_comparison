@@ -246,6 +246,14 @@ gitGraph TB:
 - Added `global` shim for browser compatibility with the new library's Node.js assumptions
 - Margins now controlled via OOXML twips (1440 = 1 inch) instead of CSS `margin: 1in`
 
+**February 23, 2026 — Gemini 3.1 Pro Preview Upgrade**
+- Upgraded from `gemini-3-pro-preview` to `gemini-3.1-pro-preview` across all API call sites
+- Reasoning capability roughly doubled: ARC-AGI-2 score 77.1% vs prior model's ~35% — described by Google as "a step function improvement"
+- Inline file upload limit increased from 20 MB to 100 MB per file, directly benefiting large SPD analysis
+- New `'medium'` thinking level now available in `thinkingConfig.thinkingLevel` (in addition to `'low'` and `'high'`)
+- All thinking levels standardized to `'high'` (including the draft rework path which previously used `'low'`)
+- Same pricing as Gemini 3 Pro Preview; same 1M-token context window and 65,536-token output limit
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
