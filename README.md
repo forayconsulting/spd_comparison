@@ -254,6 +254,13 @@ gitGraph TB:
 - All thinking levels standardized to `'high'` (including the draft rework path which previously used `'low'`)
 - Same pricing as Gemini 3 Pro Preview; same 1M-token context window and 65,536-token output limit
 
+**February 23, 2026 — Phase 2 Prompt: Domain Framing for Claims & Appeals**
+- Diagnosed why Gemini 3.1 Pro Preview dropped Claims & Appeals rows that Gemini 3 Pro reliably produced
+- Root cause: the Phase 2 prompt left "procedural elements" undefined; Gemini 3.1's deeper reasoning interpreted it as benefit mechanics (vesting, ages, formulas) rather than the legal/administrative reading an ERISA attorney would apply
+- Claims & appeals language appears sparsely across documents (short, non-repeated) whereas benefit mechanics appear constantly with numeric specificity — higher-reasoning models weight by density, causing legally critical rows to lose out
+- Fix: added a domain framing clause to the Phase 2 prompt explicitly enumerating both benefit mechanics and administrative/legal procedures (claims processes, appeal rights, deadlines, dispute resolution, venue)
+- Approach chosen over prescribing specific required rows to preserve the model's ability to discover plan-specific elements in non-pension document sets
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
