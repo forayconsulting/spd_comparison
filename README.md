@@ -261,13 +261,12 @@ gitGraph TB:
 - Fix: added a domain framing clause to the Phase 2 prompt explicitly enumerating both benefit mechanics and administrative/legal procedures (claims processes, appeal rights, deadlines, dispute resolution, venue)
 - Approach chosen over prescribing specific required rows to preserve the model's ability to discover plan-specific elements in non-pension document sets
 
-**February 25, 2026 — Citation Regex Fix: Cap Filename Length at 120 Characters**
-- QA'd all citations from a 22-file production run by cross-referencing DB responses against uploaded file metadata
-- Discovered that the Language tab citation regex `(.+?\.pdf)` was too permissive: legal text in Phase 3 cells often contains numbered ERISA provisions like `(1)...`, `(a)...` which the regex would treat as the start of a citation, then non-greedily extend all the way to the actual `.pdf` filename — capturing hundreds of characters as the "filename"
-- These spurious matches had two failure modes: (1) the `findUploadedFile` fuzzy matcher couldn't resolve the garbled filename, rendering the citation as a dead dashed-underline span instead of a clickable link; (2) the uncapped `.+?` caused catastrophic regex backtracking on long cell content, freezing the browser tab
-- Confirmed the specific non-clickable citation the user observed (SC - W300 SIHRTE... 112-char filename) was directly caused by this: its citation was consumed inside a 400-char spurious match that failed to resolve
-- Fix: changed `.+?` to `.{1,120}?` — a one-character change that caps filename capture at 120 chars; the longest real filename in the document set is 112 chars, so all legitimate citations are still matched while paragraph-length false matches are rejected
-- Validated empirically: zero legitimate citations broken across all tested cap values; spurious matches drop from 26 to ~8 (residual cases are short legal parentheticals that remain clickable via fuzzy match)
+**February 25, 2026 — Citation Regex: Three-Part Hardening**
+- QA'd all citations from a 22-file production run by cross-referencing DB responses against uploaded file metadata using a purpose-built Node.js QA script (`tests/citation-qa.js`)
+- **Fix 1 — 120-char cap:** The original `.+?\.pdf` was too permissive; ERISA legal text with numbered provisions like `(1)...` caused the regex to capture hundreds of characters as a spurious "filename," either rendering citations as dead non-clickable spans or causing catastrophic backtracking that froze the browser tab. Changed to `.{1,120}?\.pdf`; the longest real filename in the document set is 112 chars
+- **Fix 2 — Backtick delimiter support:** A subsequent production run revealed the model switched to backtick-quoted filenames (`` `filename.pdf` ``); the quote character class only handled `"`, `'`, and `&quot;`, so zero citations were detected. Added `` ` `` to both opening and closing optional quote groups
+- **Fix 3 — HTML tag boundary:** Phone numbers and contact info in cells (e.g., `(702) 369-0000."<br>('LV-SPD...pdf, page 2, 2)`) caused the regex to span the `<br>` tag, starting a spurious match at the `(` of the phone number and consuming the real citation. Changed `.{1,120}?` to `[^<]{1,120}?` — real filenames never contain `<`, so the regex can no longer cross any HTML tag boundary
+- Net result: all three failure modes eliminated; citations that previously showed as unstyled plain text or dead dashed-underline spans now render as clickable links opening the correct document at the correct page
 
 ## License
 
