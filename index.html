@@ -5634,7 +5634,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       // Highlight citation patterns and make them clickable
       highlightCitations(html) {
         // Pass 1: PDF citations — (filename.pdf, page N, optional paragraph info)
-        const pdfCitationPattern = /\((?:["']|&quot;)?(.+?\.pdf)(?:["']|&quot;)?\s*,\s*(?:pg\.?\s*|page\s*|p\.?\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
+        const pdfCitationPattern = /\((?:["']|&quot;)?(.{1,120}?\.pdf)(?:["']|&quot;)?\s*,\s*(?:pg\.?\s*|page\s*|p\.?\s*)?(\d+)\s*(?:,\s*(?:para(?:graph)?\.?\s*)?([^)]*))?\)/gi;
 
         html = html.replace(pdfCitationPattern, (match, filename, page, paragraph) => {
           const result = this.findUploadedFile(filename);
