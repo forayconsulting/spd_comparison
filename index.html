@@ -1715,6 +1715,134 @@
       animation: pulse 2s ease infinite;
     }
 
+    /* Analysis Mode Split-Button */
+    .compare-button-group {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+    }
+
+    .compare-button-group .compare-button {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .mode-caret-button {
+      width: 48px;
+      padding: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      background: var(--gradient-accent);
+      border: none;
+      border-left: 1px solid rgba(255,255,255,0.2);
+      border-radius: 0 16px 16px 0;
+      cursor: pointer;
+      transition: background 0.3s, filter 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mode-caret-button:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .mode-caret-button:disabled {
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      border-left-color: var(--border-medium);
+    }
+
+    .mode-dropdown {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 300px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 6px;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .mode-dropdown.open {
+      display: block;
+    }
+
+    .mode-dropdown-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .mode-dropdown-item:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .mode-dropdown-item.active {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .mode-dropdown-item .mode-check {
+      width: 18px;
+      flex-shrink: 0;
+      color: var(--accent-primary);
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .mode-dropdown-item .mode-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .mode-dropdown-item .mode-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .mode-dropdown-item .mode-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .mode-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 6px 0 0 0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    @media (max-width: 768px) {
+      .mode-dropdown {
+        min-width: 260px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .mode-dropdown {
+        min-width: 220px;
+        left: 0;
+        transform: none;
+      }
+    }
+
     .helper-text {
       font-size: 14px;
       color: var(--text-secondary);
@@ -4361,8 +4489,23 @@
     });
 
     // Three Prompt Templates for Sequential API Calls
+    const MODE_ADDENDA = {
+      'cross-plan': { phase1: '', phase2: '', phase3: '' },
+      'amendment-tracking': {
+        phase1: `\n\nIMPORTANT CONTEXT: These documents are from a SINGLE plan — a base SPD plus its amendments/SMMs. Identify the chronological sequence of documents and their effective dates. Note which document is the original SPD and which are subsequent amendments.`,
+        phase2: `\n\nIMPORTANT CONTEXT: These documents are from a SINGLE plan — a base SPD plus its amendments/SMMs. Structure the columns chronologically (e.g., "Original SPD", "Amendment 1 (date)", "Amendment 2 (date)"). Rows should track procedural elements with their status: unchanged, modified, added, or superseded. Include effective dates where available.`,
+        phase3: `\n\nIMPORTANT CONTEXT: These documents are from a SINGLE plan — a base SPD plus its amendments/SMMs. Maintain the same chronological column structure. Quote exact language from each version of each provision. Clearly mark superseded provisions and note the effective date of each change.`
+      },
+      'minutes-analysis': {
+        phase1: `\n\nIMPORTANT CONTEXT: These documents are meeting minutes, transcripts, or similar records. Identify the date, participants, and purpose of each document. Note the chronological sequence and any recurring topics or ongoing discussions.`,
+        phase2: `\n\nIMPORTANT CONTEXT: These documents are meeting minutes/transcripts. Columns should represent meetings in chronological order. Rows should represent topics, decisions, and action items. Track the status of each item (open, completed, deferred) and note responsible parties where identified.`,
+        phase3: `\n\nIMPORTANT CONTEXT: These documents are meeting minutes/transcripts. Maintain the same chronological column structure. Quote exact discussion language from each meeting. Show the evolution of decisions and action items across meetings.`
+      }
+    };
+
     const PROMPT_TEMPLATES = {
-      phase1: (fileList) => {
+      phase1: (fileList, mode) => {
+        const addendum = MODE_ADDENDA[mode || 'cross-plan']?.phase1 || '';
         return `Comprehensively read all of the attached documents. You must return an organized overview of which documents are which, how they relate to one another, and the general domain, content, and structure of each.
 
 The uploaded documents are (in order):
@@ -4370,10 +4513,11 @@ ${fileList}
 
 When referencing documents, use these EXACT filenames as provided above.
 
-Return ONLY the organized overview with no preamble or footnotes. Be as concise as possible without oversimplifying. Maximum 500 words response.`;
+Return ONLY the organized overview with no preamble or footnotes. Be as concise as possible without oversimplifying. Maximum 500 words response.${addendum}`;
       },
 
-      phase2: (summaryResponse, fileList) => {
+      phase2: (summaryResponse, fileList, mode) => {
+        const addendum = MODE_ADDENDA[mode || 'cross-plan']?.phase2 || '';
         return `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
 
 <summary>
@@ -4387,10 +4531,11 @@ I want you to return a detailed and comprehensive table comparing elements acros
 
 When naming columns or referencing documents, use the EXACT filenames as provided above.
 
-Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`;
+Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.${addendum}`;
       },
 
-      phase3: (summaryResponse, comparisonResponse, fileList) => {
+      phase3: (summaryResponse, comparisonResponse, fileList, mode) => {
+        const addendum = MODE_ADDENDA[mode || 'cross-plan']?.phase3 || '';
         return `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
 
 <summary>
@@ -4414,7 +4559,7 @@ CITATION FORMAT:
 - For PDF files: cite in the format (filename.pdf, page_number, paragraph_number)
 - For non-PDF files (DOCX, XLSX, CSV, TXT): cite using the §N markers shown in the document text, e.g. (filename.docx, §3)
 
-Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`;
+Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.${addendum}`;
       }
     };
 
@@ -4476,6 +4621,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         languageResponse: null, // Phase 3 result
         activeTab: 'summary', // Current active tab
         isComparisonRequest: false, // Track if this is a comparison vs. regular chat
+        analysisMode: 'cross-plan', // 'cross-plan' | 'amendment-tracking' | 'minutes-analysis'
         // Chat-specific state
         chatMessages: [], // [{role, content, timestamp}]
         isChatStreaming: false, // Separate from main isStreaming
@@ -4797,16 +4943,56 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
             buttonDisabled = false;
           }
 
+          const modeLabels = {
+            'cross-plan': 'Cross-Plan Comparison',
+            'amendment-tracking': 'Amendment Tracking',
+            'minutes-analysis': 'Minutes Analysis'
+          };
+          const currentMode = this.state.analysisMode;
+
           inputContainer.innerHTML = `
             <div class="initial-prompt">
-              <button
-                type="button"
-                id="compare-button"
-                class="compare-button"
-                ${buttonDisabled ? 'disabled' : ''}
-              >
-                Compare Documents
-              </button>
+              <div class="compare-button-group" id="compare-button-group">
+                <button
+                  type="button"
+                  id="compare-button"
+                  class="compare-button"
+                  ${buttonDisabled ? 'disabled' : ''}
+                >
+                  Compare Documents
+                </button>
+                <button
+                  type="button"
+                  id="mode-caret-button"
+                  class="mode-caret-button"
+                  ${buttonDisabled ? 'disabled' : ''}
+                  title="Select analysis mode"
+                >▾</button>
+                <div class="mode-dropdown" id="mode-dropdown">
+                  <div class="mode-dropdown-item${currentMode === 'cross-plan' ? ' active' : ''}" data-mode="cross-plan">
+                    <span class="mode-check">${currentMode === 'cross-plan' ? '✓' : ''}</span>
+                    <span class="mode-info">
+                      <span class="mode-name">Cross-Plan Comparison</span>
+                      <span class="mode-desc">Compare provisions across multiple plan documents</span>
+                    </span>
+                  </div>
+                  <div class="mode-dropdown-item${currentMode === 'amendment-tracking' ? ' active' : ''}" data-mode="amendment-tracking">
+                    <span class="mode-check">${currentMode === 'amendment-tracking' ? '✓' : ''}</span>
+                    <span class="mode-info">
+                      <span class="mode-name">Amendment Tracking</span>
+                      <span class="mode-desc">Track changes across a single plan's SPD and amendments</span>
+                    </span>
+                  </div>
+                  <div class="mode-dropdown-item${currentMode === 'minutes-analysis' ? ' active' : ''}" data-mode="minutes-analysis">
+                    <span class="mode-check">${currentMode === 'minutes-analysis' ? '✓' : ''}</span>
+                    <span class="mode-info">
+                      <span class="mode-name">Minutes Analysis</span>
+                      <span class="mode-desc">Analyze meeting minutes and transcripts chronologically</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p class="mode-label" id="mode-label">${modeLabels[currentMode]}</p>
               <p class="helper-text ${helperClass}" id="compare-helper">
                 ${helperText}
               </p>
@@ -4835,6 +5021,48 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
             }
           });
         }
+
+        // Mode caret button toggle
+        const caretBtn = document.getElementById('mode-caret-button');
+        const dropdown = document.getElementById('mode-dropdown');
+        if (caretBtn && dropdown) {
+          caretBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+          });
+        }
+
+        // Mode dropdown item selection
+        const modeItems = document.querySelectorAll('.mode-dropdown-item');
+        modeItems.forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const mode = item.dataset.mode;
+            this.state.analysisMode = mode;
+            // Update active states and checkmarks
+            modeItems.forEach(mi => {
+              mi.classList.toggle('active', mi.dataset.mode === mode);
+              mi.querySelector('.mode-check').textContent = mi.dataset.mode === mode ? '✓' : '';
+            });
+            // Update label
+            const modeLabels = {
+              'cross-plan': 'Cross-Plan Comparison',
+              'amendment-tracking': 'Amendment Tracking',
+              'minutes-analysis': 'Minutes Analysis'
+            };
+            const label = document.getElementById('mode-label');
+            if (label) label.textContent = modeLabels[mode];
+            // Close dropdown
+            if (dropdown) dropdown.classList.remove('open');
+          });
+        });
+
+        // Close dropdown on outside click
+        document.addEventListener('click', (e) => {
+          if (dropdown && !e.target.closest('#compare-button-group')) {
+            dropdown.classList.remove('open');
+          }
+        });
       },
 
       setupEventListeners() {
@@ -4960,7 +5188,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
-          const prompt1 = PROMPT_TEMPLATES.phase1(fileList);
+          const analysisMode = this.state.analysisMode;
+          const prompt1 = PROMPT_TEMPLATES.phase1(fileList, analysisMode);
           this.state.summaryResponse = await this.streamResponse(prompt1, true); // true = upload files
 
           // Phase 1 complete - show download button
@@ -4974,7 +5203,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
-          const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse, fileList);
+          const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse, fileList, analysisMode);
           this.state.comparisonResponse = await this.streamResponse(prompt2, true); // true = upload files fresh
 
           // Phase 2 complete - parse into interactive table and show download button
@@ -4990,7 +5219,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
-          const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse, fileList);
+          const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse, fileList, analysisMode);
           this.state.languageResponse = await this.streamResponse(prompt3, true); // true = upload files fresh
 
           // Phase 3 complete - parse into interactive table and show download button
@@ -9015,7 +9244,8 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
               file_metadata: initialMetadata,
               summary_response: this.state.summaryResponse,
               comparison_response: this.state.comparisonResponse,
-              language_response: this.state.languageResponse
+              language_response: this.state.languageResponse,
+              analysis_mode: this.state.analysisMode
             })
           });
 
@@ -9158,6 +9388,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           this.state._savedDraftState = data.draft_state || null;
           this.state.isOwner = data.is_owner !== false; // Default to true for backwards compatibility
           this.state.ownerEmail = data.owner_email || null;
+          this.state.analysisMode = data.analysis_mode || 'cross-plan';
 
           // Parse file_metadata if it's a JSON string (from database)
           let fileMetadata = data.file_metadata || [];
@@ -9753,6 +9984,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.currentResponse = '';
         this.state.currentChatResponse = '';
         this.state.isComparisonRequest = false;
+        this.state.analysisMode = 'cross-plan';
 
         // Reset sharing state
         this.state.isOwner = true;

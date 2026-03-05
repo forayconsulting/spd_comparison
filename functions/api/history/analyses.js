@@ -32,7 +32,7 @@ export async function onRequestGet(context) {
 
     // Get owned analyses
     const ownedAnalyses = await sql`
-      SELECT id, title, created_at, file_metadata
+      SELECT id, title, created_at, file_metadata, analysis_mode
       FROM analyses
       WHERE user_id = ${user.id}
       ORDER BY created_at DESC
@@ -99,7 +99,7 @@ export async function onRequestPost(context) {
     return errorResponse('Invalid JSON body', 400);
   }
 
-  const { title, file_metadata, summary_response, comparison_response, language_response } = body;
+  const { title, file_metadata, summary_response, comparison_response, language_response, analysis_mode } = body;
 
   if (!file_metadata || !Array.isArray(file_metadata)) {
     return errorResponse('file_metadata is required and must be an array', 400);
@@ -130,7 +130,8 @@ export async function onRequestPost(context) {
         file_metadata,
         summary_response,
         comparison_response,
-        language_response
+        language_response,
+        analysis_mode
       )
       VALUES (
         ${user.id},
@@ -138,7 +139,8 @@ export async function onRequestPost(context) {
         ${JSON.stringify(file_metadata)},
         ${summary_response || null},
         ${comparison_response || null},
-        ${language_response || null}
+        ${language_response || null},
+        ${analysis_mode || 'cross-plan'}
       )
       RETURNING id, created_at
     `;

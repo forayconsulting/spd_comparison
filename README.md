@@ -6,6 +6,7 @@
 
 **Key Features:**
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
+- **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking (single plan + amendments), or Minutes Analysis (meeting minutes/transcripts) — each mode appends context-specific addenda to all three phase prompts
 - **Interactive tables:** Sort columns, filter by value, drag-reorder rows via visible handles, and ask AI to group related provisions
 - **Interactive chat:** Ask follow-up questions about the analysis with full document context
 - **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
@@ -267,6 +268,15 @@ gitGraph TB:
 - **Fix 2 — Backtick delimiter support:** A subsequent production run revealed the model switched to backtick-quoted filenames (`` `filename.pdf` ``); the quote character class only handled `"`, `'`, and `&quot;`, so zero citations were detected. Added `` ` `` to both opening and closing optional quote groups
 - **Fix 3 — HTML tag boundary:** Phone numbers and contact info in cells (e.g., `(702) 369-0000."<br>('LV-SPD...pdf, page 2, 2)`) caused the regex to span the `<br>` tag, starting a spurious match at the `(` of the phone number and consuming the real citation. Changed `.{1,120}?` to `[^<]{1,120}?` — real filenames never contain `<`, so the regex can no longer cross any HTML tag boundary
 - Net result: all three failure modes eliminated; citations that previously showed as unstyled plain text or dead dashed-underline spans now render as clickable links opening the correct document at the correct page
+
+**March 5, 2026 — Analysis Mode Selector**
+- Users who uploaded single-fund documents (SPD + amendments) got a cross-plan comparison layout that didn't match expectations; the tool's prompts assumed multi-plan comparison
+- Added a split-button dropdown attached to the "Compare Documents" button with three modes: Cross-Plan Comparison (default), Amendment Tracking, and Minutes Analysis
+- Each mode appends context-specific addenda to all three phase prompts — base prompts stay identical, preserving existing behavior for cross-plan mode
+- Amendment Tracking: columns ordered chronologically (Original SPD → Amendment 1 → 2 → etc.), rows track provision status (unchanged/modified/added/superseded) with effective dates
+- Minutes Analysis: columns represent meetings chronologically, rows track topics/decisions/action items with status and responsible parties
+- Selected mode persisted to `analysis_mode` column on `analyses` table and restored on session reload
+- DB migration required: `ALTER TABLE analyses ADD COLUMN analysis_mode VARCHAR(30) DEFAULT 'cross-plan'`
 
 ## License
 

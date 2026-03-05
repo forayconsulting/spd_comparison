@@ -118,6 +118,7 @@ export async function onRequestGet(context) {
       language_response: analysis.language_response,
       table_view_state: analysis.table_view_state || null,
       draft_state: analysis.draft_state || null,
+      analysis_mode: analysis.analysis_mode || 'cross-plan',
       is_owner: access.isOwner,
       owner_email: access.ownerEmail,
       chat_messages: chatMessages.map(m => ({
