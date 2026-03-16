@@ -146,3 +146,28 @@ ALTER TABLE notes ADD COLUMN IF NOT EXISTS note_type VARCHAR(20) NOT NULL DEFAUL
 
 -- Stores draft workspace state (selections, integrated column, draft content, phase)
 ALTER TABLE analyses ADD COLUMN IF NOT EXISTS draft_state JSONB;
+
+-- ============================================
+-- Admin & Vertex AI Settings (added 2026-03-16)
+-- ============================================
+
+-- Admin flag on users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
+
+-- Set initial admin
+UPDATE users SET is_admin = true WHERE email = 'clayton@foray-consulting.com';
+
+-- App-wide settings (key-value store for admin-configurable settings)
+CREATE TABLE IF NOT EXISTS app_settings (
+    key VARCHAR(100) PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_by UUID REFERENCES users(id)
+);
+
+-- Trigger to update updated_at on app_settings
+DROP TRIGGER IF EXISTS update_app_settings_updated_at ON app_settings;
+CREATE TRIGGER update_app_settings_updated_at
+    BEFORE UPDATE ON app_settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();

@@ -1384,6 +1384,27 @@
       transform: rotate(-90deg);
     }
 
+    .session-name {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+    .session-name:hover {
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      border-color: var(--border-subtle);
+    }
+
     .files-content {
       padding: 24px 32px 28px;
       max-height: 500px;
@@ -2584,6 +2605,167 @@
     }
     .settings-secured-display svg {
       flex-shrink: 0;
+    }
+
+    /* Admin Settings Section */
+    .admin-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+    .admin-section h3 {
+      margin: 0 0 16px 0;
+      font-size: 15px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .admin-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .admin-radio-group {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .admin-radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .vertex-config {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .vertex-config label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+      display: block;
+    }
+    .vertex-config input,
+    .vertex-config select,
+    .vertex-config textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .vertex-config textarea {
+      font-family: monospace;
+      font-size: 12px;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .vertex-config input:focus,
+    .vertex-config select:focus,
+    .vertex-config textarea:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .vertex-config .field-group {
+      display: flex;
+      gap: 12px;
+    }
+    .vertex-config .field-group > div {
+      flex: 1;
+    }
+    .vertex-file-upload {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .vertex-file-upload button {
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .vertex-file-upload button:hover {
+      background: var(--bg-tertiary);
+    }
+    .vertex-file-upload .file-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .vertex-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .vertex-actions button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+    }
+    .vertex-test-btn {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color) !important;
+    }
+    .vertex-test-btn:hover { background: var(--bg-tertiary); }
+    .vertex-test-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .vertex-save-btn {
+      background: white;
+      color: black;
+    }
+    .vertex-save-btn:hover { background: #e0e0e0; }
+    .vertex-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .vertex-status {
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+    .vertex-status.success {
+      background: rgba(76, 175, 80, 0.15);
+      color: #81c784;
+    }
+    .vertex-status.error {
+      background: rgba(244, 67, 54, 0.15);
+      color: #e57373;
+    }
+    .vertex-status.info {
+      background: rgba(33, 150, 243, 0.15);
+      color: #64b5f6;
+    }
+    .header-admin-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 6px;
+      height: 6px;
+      background: #81c784;
+      border-radius: 50%;
     }
 
     /* Loading Indicator for Comparison (in messages area) */
@@ -4310,11 +4492,12 @@
           </svg>
           <span id="history-badge" class="history-badge" style="display: none;">0</span>
         </button>
-        <button class="settings-button" onclick="ChatApp.showApiKeyModal()" title="Settings">
+        <button class="settings-button" onclick="ChatApp.showApiKeyModal()" title="Settings" style="position: relative;">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
         </svg>
+        <span id="admin-dot" class="header-admin-dot" style="display: none;"></span>
       </button>
       </div>
     </header>
@@ -4459,6 +4642,68 @@
             <span>Secured server-side</span>
           </div>
 
+          <!-- Admin Section (conditionally rendered) -->
+          <div id="settings-admin-section" class="admin-section" style="display: none;">
+            <h3>API Configuration <span class="admin-badge">Admin</span></h3>
+
+            <div class="admin-radio-group">
+              <label>
+                <input type="radio" name="api-mode" value="consumer" checked onchange="ChatApp.toggleVertexConfig()">
+                Consumer API
+              </label>
+              <label>
+                <input type="radio" name="api-mode" value="vertex" onchange="ChatApp.toggleVertexConfig()">
+                Vertex AI
+              </label>
+            </div>
+
+            <div id="vertex-config-panel" class="vertex-config" style="display: none;">
+              <div class="field-group">
+                <div>
+                  <label for="vertex-project-id">GCP Project ID</label>
+                  <input type="text" id="vertex-project-id" placeholder="my-gcp-project">
+                </div>
+                <div>
+                  <label for="vertex-location">Region</label>
+                  <select id="vertex-location">
+                    <option value="us-central1">us-central1</option>
+                    <option value="us-east4">us-east4</option>
+                    <option value="us-west1">us-west1</option>
+                    <option value="europe-west1">europe-west1</option>
+                    <option value="europe-west4">europe-west4</option>
+                    <option value="asia-northeast1">asia-northeast1</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label for="vertex-sa-email">Service Account Email</label>
+                <input type="text" id="vertex-sa-email" placeholder="sa@project.iam.gserviceaccount.com">
+              </div>
+
+              <div>
+                <label>Private Key</label>
+                <div class="vertex-file-upload">
+                  <button onclick="document.getElementById('vertex-key-file').click()">Choose JSON File</button>
+                  <span class="file-name" id="vertex-key-filename">No file selected</span>
+                  <input type="file" id="vertex-key-file" accept=".json" style="display:none" onchange="ChatApp.handleVertexKeyFile(event)">
+                </div>
+              </div>
+
+              <div>
+                <label for="vertex-private-key">Or paste PEM key</label>
+                <textarea id="vertex-private-key" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" rows="4"></textarea>
+              </div>
+
+              <div id="vertex-status" style="display: none;"></div>
+
+              <div class="vertex-actions">
+                <button class="vertex-test-btn" id="vertex-test-btn" onclick="ChatApp.testVertexConnection()">Test Connection</button>
+                <button class="vertex-save-btn" id="vertex-save-btn" onclick="ChatApp.saveVertexSettings()">Save</button>
+              </div>
+            </div>
+          </div>
+
           <div class="modal-buttons">
             <button class="modal-button primary" onclick="ChatApp.closeApiKeyModal()">Close</button>
           </div>
@@ -4508,6 +4753,7 @@
           <span class="files-count" id="files-count">(0 files)</span>
           <span class="files-toggle" id="files-toggle">▼</span>
         </div>
+        <span class="session-name" id="session-name" style="display:none" onclick="event.stopPropagation(); ChatApp.renameCurrentSession()" title="Click to rename"></span>
       </div>
 
       <div class="files-content" id="files-content">
@@ -4918,6 +5164,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         historyList: [],              // [{id, title, created_at, file_metadata}]
         historyPanelOpen: false,      // History drawer visibility
         renamingAnalysisId: null,     // ID of analysis being renamed
+        currentAnalysisTitle: null,  // Display title of current analysis
         // Notes state
         notes: [],                    // [{id, tab, anchor_text, anchor_prefix, anchor_suffix, content, created_at, author_email, replies}]
         activeNoteId: null,           // Currently open popup note ID
@@ -4958,6 +5205,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         regenIsPaused: false,
         isRegenStreaming: false,
         currentRegenResponse: '',
+        // Admin state
+        isAdmin: false,
+        vertexAiSettings: null,  // Cached settings from /api/admin/settings
         // Inactivity timeout state
         inactivityTimer: null,
         warningTimer: null,
@@ -4975,6 +5225,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.initExportDropdowns();
         this.handleShareToken();
         this.initInactivityTimer();
+        this.checkAdminStatus();
 
         // Track mousedown target for drag-and-drop restriction (first column only)
         // Only set draggable="true" on the row when mousedown is in the first column cell,
@@ -5110,28 +5361,6 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       // API Key Modal Functions
-      showApiKeyModal() {
-        const modal = document.getElementById('api-key-modal');
-        const proxyContent = document.getElementById('settings-proxy-mode');
-        const localContent = document.getElementById('settings-local-mode');
-
-        // Show appropriate content based on mode
-        if (IS_PROXY_MODE) {
-          proxyContent.style.display = 'block';
-          localContent.style.display = 'none';
-        } else {
-          proxyContent.style.display = 'none';
-          localContent.style.display = 'block';
-          const input = document.getElementById('api-key-input');
-          // Pre-fill with session key if exists
-          if (this.state.sessionApiKey) {
-            input.value = this.state.sessionApiKey;
-          }
-          setTimeout(() => input.focus(), 100);
-        }
-
-        modal.style.display = 'flex';
-      },
 
       closeApiKeyModal() {
         document.getElementById('api-key-modal').style.display = 'none';
@@ -5171,6 +5400,216 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         if (savedKey) {
           this.state.sessionApiKey = savedKey;
           console.log('✅ API Key loaded from session');
+        }
+      },
+
+      // Admin / Vertex AI methods
+
+      async checkAdminStatus() {
+        if (!this.isProxyMode()) return;
+        try {
+          const res = await fetch('/api/admin/settings');
+          if (res.ok) {
+            const data = await res.json();
+            this.state.isAdmin = true;
+            this.state.vertexAiSettings = data.settings;
+            // Show admin dot on settings button
+            const dot = document.getElementById('admin-dot');
+            if (dot) dot.style.display = 'block';
+          }
+          // 403 = not admin, ignore silently
+        } catch (e) {
+          // Network error, ignore
+        }
+      },
+
+      showApiKeyModal() {
+        const modal = document.getElementById('api-key-modal');
+        const proxyContent = document.getElementById('settings-proxy-mode');
+        const localContent = document.getElementById('settings-local-mode');
+
+        if (IS_PROXY_MODE) {
+          proxyContent.style.display = 'block';
+          localContent.style.display = 'none';
+          // Show/hide admin section
+          const adminSection = document.getElementById('settings-admin-section');
+          if (adminSection) {
+            if (this.state.isAdmin) {
+              adminSection.style.display = 'block';
+              this.populateVertexSettings();
+            } else {
+              adminSection.style.display = 'none';
+            }
+          }
+        } else {
+          proxyContent.style.display = 'none';
+          localContent.style.display = 'block';
+          const input = document.getElementById('api-key-input');
+          if (this.state.sessionApiKey) {
+            input.value = this.state.sessionApiKey;
+          }
+          setTimeout(() => input.focus(), 100);
+        }
+
+        modal.style.display = 'flex';
+      },
+
+      populateVertexSettings() {
+        const settings = this.state.vertexAiSettings || {};
+        const isVertex = settings.vertex_ai_enabled === 'true';
+
+        // Set radio button
+        const radios = document.querySelectorAll('input[name="api-mode"]');
+        radios.forEach(r => r.checked = (r.value === (isVertex ? 'vertex' : 'consumer')));
+
+        // Show/hide config panel
+        const panel = document.getElementById('vertex-config-panel');
+        if (panel) panel.style.display = isVertex ? 'flex' : 'none';
+
+        // Populate fields
+        const projectId = document.getElementById('vertex-project-id');
+        const location = document.getElementById('vertex-location');
+        const saEmail = document.getElementById('vertex-sa-email');
+        const keyFilename = document.getElementById('vertex-key-filename');
+
+        if (projectId) projectId.value = settings.vertex_ai_project_id || '';
+        if (location) location.value = settings.vertex_ai_location || 'us-central1';
+        if (saEmail) saEmail.value = settings.vertex_ai_service_account_email || '';
+        if (keyFilename && settings.vertex_ai_private_key_set === 'true') {
+          keyFilename.textContent = 'Key configured';
+        }
+
+        // Clear any previous status
+        const status = document.getElementById('vertex-status');
+        if (status) status.style.display = 'none';
+      },
+
+      toggleVertexConfig() {
+        const isVertex = document.querySelector('input[name="api-mode"]:checked')?.value === 'vertex';
+        const panel = document.getElementById('vertex-config-panel');
+        if (panel) panel.style.display = isVertex ? 'flex' : 'none';
+      },
+
+      handleVertexKeyFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const json = JSON.parse(e.target.result);
+            if (json.client_email) {
+              document.getElementById('vertex-sa-email').value = json.client_email;
+            }
+            if (json.private_key) {
+              document.getElementById('vertex-private-key').value = json.private_key;
+            }
+            if (json.project_id) {
+              document.getElementById('vertex-project-id').value = json.project_id;
+            }
+            document.getElementById('vertex-key-filename').textContent = file.name;
+          } catch (err) {
+            this.showVertexStatus('Invalid JSON file', 'error');
+          }
+        };
+        reader.readAsText(file);
+      },
+
+      showVertexStatus(message, type) {
+        const status = document.getElementById('vertex-status');
+        if (!status) return;
+        status.textContent = message;
+        status.className = 'vertex-status ' + type;
+        status.style.display = 'block';
+      },
+
+      async testVertexConnection() {
+        const btn = document.getElementById('vertex-test-btn');
+        btn.disabled = true;
+        btn.textContent = 'Testing...';
+        this.showVertexStatus('Connecting to Vertex AI...', 'info');
+
+        try {
+          // Save settings first (so test uses latest values)
+          const saved = await this._saveVertexSettingsToBackend();
+          if (!saved) {
+            btn.disabled = false;
+            btn.textContent = 'Test Connection';
+            return;
+          }
+
+          const res = await fetch('/api/admin/test-vertex', { method: 'POST' });
+          const data = await res.json();
+
+          if (data.success) {
+            this.showVertexStatus(data.message, 'success');
+          } else {
+            this.showVertexStatus(data.error || 'Connection failed', 'error');
+          }
+        } catch (e) {
+          this.showVertexStatus('Network error: ' + e.message, 'error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Test Connection';
+      },
+
+      async saveVertexSettings() {
+        const btn = document.getElementById('vertex-save-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const saved = await this._saveVertexSettingsToBackend();
+        if (saved) {
+          this.showVertexStatus('Settings saved', 'success');
+          // Refresh cached settings
+          await this.checkAdminStatus();
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      },
+
+      async _saveVertexSettingsToBackend() {
+        const isVertex = document.querySelector('input[name="api-mode"]:checked')?.value === 'vertex';
+        const projectId = document.getElementById('vertex-project-id')?.value.trim();
+        const location = document.getElementById('vertex-location')?.value;
+        const saEmail = document.getElementById('vertex-sa-email')?.value.trim();
+        const privateKey = document.getElementById('vertex-private-key')?.value.trim();
+
+        const settingsToSave = {
+          vertex_ai_enabled: isVertex ? 'true' : 'false'
+        };
+
+        if (isVertex) {
+          if (!projectId || !location || !saEmail) {
+            this.showVertexStatus('Please fill in all required fields', 'error');
+            return false;
+          }
+          settingsToSave.vertex_ai_project_id = projectId;
+          settingsToSave.vertex_ai_location = location;
+          settingsToSave.vertex_ai_service_account_email = saEmail;
+          // Only send private key if user entered a new one
+          if (privateKey) {
+            settingsToSave.vertex_ai_private_key = privateKey;
+          }
+        }
+
+        try {
+          const res = await fetch('/api/admin/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ settings: settingsToSave })
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            this.showVertexStatus(data.error || 'Save failed', 'error');
+            return false;
+          }
+          return true;
+        } catch (e) {
+          this.showVertexStatus('Network error: ' + e.message, 'error');
+          return false;
         }
       },
 
@@ -9900,7 +10339,8 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         const editor = document.getElementById('draft-document-editor') || document.getElementById('draft-integration-editor');
         const text = editor ? editor.innerText : content;
 
-        const blob = new Blob([text], { type: 'text/plain' });
+        const draftHeader = '═══════════════════════════════════════════\n                    DRAFT\n     This document is not final and is\n       subject to review and revision.\n═══════════════════════════════════════════\n\n';
+        const blob = new Blob([draftHeader + text], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -9917,7 +10357,8 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         const content = this.state.draftContent || this.state.draftIntegratedColumn || '';
         if (!content) { this.showAppDialog({ title: 'No Content', message: 'No draft content to export.' }); return; }
 
-        const blob = new Blob([content], { type: 'text/markdown' });
+        const draftHeader = '> **DRAFT** — This document is not final and is subject to review and revision.\n\n---\n\n';
+        const blob = new Blob([draftHeader + content], { type: 'text/markdown' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -9937,10 +10378,16 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         }
 
         try {
-          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${editor.innerHTML}</body></html>`;
-          const blob = await HTMLToDOCX(wrappedHtml, '', {
+          // DRAFT header banner + watermark background on every page via CSS
+          const draftBanner = '<div style="text-align:center;border:2px solid #999;padding:12px 20px;margin-bottom:24px;background:#f5f5f5;"><span style="font-family:Arial,sans-serif;font-size:18pt;font-weight:bold;color:#999;letter-spacing:6px;">DRAFT</span><br><span style="font-family:Arial,sans-serif;font-size:9pt;color:#999;">This document is not final and is subject to review and revision.</span></div>';
+          const wrappedHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.6;}h1,h2,h3{font-family:'Arial',sans-serif;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #999;padding:6px 8px;}</style></head><body>${draftBanner}${editor.innerHTML}</body></html>`;
+          const headerHtml = '<div style="text-align:center;"><span style="font-family:Arial,sans-serif;font-size:9pt;color:#999;letter-spacing:4px;">DRAFT</span></div>';
+          const footerHtml = '<div style="text-align:center;"><span style="font-family:Arial,sans-serif;font-size:8pt;color:#999;">DRAFT — Not Final — Subject to Review and Revision</span></div>';
+          const blob = await HTMLToDOCX(wrappedHtml, headerHtml, {
             margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 },
-            title: 'Draft SPD Section'
+            title: 'Draft SPD Section',
+            footer: true,
+            footerContent: footerHtml
           });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -9965,13 +10412,49 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         }
 
         try {
+          // Clone editor content and prepend DRAFT banner for PDF
+          const wrapper = document.createElement('div');
+          const banner = document.createElement('div');
+          banner.style.cssText = 'text-align:center;border:2px solid #999;padding:12px 20px;margin-bottom:24px;background:#f5f5f5;';
+          banner.innerHTML = '<div style="font-family:Arial,sans-serif;font-size:24px;font-weight:bold;color:#999;letter-spacing:6px;">DRAFT</div><div style="font-family:Arial,sans-serif;font-size:10px;color:#999;">This document is not final and is subject to review and revision.</div>';
+          wrapper.appendChild(banner);
+
+          // Clone editor content
+          const contentClone = editor.cloneNode(true);
+          contentClone.removeAttribute('contenteditable');
+          contentClone.removeAttribute('id');
+          wrapper.appendChild(contentClone);
+
           html2pdf().set({
             margin: [0.75, 0.75, 0.75, 0.75],
             filename: 'draft-spd-section.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-          }).from(editor).save();
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+          }).from(wrapper).toPdf().get('pdf').then((pdf) => {
+            // Add diagonal DRAFT watermark to every page
+            const totalPages = pdf.internal.getNumberOfPages();
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            for (let i = 1; i <= totalPages; i++) {
+              pdf.setPage(i);
+              pdf.saveGraphicsState();
+              pdf.setGState(new pdf.GState({ opacity: 0.08 }));
+              pdf.setFontSize(72);
+              pdf.setTextColor(150, 150, 150);
+              // Diagonal watermark centered on each page
+              const centerX = pageWidth / 2;
+              const centerY = pageHeight / 2;
+              pdf.text('DRAFT', centerX, centerY, { align: 'center', angle: 45 });
+              pdf.restoreGraphicsState();
+              // Footer on every page
+              pdf.setFontSize(8);
+              pdf.setTextColor(150, 150, 150);
+              pdf.text('DRAFT — Not Final — Subject to Review and Revision', pageWidth / 2, pageHeight - 0.35, { align: 'center' });
+            }
+            pdf.save('draft-spd-section.pdf');
+          });
           this.closeAllExportMenus();
         } catch (e) {
           console.error('PDF export failed:', e);
@@ -10569,8 +11052,10 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
 
           const { id: analysisId } = await createRes.json();
           this.state.currentAnalysisId = analysisId;
+          this.state.currentAnalysisTitle = initialMetadata[0]?.filename || 'Untitled Analysis';
           this.state.isOwner = true; // User is owner of newly created analysis
           this.updateShareButtonVisibility();
+          this.updateSessionNameDisplay();
           console.log('Analysis created:', analysisId);
 
           // Step 2: Upload files to R2
@@ -10703,6 +11188,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           this.state.isOwner = data.is_owner !== false; // Default to true for backwards compatibility
           this.state.ownerEmail = data.owner_email || null;
           this.state.analysisMode = data.analysis_mode || 'cross-plan';
+          this.state.currentAnalysisTitle = data.title || 'Untitled Analysis';
 
           // Parse file_metadata if it's a JSON string (from database)
           let fileMetadata = data.file_metadata || [];
@@ -10804,6 +11290,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
        */
       resetForLoadedAnalysis() {
         this.state.messages = [];
+        this.state.currentAnalysisTitle = null;
         this.state.isStreaming = false;
         this.state.currentResponse = '';
         this.state.currentThinking = '';
@@ -10838,6 +11325,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
       renderLoadedAnalysis() {
         // Update share button visibility (only show if owner)
         this.updateShareButtonVisibility();
+        this.updateSessionNameDisplay();
 
         // Show new analysis button in header
         const newBtn = document.getElementById('new-analysis-header-btn');
@@ -11188,6 +11676,28 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
       },
 
       /**
+       * Rename the currently loaded session (triggered from session name display)
+       */
+      renameCurrentSession() {
+        if (!this.state.currentAnalysisId || !this.state.currentAnalysisTitle) return;
+        this.editAnalysisTitle(this.state.currentAnalysisId, this.state.currentAnalysisTitle);
+      },
+
+      /**
+       * Update the session name display element
+       */
+      updateSessionNameDisplay() {
+        const el = document.getElementById('session-name');
+        if (!el) return;
+        if (this.state.currentAnalysisTitle && this.state.currentAnalysisId) {
+          el.textContent = this.state.currentAnalysisTitle;
+          el.style.display = '';
+        } else {
+          el.style.display = 'none';
+        }
+      },
+
+      /**
        * Confirm the rename action
        */
       async confirmRename() {
@@ -11211,6 +11721,11 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             const item = this.state.historyList.find(a => a.id === analysisId);
             if (item) {
               item.title = newTitle;
+            }
+            // Update session name display if renaming the current session
+            if (analysisId === this.state.currentAnalysisId) {
+              this.state.currentAnalysisTitle = newTitle;
+              this.updateSessionNameDisplay();
             }
             // Re-render the history panel
             this.renderHistoryPanel();
@@ -11307,8 +11822,10 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         const newBtn = document.getElementById('new-analysis-header-btn');
         if (newBtn) newBtn.style.display = 'none';
 
-        // Clear current analysis ID
+        // Clear current analysis ID and title
         this.state.currentAnalysisId = null;
+        this.state.currentAnalysisTitle = null;
+        this.updateSessionNameDisplay();
 
         // Reset all analysis-related state
         this.state.messages = [];

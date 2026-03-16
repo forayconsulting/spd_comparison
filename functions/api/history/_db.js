@@ -27,7 +27,7 @@ export function createSqlClient(env) {
 export async function getOrCreateUser(sql, email) {
   // Try to find existing user
   const existing = await sql`
-    SELECT id, email FROM users WHERE email = ${email}
+    SELECT id, email, is_admin FROM users WHERE email = ${email}
   `;
 
   if (existing.length > 0) {
@@ -37,10 +37,39 @@ export async function getOrCreateUser(sql, email) {
   // Create new user
   const created = await sql`
     INSERT INTO users (email) VALUES (${email})
-    RETURNING id, email
+    RETURNING id, email, is_admin
   `;
 
   return created[0];
+}
+
+/**
+ * Get all app settings as a key-value object
+ * @param {Function} sql - postgres SQL client
+ * @returns {Promise<Object>} { key: value, ... }
+ */
+export async function getAppSettings(sql) {
+  const rows = await sql`SELECT key, value FROM app_settings`;
+  const settings = {};
+  for (const row of rows) {
+    settings[row.key] = row.value;
+  }
+  return settings;
+}
+
+/**
+ * Return a 403 Response if user is not an admin
+ * @param {Object} user - User object with is_admin field
+ * @returns {Response|null} 403 Response if not admin, null if admin
+ */
+export function requireAdmin(user) {
+  if (!user.is_admin) {
+    return new Response(
+      JSON.stringify({ error: 'Forbidden: Admin access required' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  return null;
 }
 
 /**

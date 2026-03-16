@@ -1,5 +1,9 @@
 // Pages Function: Proxies /api/gemini/:model to Google's Gemini API
-// The [model] in the filename creates a dynamic route parameter
+// Supports dual-path: Vertex AI (JWT auth) or Consumer API (API key)
+// Path is determined by app_settings in the database
+
+import { createSqlClient, getAppSettings } from '../history/_db.js';
+import { mintAccessToken } from './_vertex.js';
 
 export async function onRequestPost(context) {
   const { params, env, request } = context;
@@ -9,20 +13,64 @@ export async function onRequestPost(context) {
     return new Response('Model not specified', { status: 400 });
   }
 
-  if (!env.GEMINI_API_KEY) {
-    return new Response('API key not configured', { status: 500 });
-  }
-
   try {
-    // Forward request to Gemini API with server-side API key injection
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+    // Check if Vertex AI is configured
+    let useVertexAi = false;
+    let vertexSettings = {};
 
-    const geminiResponse = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: {
+    if (env.DB) {
+      try {
+        const sql = createSqlClient(env);
+        const settings = await getAppSettings(sql);
+        if (settings.vertex_ai_enabled === 'true' &&
+            settings.vertex_ai_project_id &&
+            settings.vertex_ai_location &&
+            settings.vertex_ai_service_account_email &&
+            settings.vertex_ai_private_key) {
+          useVertexAi = true;
+          vertexSettings = settings;
+        }
+      } catch (dbErr) {
+        // DB unavailable — fall through to Consumer API
+        console.error('Failed to check Vertex AI settings:', dbErr.message);
+      }
+    }
+
+    let geminiUrl, headers;
+
+    if (useVertexAi) {
+      // Vertex AI path: mint JWT → exchange for access token → forward request
+      const accessToken = await mintAccessToken(
+        vertexSettings.vertex_ai_service_account_email,
+        vertexSettings.vertex_ai_private_key
+      );
+
+      const projectId = vertexSettings.vertex_ai_project_id;
+      const location = vertexSettings.vertex_ai_location;
+      geminiUrl = `https://${location}-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/${location}/publishers/google/models/${model}:streamGenerateContent?alt=sse`;
+
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      };
+    } else {
+      // Consumer API path: use API key (existing behavior)
+      if (!env.GEMINI_API_KEY) {
+        return new Response('API key not configured', { status: 500 });
+      }
+
+      geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+
+      headers = {
         'Content-Type': 'application/json',
         'x-goog-api-key': env.GEMINI_API_KEY
-      },
+      };
+    }
+
+    // Forward request to Gemini API
+    const geminiResponse = await fetch(geminiUrl, {
+      method: 'POST',
+      headers,
       body: request.body
     });
 
