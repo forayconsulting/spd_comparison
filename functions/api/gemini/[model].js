@@ -47,7 +47,13 @@ export async function onRequestPost(context) {
 
       const projectId = vertexSettings.vertex_ai_project_id;
       const location = vertexSettings.vertex_ai_location;
-      geminiUrl = `https://${location}-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/${location}/publishers/google/models/${model}:streamGenerateContent?alt=sse`;
+      // Preview models require global endpoint; GA models use regional
+      const isGlobalModel = model.includes('preview');
+      const host = isGlobalModel
+        ? 'aiplatform.googleapis.com'
+        : `${location}-aiplatform.googleapis.com`;
+      const loc = isGlobalModel ? 'global' : location;
+      geminiUrl = `https://${host}/v1/projects/${projectId}/locations/${loc}/publishers/google/models/${model}:streamGenerateContent?alt=sse`;
 
       headers = {
         'Content-Type': 'application/json',

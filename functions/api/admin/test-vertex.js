@@ -39,8 +39,8 @@ export async function onRequestPost(context) {
       }, 400);
     }
 
-    // Make a lightweight test call: list models endpoint
-    const testUrl = `https://${location}-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-2.0-flash:generateContent`;
+    // Make a lightweight test call
+    const testUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-2.5-flash:generateContent`;
 
     const testResponse = await fetch(testUrl, {
       method: 'POST',
