@@ -3369,6 +3369,276 @@
       50% { opacity: 0; }
     }
 
+    /* SPD Regeneration Progress */
+    .regen-phase-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .regen-phase-nav button {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .regen-phase-nav button:hover:not(:disabled) {
+      background: var(--bg-secondary);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    .regen-phase-nav button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .regen-phase-nav button.primary {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: white;
+    }
+    .regen-phase-nav button.primary:hover:not(:disabled) {
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+      color: white;
+    }
+    .regen-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 16px 0 12px;
+    }
+    .regen-progress-bar-fill {
+      height: 100%;
+      background: var(--accent-primary);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .regen-progress-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .regen-section-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .regen-section-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .regen-section-item:last-child { border-bottom: none; }
+    .regen-section-status {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .regen-section-item.pending .regen-section-status {
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+    .regen-section-item.generating .regen-section-status {
+      background: rgba(30, 58, 95, 0.15);
+      color: var(--accent-primary);
+      border: 2px solid var(--accent-primary);
+      animation: pulse 1.5s ease infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .regen-section-item.complete .regen-section-status {
+      background: rgba(40, 167, 69, 0.15);
+      color: #28a745;
+    }
+    .regen-section-item.error .regen-section-status {
+      background: rgba(220, 53, 69, 0.15);
+      color: #dc3545;
+    }
+    .regen-section-item.truncated .regen-section-status {
+      background: rgba(255, 193, 7, 0.15);
+      color: #e6a800;
+    }
+    .regen-section-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .regen-section-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .regen-section-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .regen-section-streaming {
+      margin-top: 8px;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .regen-section-error {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #dc3545;
+    }
+    .regen-section-actions {
+      flex-shrink: 0;
+    }
+    .regen-section-actions button {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .regen-section-actions button:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    .regen-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 0;
+    }
+    .regen-controls .regen-assemble-btn {
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      color: white;
+    }
+    .regen-controls .regen-assemble-btn:hover {
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+    }
+    .regen-progress-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .regen-icon-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+      padding: 0;
+    }
+    .regen-icon-btn:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+      background: var(--bg-secondary);
+    }
+    .regen-icon-btn.stop:hover {
+      border-color: #dc3545;
+      color: #dc3545;
+    }
+    .regen-icon-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    /* Expanded streaming section (current section being generated) */
+    .regen-section-expanded {
+      margin-top: 8px;
+      padding: 16px 20px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-primary);
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .regen-section-expanded h1, .regen-section-expanded h2, .regen-section-expanded h3 {
+      margin-top: 1em;
+      margin-bottom: 0.4em;
+    }
+    .regen-section-expanded p { margin: 0 0 0.8em 0; }
+    .regen-section-expanded ul, .regen-section-expanded ol { padding-left: 1.5em; margin: 0 0 0.8em 0; }
+    /* Collapsed completed section (shows first line preview) */
+    .regen-section-collapsed {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 600px;
+      cursor: pointer;
+    }
+    .regen-section-collapsed:hover {
+      color: var(--text-secondary);
+    }
+    .regen-generate-area {
+      padding: 24px;
+      text-align: center;
+    }
+    .regen-generate-area p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .regen-generate-btn {
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--accent-primary);
+      border: 1px solid var(--accent-primary);
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .regen-generate-btn:hover {
+      background: var(--accent-secondary);
+      border-color: var(--accent-secondary);
+    }
+
     /* Resize Handle for Split View */
     .resize-handle {
       flex: 0 0 4px;
@@ -4678,6 +4948,16 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         draftPhase: 'selection',      // 'selection' | 'integration' | 'draft'
         isDraftStreaming: false,
         currentDraftResponse: '',
+        // SPD Regeneration state (amendment-tracking mode)
+        regenOutline: null,
+        regenStyleGuide: null,
+        regenSections: [],
+        regenDefinitionsRegistry: [],
+        regenPhase: 'outline',       // 'outline' | 'style-guide' | 'generating' | 'complete'
+        regenAssembledDocument: null,
+        regenIsPaused: false,
+        isRegenStreaming: false,
+        currentRegenResponse: '',
         // Inactivity timeout state
         inactivityTimer: null,
         warningTimer: null,
@@ -5270,6 +5550,41 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         this.scrollToBottom();
       },
 
+      /**
+       * Fetch with automatic retry for transient errors (503, 524, 429)
+       */
+      async fetchWithRetry(url, options, maxRetries = 3) {
+        const retryableStatuses = [429, 503, 524];
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            const response = await fetch(url, options);
+            if (response.ok || !retryableStatuses.includes(response.status)) {
+              return response;
+            }
+            // Retryable error
+            if (attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 1000, 30000);
+              const phaseText = document.getElementById('phase-text');
+              if (phaseText) phaseText.textContent = `Retrying (${response.status})... attempt ${attempt + 2}/${maxRetries + 1}`;
+              console.warn(`⚠️ Retryable error ${response.status}, retrying in ${Math.round(delay/1000)}s (attempt ${attempt + 1}/${maxRetries})`);
+              await new Promise(r => setTimeout(r, delay));
+              // Need a fresh AbortController for retry (old signal may be intact but request is done)
+              continue;
+            }
+            return response; // Last attempt, return as-is for error handling
+          } catch (e) {
+            if (e.name === 'AbortError') throw e;
+            if (attempt < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 1000, 30000);
+              console.warn(`⚠️ Network error, retrying in ${Math.round(delay/1000)}s:`, e.message);
+              await new Promise(r => setTimeout(r, delay));
+              continue;
+            }
+            throw e;
+          }
+        }
+      },
+
       async streamResponse(userPrompt, uploadFiles = false) {
         this.state.abortController = new AbortController();
 
@@ -5321,7 +5636,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         console.log(`📤 API Request: Phase ${this.state.currentPhase}/3 to ${model}`);
         console.log(`📝 Prompt (first 200 chars): ${userPrompt.substring(0, 200)}...`);
 
-        const response = await fetch(
+        const response = await this.fetchWithRetry(
           this.getApiUrl(model),
           {
             method: 'POST',
@@ -5334,7 +5649,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`❌ API Error (${response.status}):`, errorText);
-          throw new Error(`API request failed (${response.status}): ${errorText}`);
+          throw new Error(`API request failed (${response.status}): error code: ${response.status}`);
         }
 
         console.log(`✅ API Response: Streaming started`);
@@ -6882,7 +7197,7 @@ User Question: ${userQuestion}`;
 
         console.log(`📤 Chat API Request to ${model}`);
 
-        const response = await fetch(
+        const response = await this.fetchWithRetry(
           this.getApiUrl(model),
           {
             method: 'POST',
@@ -7762,6 +8077,9 @@ User Question: ${userQuestion}`;
        * Main draft tab router — dispatches to the correct view based on phase
        */
       renderDraftTab() {
+        if (this.state.analysisMode === 'amendment-tracking') {
+          return this.renderRegenTab();
+        }
         switch (this.state.draftPhase) {
           case 'selection':
             this.renderDraftSelectionView();
@@ -8197,7 +8515,7 @@ Return the draft as a well-formatted markdown document.`;
           }
         };
 
-        const response = await fetch(
+        const response = await this.fetchWithRetry(
           this.getApiUrl(model),
           {
             method: 'POST',
@@ -8347,6 +8665,968 @@ Return the draft as a well-formatted markdown document.`;
         this.initDraftEditorEvents('draft-document-editor');
       },
 
+      // ===== SPD Regeneration Methods (Amendment Tracking Mode) =====
+
+      /**
+       * Router for the regen workflow phases
+       */
+      renderRegenTab() {
+        switch (this.state.regenPhase) {
+          case 'outline':
+            this.renderRegenOutlineView();
+            break;
+          case 'style-guide':
+            this.renderRegenStyleGuideView();
+            break;
+          case 'generating':
+            this.renderRegenProgressView();
+            break;
+          case 'complete':
+            this.renderRegenDocumentView();
+            break;
+        }
+      },
+
+      /**
+       * Render the outline generation/editing view (Phase A)
+       */
+      renderRegenOutlineView() {
+        const output = document.getElementById('draft-output');
+        if (!output) return;
+
+        // Auto-generate outline on first visit (no separate button click needed)
+        if (!this.state.regenOutline && !this.state.isRegenStreaming) {
+          this.generateRegenOutline();
+          return; // generateRegenOutline will re-render
+        }
+
+        let html = '';
+
+        // Phase navigation
+        html += `<div class="regen-phase-nav">`;
+        html += `<span class="draft-phase-label">Step 1 of 3 &mdash; Document Outline</span>`;
+        html += `<button class="primary" onclick="ChatApp.setRegenPhase('style-guide')" ${!this.state.regenOutline ? 'disabled' : ''}>Continue to Style Guide &#8594;</button>`;
+        html += `</div>`;
+
+        if (this.state.regenOutline) {
+          html += `<div class="draft-toolbar">`;
+          html += `<span class="draft-badge">Edit outline sections before continuing</span>`;
+          html += `<button class="draft-rework-btn" onclick="ChatApp.generateRegenOutline()">Regenerate Outline</button>`;
+          html += `</div>`;
+          html += `<div class="draft-editor" contenteditable="true" id="regen-outline-editor">${marked.parse(this.state.regenOutline)}</div>`;
+        } else if (this.state.isRegenStreaming) {
+          html += `<div class="draft-streaming"><em>Generating document outline...</em><span class="streaming-cursor"></span></div>`;
+        }
+
+        output.innerHTML = html;
+
+        if (this.state.regenOutline) {
+          const editor = document.getElementById('regen-outline-editor');
+          if (editor) {
+            let saveTimer = null;
+            editor.addEventListener('input', () => {
+              clearTimeout(saveTimer);
+              saveTimer = setTimeout(() => {
+                this.state.regenOutline = editor.innerText;
+                this.saveDraftState();
+              }, 2000);
+            });
+          }
+          this.initDraftEditorEvents('regen-outline-editor');
+        }
+      },
+
+      /**
+       * Generate outline via single API call
+       */
+      async generateRegenOutline() {
+        this.state.isRegenStreaming = true;
+        this.state.currentRegenResponse = '';
+        this.state.regenOutline = null;
+        this.renderRegenOutlineView();
+
+        const summaryCtx = this.state.summaryResponse ? `<document_summary>\n${this.state.summaryResponse}\n</document_summary>\n\n` : '';
+        const comparisonCtx = this.state.comparisonResponse ? `<comparison_table>\n${this.state.comparisonResponse}\n</comparison_table>\n\n` : '';
+        const languageCtx = this.state.languageResponse ? `<language_comparison>\n${this.state.languageResponse}\n</language_comparison>\n\n` : '';
+
+        // Gather actionable notes
+        const actionableNotes = (this.state.notes || []).filter(n => n.note_type === 'actionable');
+        let notesCtx = '';
+        if (actionableNotes.length > 0) {
+          notesCtx = '\nACTIONABLE INSTRUCTIONS:\n';
+          for (const note of actionableNotes) {
+            notesCtx += `- [On "${note.anchor_text.substring(0, 60)}..."]: ${note.content}\n`;
+          }
+          notesCtx += '\n';
+        }
+
+        const prompt = `You are analyzing a pension plan's SPD (Summary Plan Description) and its amendments. Your task is to produce a structured outline for a REGENERATED SPD that incorporates all amendments into the base document.
+
+${summaryCtx}${comparisonCtx}${languageCtx}${notesCtx}
+
+Based on the analysis above and the attached source documents, produce a detailed outline for the regenerated SPD. Use this exact format for each section:
+
+## SECTION 1: [Section Title]
+Brief description of what this section covers and key points to include.
+
+## SECTION 2: [Section Title]
+Brief description of what this section covers and key points to include.
+
+Continue for ALL sections needed to produce a complete SPD. Include every topic area covered by the original SPD and its amendments. Be comprehensive — do not skip sections. Typical SPDs include sections like: Introduction/Plan Overview, Eligibility, Enrollment, Contributions, Vesting, Benefits, Claims & Appeals, COBRA, ERISA Rights, etc.
+
+For each section, note any amendments that modify the original language and what the final merged language should reflect.
+
+Return ONLY the outline with no preamble or commentary.`;
+
+        try {
+          const response = await this.streamRegenResponse(prompt, 'regen-outline');
+          this.state.regenOutline = response;
+          this.state.isRegenStreaming = false;
+          this.renderRegenOutlineView();
+          this.saveDraftState();
+        } catch (error) {
+          console.error('Outline generation error:', error);
+          this.state.isRegenStreaming = false;
+          const output = document.getElementById('draft-output');
+          if (output) output.innerHTML = `<div style="padding:24px;color:#c00">Error: ${this.escapeHtml(error.message)}</div>`;
+        }
+      },
+
+      /**
+       * Render the style guide generation/editing view (Phase B)
+       */
+      renderRegenStyleGuideView() {
+        const output = document.getElementById('draft-output');
+        if (!output) return;
+
+        // Auto-generate style guide on first visit (no separate button click needed)
+        if (!this.state.regenStyleGuide && !this.state.isRegenStreaming) {
+          this.generateRegenStyleGuide();
+          return; // generateRegenStyleGuide will re-render
+        }
+
+        let html = '';
+
+        // Phase navigation
+        html += `<div class="regen-phase-nav">`;
+        html += `<button onclick="ChatApp.setRegenPhase('outline')">&#8592; Back to Outline</button>`;
+        html += `<span class="draft-phase-label">Step 2 of 3 &mdash; Style Guide</span>`;
+        html += `<button class="primary" onclick="ChatApp.beginRegenGeneration()" ${!this.state.regenStyleGuide ? 'disabled' : ''}>Begin Document Generation &#8594;</button>`;
+        html += `</div>`;
+
+        if (this.state.regenStyleGuide) {
+          html += `<div class="draft-toolbar">`;
+          html += `<span class="draft-badge">Edit style guide before generating</span>`;
+          html += `<button class="draft-rework-btn" onclick="ChatApp.generateRegenStyleGuide()">Regenerate Style Guide</button>`;
+          html += `</div>`;
+          html += `<div class="draft-editor" contenteditable="true" id="regen-styleguide-editor">${marked.parse(this.state.regenStyleGuide)}</div>`;
+        } else if (this.state.isRegenStreaming) {
+          html += `<div class="draft-streaming"><em>Analyzing writing style...</em><span class="streaming-cursor"></span></div>`;
+        }
+
+        output.innerHTML = html;
+
+        if (this.state.regenStyleGuide) {
+          const editor = document.getElementById('regen-styleguide-editor');
+          if (editor) {
+            let saveTimer = null;
+            editor.addEventListener('input', () => {
+              clearTimeout(saveTimer);
+              saveTimer = setTimeout(() => {
+                this.state.regenStyleGuide = editor.innerText;
+                this.saveDraftState();
+              }, 2000);
+            });
+          }
+          this.initDraftEditorEvents('regen-styleguide-editor');
+        }
+      },
+
+      /**
+       * Generate style guide via single API call
+       */
+      async generateRegenStyleGuide() {
+        this.state.isRegenStreaming = true;
+        this.state.currentRegenResponse = '';
+        this.state.regenStyleGuide = null;
+        this.renderRegenStyleGuideView();
+
+        const prompt = `You are a technical writing analyst. Analyze the attached pension plan documents (SPD and amendments) and produce a detailed WRITING STYLE GUIDE that captures how these documents are written.
+
+Focus on:
+
+1. **Sentence Structure**: Average length, complexity, use of subordinate clauses, passive vs active voice
+2. **Vocabulary & Terminology**: Specialized terms, defined terms (how they're introduced), acronym usage
+3. **Formatting Conventions**: How headings are structured, numbered vs lettered lists, paragraph organization
+4. **Definition Patterns**: How new terms are defined (inline, in a definitions section, parenthetical)
+5. **Cross-Reference Style**: How sections reference each other ("as described in Section X" vs "see Section X")
+6. **Legal Precision Patterns**: Qualifiers used, conditional language ("provided that", "notwithstanding"), citation formats
+7. **Tone & Register**: Formal/informal spectrum, use of "you" vs "the Participant", personal vs impersonal
+8. **Document Structure**: How sections are organized, use of subsections, transition patterns between topics
+
+Produce a structured style guide that a writer could use to produce new content that matches the original documents' style exactly. Be specific and include examples from the documents where helpful.
+
+Return ONLY the style guide with no preamble.`;
+
+        try {
+          const response = await this.streamRegenResponse(prompt, 'regen-styleguide');
+          this.state.regenStyleGuide = response;
+          this.state.isRegenStreaming = false;
+          this.renderRegenStyleGuideView();
+          this.saveDraftState();
+        } catch (error) {
+          console.error('Style guide generation error:', error);
+          this.state.isRegenStreaming = false;
+          const output = document.getElementById('draft-output');
+          if (output) output.innerHTML = `<div style="padding:24px;color:#c00">Error: ${this.escapeHtml(error.message)}</div>`;
+        }
+      },
+
+      /**
+       * Parse the outline markdown into sections array
+       */
+      parseOutlineIntoSections(markdown) {
+        const sections = [];
+        const regex = /^## SECTION (\d+):\s*(.+)$/gm;
+        let match;
+        const lines = markdown.split('\n');
+
+        while ((match = regex.exec(markdown)) !== null) {
+          const sectionNumber = parseInt(match[1], 10);
+          const title = match[2].trim();
+
+          // Find description (lines after the heading until next heading or end)
+          const headingLineIdx = lines.findIndex((line, idx) => {
+            // Match the exact heading
+            return line.trim() === match[0].trim();
+          });
+          let description = '';
+          if (headingLineIdx !== -1) {
+            const descLines = [];
+            for (let i = headingLineIdx + 1; i < lines.length; i++) {
+              if (lines[i].match(/^## SECTION \d+:/)) break;
+              descLines.push(lines[i]);
+            }
+            description = descLines.join('\n').trim();
+          }
+
+          sections.push({
+            sectionNumber,
+            title,
+            description,
+            status: 'pending',   // 'pending' | 'generating' | 'complete' | 'error' | 'truncated'
+            content: null,
+            definitions: [],
+            errorMessage: null
+          });
+        }
+
+        return sections;
+      },
+
+      /**
+       * Begin section-by-section generation (transition from style guide to generating)
+       */
+      beginRegenGeneration() {
+        // Read latest editor content
+        const editor = document.getElementById('regen-styleguide-editor');
+        if (editor) this.state.regenStyleGuide = editor.innerText;
+
+        // Also read outline editor if it exists
+        const outlineEditor = document.getElementById('regen-outline-editor');
+        if (outlineEditor) this.state.regenOutline = outlineEditor.innerText;
+
+        // Parse outline into sections
+        this.state.regenSections = this.parseOutlineIntoSections(this.state.regenOutline || '');
+        if (this.state.regenSections.length === 0) {
+          this.showAppDialog({ title: 'No Sections Found', message: 'Could not parse sections from the outline. Ensure sections use the format: ## SECTION N: Title' });
+          return;
+        }
+
+        this.state.regenPhase = 'generating';
+        this.state.regenDefinitionsRegistry = [];
+        this.state.regenIsPaused = false;
+        this.state.regenAssembledDocument = null;
+        this.renderRegenProgressView();
+        this.saveDraftState();
+
+        // Start generation
+        this.startRegenGeneration();
+      },
+
+      /**
+       * Render the section-by-section generation progress view
+       */
+      renderRegenProgressView() {
+        const output = document.getElementById('draft-output');
+        if (!output) return;
+
+        const sections = this.state.regenSections;
+        const completed = sections.filter(s => s.status === 'complete').length;
+        const errors = sections.filter(s => s.status === 'error' || s.status === 'truncated').length;
+        const total = sections.length;
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const allDone = sections.every(s => s.status === 'complete' || s.status === 'error' || s.status === 'truncated');
+
+        // Pause icon (two vertical bars)
+        const pauseSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`;
+        // Play/resume icon
+        const playSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>`;
+        // Stop icon
+        const stopSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>`;
+
+        let html = '';
+
+        // Phase nav
+        html += `<div class="regen-phase-nav">`;
+        html += `<button onclick="ChatApp.setRegenPhase('style-guide')">&#8592; Back to Style Guide</button>`;
+        html += `<span class="draft-phase-label">Step 3 of 3 &mdash; Generating Sections</span>`;
+        html += `<span></span>`;
+        html += `</div>`;
+
+        html += `<div style="padding: 20px 24px;">`;
+
+        // Progress bar row with inline icon controls
+        html += `<div style="display:flex;align-items:center;gap:12px;">`;
+        html += `<div class="regen-progress-bar" style="flex:1"><div class="regen-progress-bar-fill" style="width:${pct}%"></div></div>`;
+        html += `<span style="font-size:12px;color:var(--text-muted);white-space:nowrap;min-width:30px">${pct}%</span>`;
+        if (!allDone) {
+          html += `<div class="regen-progress-controls">`;
+          if (this.state.regenIsPaused) {
+            html += `<button class="regen-icon-btn" onclick="ChatApp.resumeRegenGeneration()" title="Resume">${playSvg}</button>`;
+          } else {
+            html += `<button class="regen-icon-btn" onclick="ChatApp.pauseRegenGeneration()" title="Pause">${pauseSvg}</button>`;
+          }
+          html += `<button class="regen-icon-btn stop" onclick="ChatApp.cancelRegenGeneration()" title="Stop">${stopSvg}</button>`;
+          html += `</div>`;
+        }
+        html += `</div>`;
+
+        // Stats line
+        html += `<div class="regen-progress-stats">`;
+        html += `<span>${completed} of ${total} sections complete${errors > 0 ? ` (${errors} with issues)` : ''}${this.state.regenIsPaused ? ' &mdash; Paused' : ''}</span>`;
+        html += `</div>`;
+
+        // Section list
+        html += `<ul class="regen-section-list">`;
+        for (let i = 0; i < sections.length; i++) {
+          const s = sections[i];
+          const statusClass = s.status;
+          let statusIcon = '';
+          switch (s.status) {
+            case 'pending': statusIcon = s.sectionNumber; break;
+            case 'generating': statusIcon = '...'; break;
+            case 'complete': statusIcon = '&#10003;'; break;
+            case 'error': statusIcon = '&#10007;'; break;
+            case 'truncated': statusIcon = '!'; break;
+          }
+
+          html += `<div class="regen-section-item ${statusClass}">`;
+          html += `<div class="regen-section-status">${statusIcon}</div>`;
+          html += `<div class="regen-section-info">`;
+          html += `<div class="regen-section-title">Section ${s.sectionNumber}: ${this.escapeHtml(s.title)}</div>`;
+
+          // Currently generating: show full expanded streaming content
+          if (s.status === 'generating' && this.state.currentRegenResponse) {
+            html += `<div class="regen-section-expanded">${marked.parse(this.state.currentRegenResponse)}<span class="streaming-cursor"></span></div>`;
+          }
+          // Completed: show collapsed preview (first ~100 chars of content)
+          if (s.status === 'complete' && s.content) {
+            const preview = s.content.replace(/^#+\s*.+\n*/m, '').substring(0, 120).replace(/\n/g, ' ').trim();
+            html += `<div class="regen-section-collapsed" onclick="ChatApp.toggleSectionPreview(${i})" title="Click to expand">${this.escapeHtml(preview)}...</div>`;
+            // Expanded view (toggled)
+            if (this._expandedSectionPreview === i) {
+              html += `<div class="regen-section-expanded" style="max-height:40vh">${marked.parse(s.content)}</div>`;
+            }
+          }
+          if (s.status === 'error' && s.errorMessage) {
+            html += `<div class="regen-section-error">${this.escapeHtml(s.errorMessage)}</div>`;
+          }
+          if (s.status === 'truncated') {
+            html += `<div class="regen-section-error">Section output was truncated (hit token limit)</div>`;
+            if (s.content) {
+              const preview = s.content.substring(0, 120).replace(/\n/g, ' ').trim();
+              html += `<div class="regen-section-collapsed" onclick="ChatApp.toggleSectionPreview(${i})" title="Click to expand">${this.escapeHtml(preview)}...</div>`;
+              if (this._expandedSectionPreview === i) {
+                html += `<div class="regen-section-expanded" style="max-height:40vh">${marked.parse(s.content)}</div>`;
+              }
+            }
+          }
+
+          html += `</div>`; // section-info
+
+          // Retry button for failed/truncated
+          if (s.status === 'error' || s.status === 'truncated') {
+            html += `<div class="regen-section-actions"><button onclick="ChatApp.retryRegenSection(${i})">Retry</button></div>`;
+          }
+
+          html += `</div>`; // section-item
+        }
+        html += `</ul>`;
+
+        // Bottom controls (only assemble when done)
+        if (allDone && completed > 0) {
+          html += `<div class="regen-controls">`;
+          html += `<button class="regen-assemble-btn" onclick="ChatApp.assembleAndShowDocument()">Assemble Document</button>`;
+          html += `</div>`;
+        }
+
+        html += `</div>`; // padding wrapper
+
+        output.innerHTML = html;
+
+        // Auto-scroll the expanded streaming section to bottom
+        const expandedEl = output.querySelector('.regen-section-expanded');
+        if (expandedEl && !allDone) {
+          expandedEl.scrollTop = expandedEl.scrollHeight;
+        }
+      },
+
+      /**
+       * Toggle expanded preview of a completed section
+       */
+      toggleSectionPreview(sectionIndex) {
+        this._expandedSectionPreview = this._expandedSectionPreview === sectionIndex ? null : sectionIndex;
+        this.renderRegenProgressView();
+      },
+
+      /**
+       * Main generation loop — iterate through sections sequentially
+       */
+      async startRegenGeneration() {
+        const sections = this.state.regenSections;
+
+        for (let i = 0; i < sections.length; i++) {
+          // Skip already completed sections (for resume)
+          if (sections[i].status === 'complete') continue;
+
+          // Check for pause
+          if (this.state.regenIsPaused) {
+            this.renderRegenProgressView();
+            return;
+          }
+
+          // Check for cancel
+          if (this.state.regenPhase !== 'generating') return;
+
+          sections[i].status = 'generating';
+          this.state.currentRegenResponse = '';
+          this.renderRegenProgressView();
+
+          try {
+            const prompt = this.buildSectionPrompt(sections[i], i, sections);
+            const response = await this.streamRegenSectionResponse(prompt, i);
+
+            // Parse content and definitions
+            const parsed = this.parseSectionResponse(response.text);
+            sections[i].content = parsed.content;
+
+            // Accumulate definitions
+            if (parsed.definitions.length > 0) {
+              for (const def of parsed.definitions) {
+                def.definedInSection = sections[i].sectionNumber;
+                this.state.regenDefinitionsRegistry.push(def);
+              }
+              sections[i].definitions = parsed.definitions;
+            }
+
+            // Check for truncation
+            if (response.finishReason === 'MAX_TOKENS') {
+              sections[i].status = 'truncated';
+            } else {
+              sections[i].status = 'complete';
+            }
+          } catch (error) {
+            console.error(`Section ${i} generation error:`, error);
+            sections[i].status = 'error';
+            sections[i].errorMessage = error.message;
+          }
+
+          this.state.currentRegenResponse = '';
+          this.renderRegenProgressView();
+          this.saveDraftState();
+        }
+      },
+
+      /**
+       * Build the prompt for a single section
+       */
+      buildSectionPrompt(section, index, allSections) {
+        const outline = this.state.regenOutline || '';
+        const styleGuide = this.state.regenStyleGuide || '';
+        const comparisonCtx = this.state.comparisonResponse || '';
+        const languageCtx = this.state.languageResponse || '';
+
+        // Previous section tail for transition continuity
+        let previousTail = '';
+        if (index > 0) {
+          const prevSection = allSections[index - 1];
+          if (prevSection.content) {
+            const words = prevSection.content.split(/\s+/);
+            previousTail = words.slice(-200).join(' '); // ~800 words worth
+          }
+        }
+
+        // Definitions registry
+        let defsContext = '';
+        if (this.state.regenDefinitionsRegistry.length > 0) {
+          defsContext = '\nDEFINITIONS REGISTRY (use these terms consistently):\n';
+          for (const d of this.state.regenDefinitionsRegistry) {
+            defsContext += `- **${d.term}**: ${d.definition} (from Section ${d.definedInSection})\n`;
+          }
+          defsContext += '\n';
+        }
+
+        // Section-specific actionable notes
+        const actionableNotes = (this.state.notes || []).filter(n => n.note_type === 'actionable');
+        let notesCtx = '';
+        if (actionableNotes.length > 0) {
+          // Include notes that are relevant to this section's title/description
+          const sectionKeywords = (section.title + ' ' + section.description).toLowerCase();
+          const relevant = actionableNotes.filter(n => {
+            const noteText = (n.anchor_text + ' ' + n.content).toLowerCase();
+            return sectionKeywords.split(/\s+/).some(kw => kw.length > 3 && noteText.includes(kw));
+          });
+          if (relevant.length > 0) {
+            notesCtx = '\nACTIONABLE INSTRUCTIONS (apply to this section):\n';
+            for (const note of relevant) {
+              notesCtx += `- ${note.content}\n`;
+            }
+            notesCtx += '\n';
+          }
+        }
+
+        return `You are writing Section ${section.sectionNumber} of a regenerated Summary Plan Description (SPD) that incorporates all amendments into the base document.
+
+FULL DOCUMENT OUTLINE (for structural context):
+${outline}
+
+WRITING STYLE GUIDE (match this voice and formatting exactly):
+${styleGuide}
+
+${defsContext}
+
+COMPARISON DATA (amendments vs original):
+${comparisonCtx}
+
+DETAILED LANGUAGE WITH CITATIONS:
+${languageCtx}
+
+${previousTail ? `PREVIOUS SECTION ENDING (maintain smooth transition):\n...${previousTail}\n\n` : ''}${notesCtx}
+
+YOUR TASK: Write Section ${section.sectionNumber}: ${section.title}
+
+Section description from outline:
+${section.description}
+
+Requirements:
+1. Write the COMPLETE text for this section as it would appear in the final SPD
+2. Incorporate all relevant amendments — the output should reflect the CURRENT state of the plan
+3. Match the writing style guide exactly (tone, sentence structure, formatting conventions)
+4. Use defined terms consistently from the definitions registry
+5. If this section introduces new defined terms, append them after a \`---DEFINITIONS---\` delimiter at the end
+6. Format: Use the section's heading as an H2 (## heading), with subsections as H3/H4 as appropriate
+7. Do not include any meta-commentary or notes to the editor — write the actual SPD text
+
+If new terms are defined in this section, append after your section content:
+
+---DEFINITIONS---
+Term: Definition
+Term: Definition
+
+Return ONLY the section content (and optional definitions block). No preamble.`;
+      },
+
+      /**
+       * Stream a response for a single section with finish reason detection
+       */
+      async streamRegenSectionResponse(prompt, sectionIndex) {
+        this.state.abortController = new AbortController();
+
+        const parts = [];
+
+        // Upload files for context
+        const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+        uploadedFiles.forEach(file => {
+          if (file.extractedText) {
+            parts.push({ text: `[Document: ${file.filename}]\n${file.extractedText}` });
+          } else if (file.base64Data) {
+            parts.push({
+              inline_data: {
+                mime_type: file.mimeType,
+                data: file.base64Data
+              }
+            });
+          }
+        });
+
+        parts.push({ text: prompt });
+
+        const contents = [{ role: 'user', parts }];
+        const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
+
+        const requestBody = {
+          systemInstruction: {
+            parts: [{ text: 'You are a pension plan document specialist writing sections of a Summary Plan Description. Write precise, complete SPD text.' }]
+          },
+          contents: contents,
+          generationConfig: {
+            maxOutputTokens: 65536,
+            temperature: 1.0,
+            thinkingConfig: {
+              thinkingLevel: CONFIG.THINKING_LEVEL || 'high'
+            }
+          }
+        };
+
+        const response = await this.fetchWithRetry(
+          this.getApiUrl(model),
+          {
+            method: 'POST',
+            headers: this.getApiHeaders(),
+            body: JSON.stringify(requestBody),
+            signal: this.state.abortController.signal
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API request failed (${response.status}): ${errorText}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        let buffer = '';
+        let finishReason = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const chunk = JSON.parse(line.slice(6));
+                const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  fullResponse += text;
+                  this.state.currentRegenResponse = fullResponse;
+                  // Throttled re-render
+                  if (!this._regenRenderTimer) {
+                    this._regenRenderTimer = setTimeout(() => {
+                      this._regenRenderTimer = null;
+                      this.renderRegenProgressView();
+                    }, 300);
+                  }
+                }
+                // Capture finish reason
+                const fr = chunk.candidates?.[0]?.finishReason;
+                if (fr) finishReason = fr;
+              } catch (e) {
+                // Skip malformed JSON
+              }
+            }
+          }
+        }
+
+        return { text: fullResponse, finishReason };
+      },
+
+      /**
+       * Stream a response for outline/style-guide generation (with live display)
+       */
+      async streamRegenResponse(prompt, displayTarget) {
+        this.state.abortController = new AbortController();
+
+        const parts = [];
+        const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+        uploadedFiles.forEach(file => {
+          if (file.extractedText) {
+            parts.push({ text: `[Document: ${file.filename}]\n${file.extractedText}` });
+          } else if (file.base64Data) {
+            parts.push({
+              inline_data: {
+                mime_type: file.mimeType,
+                data: file.base64Data
+              }
+            });
+          }
+        });
+
+        parts.push({ text: prompt });
+
+        const contents = [{ role: 'user', parts }];
+        const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
+
+        const requestBody = {
+          systemInstruction: {
+            parts: [{ text: 'You are a helpful assistant specializing in pension plan document analysis.' }]
+          },
+          contents: contents,
+          generationConfig: {
+            maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 32768,
+            temperature: 1.0,
+            thinkingConfig: {
+              thinkingLevel: CONFIG.THINKING_LEVEL || 'high'
+            }
+          }
+        };
+
+        const response = await this.fetchWithRetry(
+          this.getApiUrl(model),
+          {
+            method: 'POST',
+            headers: this.getApiHeaders(),
+            body: JSON.stringify(requestBody),
+            signal: this.state.abortController.signal
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API request failed (${response.status}): ${errorText}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const chunk = JSON.parse(line.slice(6));
+                const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  fullResponse += text;
+                  // Update streaming display
+                  const output = document.getElementById('draft-output');
+                  if (output && this.state.isRegenStreaming) {
+                    output.innerHTML = `<div class="draft-streaming">${marked.parse(fullResponse)}<span class="streaming-cursor"></span></div>`;
+                  }
+                }
+              } catch (e) {
+                // Skip malformed JSON
+              }
+            }
+          }
+        }
+
+        return fullResponse;
+      },
+
+      /**
+       * Parse section response to split content from definitions
+       */
+      parseSectionResponse(response) {
+        const delimiterIndex = response.indexOf('---DEFINITIONS---');
+        if (delimiterIndex === -1) {
+          return { content: response.trim(), definitions: [] };
+        }
+
+        const content = response.substring(0, delimiterIndex).trim();
+        const defsBlock = response.substring(delimiterIndex + '---DEFINITIONS---'.length).trim();
+
+        const definitions = [];
+        const lines = defsBlock.split('\n');
+        for (const line of lines) {
+          const match = line.match(/^(.+?):\s*(.+)$/);
+          if (match) {
+            definitions.push({
+              term: match[1].trim(),
+              definition: match[2].trim()
+            });
+          }
+        }
+
+        return { content, definitions };
+      },
+
+      /**
+       * Assemble all completed sections into a single document
+       */
+      assembleSections(sections) {
+        let doc = '';
+        for (const s of sections) {
+          if (s.content) {
+            doc += s.content + '\n\n';
+          } else if (s.status === 'error') {
+            doc += `## Section ${s.sectionNumber}: ${s.title}\n\n[ERROR: This section failed to generate. ${s.errorMessage || ''}]\n\n`;
+          } else if (s.status === 'truncated') {
+            doc += s.content + '\n\n[TRUNCATED: This section was cut short by token limits.]\n\n';
+          }
+        }
+        return doc.trim();
+      },
+
+      /**
+       * Assemble sections and transition to document view
+       */
+      assembleAndShowDocument() {
+        this.state.regenAssembledDocument = this.assembleSections(this.state.regenSections);
+        this.state.regenPhase = 'complete';
+        this.state.draftContent = this.state.regenAssembledDocument; // For export compatibility
+        this.renderRegenDocumentView();
+        this.saveDraftState();
+      },
+
+      /**
+       * Render the assembled document in an editable view
+       */
+      renderRegenDocumentView() {
+        const output = document.getElementById('draft-output');
+        if (!output) return;
+
+        const content = this.state.regenAssembledDocument || '';
+
+        let html = '';
+
+        // Phase nav
+        html += `<div class="regen-phase-nav">`;
+        html += `<button onclick="ChatApp.setRegenPhase('generating')">&#8592; Back to Progress</button>`;
+        html += `<span class="draft-phase-label">Regenerated SPD Document</span>`;
+        html += `<span></span>`;
+        html += `</div>`;
+
+        // Toolbar
+        html += `<div class="draft-toolbar">`;
+        html += `<span class="draft-badge">DRAFT - Not Final</span>`;
+        html += `</div>`;
+
+        // Editable content
+        html += `<div class="draft-editor" contenteditable="true" id="draft-document-editor">${marked.parse(content)}</div>`;
+
+        output.innerHTML = html;
+
+        // Show export button
+        const exportBtn = document.getElementById('export-draft-btn');
+        if (exportBtn) exportBtn.style.display = 'inline-flex';
+
+        // Auto-save on edit
+        const editor = document.getElementById('draft-document-editor');
+        if (editor) {
+          let saveTimer = null;
+          editor.addEventListener('input', () => {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+              this.state.regenAssembledDocument = editor.innerText;
+              this.state.draftContent = editor.innerText;
+              this.saveDraftState();
+            }, 2000);
+          });
+        }
+        this.initDraftEditorEvents('draft-document-editor');
+      },
+
+      /**
+       * Retry a failed or truncated section
+       */
+      async retryRegenSection(sectionIndex) {
+        const sections = this.state.regenSections;
+        const section = sections[sectionIndex];
+        if (!section) return;
+
+        section.status = 'generating';
+        section.content = null;
+        section.errorMessage = null;
+        this.state.currentRegenResponse = '';
+        this.renderRegenProgressView();
+
+        try {
+          const prompt = this.buildSectionPrompt(section, sectionIndex, sections);
+          const response = await this.streamRegenSectionResponse(prompt, sectionIndex);
+
+          const parsed = this.parseSectionResponse(response.text);
+          section.content = parsed.content;
+
+          if (parsed.definitions.length > 0) {
+            for (const def of parsed.definitions) {
+              def.definedInSection = section.sectionNumber;
+              // Avoid duplicates in registry
+              const existing = this.state.regenDefinitionsRegistry.findIndex(d => d.term === def.term);
+              if (existing >= 0) {
+                this.state.regenDefinitionsRegistry[existing] = def;
+              } else {
+                this.state.regenDefinitionsRegistry.push(def);
+              }
+            }
+            section.definitions = parsed.definitions;
+          }
+
+          section.status = response.finishReason === 'MAX_TOKENS' ? 'truncated' : 'complete';
+        } catch (error) {
+          console.error(`Section ${sectionIndex} retry error:`, error);
+          section.status = 'error';
+          section.errorMessage = error.message;
+        }
+
+        this.state.currentRegenResponse = '';
+        this.renderRegenProgressView();
+        this.saveDraftState();
+      },
+
+      /**
+       * Pause section generation
+       */
+      pauseRegenGeneration() {
+        this.state.regenIsPaused = true;
+        if (this.state.abortController) {
+          this.state.abortController.abort();
+        }
+        this.renderRegenProgressView();
+      },
+
+      /**
+       * Resume section generation after pause
+       */
+      resumeRegenGeneration() {
+        this.state.regenIsPaused = false;
+        this.renderRegenProgressView();
+        this.startRegenGeneration();
+      },
+
+      /**
+       * Cancel section generation entirely
+       */
+      cancelRegenGeneration() {
+        this.state.regenIsPaused = false;
+        if (this.state.abortController) {
+          this.state.abortController.abort();
+        }
+        // Mark any generating sections as error
+        for (const s of this.state.regenSections) {
+          if (s.status === 'generating') {
+            s.status = 'error';
+            s.errorMessage = 'Cancelled by user';
+          }
+        }
+        this.renderRegenProgressView();
+        this.saveDraftState();
+      },
+
+      /**
+       * Navigate to a specific regen phase
+       */
+      setRegenPhase(phase) {
+        this.state.regenPhase = phase;
+        this.renderRegenTab();
+      },
+
+      // ===== End SPD Regeneration Methods =====
+
       /**
        * Set up selection events on draft editors for AI rework hint
        */
@@ -8401,11 +9681,11 @@ Return the draft as a well-formatted markdown document.`;
         let editorEl = null;
         if (sel && sel.rangeCount > 0) {
           savedRange = sel.getRangeAt(0).cloneRange();
-          editorEl = document.getElementById('draft-document-editor')?.contains(sel.anchorNode)
-            ? document.getElementById('draft-document-editor')
-            : document.getElementById('draft-integration-editor')?.contains(sel.anchorNode)
-              ? document.getElementById('draft-integration-editor')
-              : null;
+          const editorIds = ['draft-document-editor', 'draft-integration-editor', 'regen-outline-editor', 'regen-styleguide-editor'];
+          for (const eid of editorIds) {
+            const el = document.getElementById(eid);
+            if (el && el.contains(sel.anchorNode)) { editorEl = el; break; }
+          }
         }
 
         this.hideDraftReworkHint();
@@ -8472,10 +9752,19 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           // Update state based on which editor was targeted
           const integrationEditor = document.getElementById('draft-integration-editor');
           const documentEditor = document.getElementById('draft-document-editor');
-          if (editorEl === integrationEditor || (!editorEl && integrationEditor)) {
+          const outlineEditor = document.getElementById('regen-outline-editor');
+          const styleguideEditor = document.getElementById('regen-styleguide-editor');
+          if (editorEl === outlineEditor && outlineEditor) {
+            this.state.regenOutline = outlineEditor.innerText;
+          } else if (editorEl === styleguideEditor && styleguideEditor) {
+            this.state.regenStyleGuide = styleguideEditor.innerText;
+          } else if (editorEl === integrationEditor || (!editorEl && integrationEditor)) {
             this.state.draftIntegratedColumn = integrationEditor.innerText;
           } else if (editorEl === documentEditor || (!editorEl && documentEditor)) {
             this.state.draftContent = documentEditor.innerText;
+            if (this.state.analysisMode === 'amendment-tracking') {
+              this.state.regenAssembledDocument = documentEditor.innerText;
+            }
           }
           this.saveDraftState();
         } catch (error) {
@@ -8508,7 +9797,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           }
         };
 
-        const response = await fetch(
+        const response = await this.fetchWithRetry(
           this.getApiUrl(model),
           {
             method: 'POST',
@@ -8559,13 +9848,38 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
 
         clearTimeout(this._draftSaveTimer);
         this._draftSaveTimer = setTimeout(() => {
-          const draftState = {
-            selections: this.state.draftSelections,
-            cellPrompts: this.state.draftCellPrompts,
-            integratedColumn: this.state.draftIntegratedColumn,
-            draftContent: this.state.draftContent,
-            phase: this.state.draftPhase
-          };
+          let draftState;
+
+          if (this.state.analysisMode === 'amendment-tracking' && (this.state.regenOutline || this.state.regenPhase !== 'outline')) {
+            // Save regen state for amendment-tracking mode
+            draftState = {
+              regenMode: true,
+              regenOutline: this.state.regenOutline,
+              regenStyleGuide: this.state.regenStyleGuide,
+              regenPhase: this.state.regenPhase,
+              regenSections: this.state.regenSections.map(s => ({
+                sectionNumber: s.sectionNumber,
+                title: s.title,
+                description: s.description,
+                status: s.status,
+                content: s.content,
+                definitions: s.definitions,
+                errorMessage: s.errorMessage
+              })),
+              regenDefinitionsRegistry: this.state.regenDefinitionsRegistry,
+              regenAssembledDocument: this.state.regenAssembledDocument,
+              draftContent: this.state.draftContent
+            };
+          } else {
+            // Save cross-plan draft state (unchanged)
+            draftState = {
+              selections: this.state.draftSelections,
+              cellPrompts: this.state.draftCellPrompts,
+              integratedColumn: this.state.draftIntegratedColumn,
+              draftContent: this.state.draftContent,
+              phase: this.state.draftPhase
+            };
+          }
 
           fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
             method: 'PATCH',
@@ -9507,6 +10821,15 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.draftPhase = 'selection';
         this.state.isDraftStreaming = false;
         this.state.currentDraftResponse = '';
+        this.state.regenOutline = null;
+        this.state.regenStyleGuide = null;
+        this.state.regenSections = [];
+        this.state.regenDefinitionsRegistry = [];
+        this.state.regenPhase = 'outline';
+        this.state.regenAssembledDocument = null;
+        this.state.regenIsPaused = false;
+        this.state.isRegenStreaming = false;
+        this.state.currentRegenResponse = '';
       },
 
       /**
@@ -9565,8 +10888,8 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         if (this.state.comparisonResponse) document.getElementById('export-comparison-btn').style.display = 'inline-flex';
         if (this.state.languageResponse) document.getElementById('export-language-btn').style.display = 'inline-flex';
 
-        // Enable draft tab if comparison data exists
-        if (this.state.comparisonTableData) {
+        // Enable draft tab if comparison data exists or if amendment-tracking mode
+        if (this.state.comparisonTableData || this.state.analysisMode === 'amendment-tracking') {
           const draftTab = document.querySelector('.draft-tab');
           if (draftTab) draftTab.disabled = false;
         }
@@ -9578,11 +10901,27 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             try { ds = JSON.parse(ds); } catch (e) { ds = null; }
           }
           if (ds) {
-            this.state.draftSelections = ds.selections || {};
-            this.state.draftCellPrompts = ds.cellPrompts || {};
-            this.state.draftIntegratedColumn = ds.integratedColumn || null;
-            this.state.draftContent = ds.draftContent || null;
-            this.state.draftPhase = ds.phase || 'selection';
+            if (ds.regenMode) {
+              // Restore regen state (amendment-tracking mode)
+              this.state.regenOutline = ds.regenOutline || null;
+              this.state.regenStyleGuide = ds.regenStyleGuide || null;
+              this.state.regenPhase = ds.regenPhase || 'outline';
+              this.state.regenSections = ds.regenSections || [];
+              this.state.regenDefinitionsRegistry = ds.regenDefinitionsRegistry || [];
+              this.state.regenAssembledDocument = ds.regenAssembledDocument || null;
+              this.state.draftContent = ds.draftContent || null;
+              // If was mid-generation, show progress (don't auto-resume)
+              if (this.state.regenPhase === 'generating') {
+                this.state.regenIsPaused = true;
+              }
+            } else {
+              // Restore cross-plan draft state (unchanged)
+              this.state.draftSelections = ds.selections || {};
+              this.state.draftCellPrompts = ds.cellPrompts || {};
+              this.state.draftIntegratedColumn = ds.integratedColumn || null;
+              this.state.draftContent = ds.draftContent || null;
+              this.state.draftPhase = ds.phase || 'selection';
+            }
           }
           this.state._savedDraftState = null;
         }
@@ -10003,6 +11342,17 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.draftPhase = 'selection';
         this.state.isDraftStreaming = false;
         this.state.currentDraftResponse = '';
+
+        // Reset regen state
+        this.state.regenOutline = null;
+        this.state.regenStyleGuide = null;
+        this.state.regenSections = [];
+        this.state.regenDefinitionsRegistry = [];
+        this.state.regenPhase = 'outline';
+        this.state.regenAssembledDocument = null;
+        this.state.regenIsPaused = false;
+        this.state.isRegenStreaming = false;
+        this.state.currentRegenResponse = '';
 
         // Clear uploaded files
         this.state.uploadedFiles = [];
