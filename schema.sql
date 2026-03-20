@@ -171,3 +171,15 @@ CREATE TRIGGER update_app_settings_updated_at
     BEFORE UPDATE ON app_settings
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- Multi-turn Chat Compaction (added 2026-03-19)
+-- ============================================
+
+-- Flag for compaction summary messages in chat history
+ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS is_compaction BOOLEAN DEFAULT false;
+
+-- Allow 'system' role for compaction markers
+ALTER TABLE chat_messages DROP CONSTRAINT IF EXISTS chat_messages_role_check;
+ALTER TABLE chat_messages ADD CONSTRAINT chat_messages_role_check
+  CHECK (role IN ('user', 'assistant', 'system'));

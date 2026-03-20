@@ -8,7 +8,7 @@
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
 - **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking (single plan + amendments), or Minutes Analysis (meeting minutes/transcripts) — each mode appends context-specific addenda to all three phase prompts
 - **Interactive tables:** Sort columns, filter by value, drag-reorder rows via visible handles, and ask AI to group related provisions
-- **Interactive chat:** Ask follow-up questions about the analysis with full document context
+- **Multi-turn chat with compaction:** Ask follow-up questions with full conversation history; long sessions auto-summarize to stay within context limits
 - **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
 - **Merge workspace:** Select provisions from the comparison table, generate an AI-synthesized integrated column, then produce a formatted SPD draft — all editable with inline AI rework
@@ -277,6 +277,33 @@ gitGraph TB:
 - Minutes Analysis: columns represent meetings chronologically, rows track topics/decisions/action items with status and responsible parties
 - Selected mode persisted to `analysis_mode` column on `analyses` table and restored on session reload
 - DB migration required: `ALTER TABLE analyses ADD COLUMN analysis_mode VARCHAR(30) DEFAULT 'cross-plan'`
+
+**March 16, 2026 — SPD Regeneration Workflow for Amendment Tracking**
+- When analysis mode is "Amendment Tracking," the Merge tab provides a full SPD regeneration workflow instead of the cross-plan selection/integration/draft pipeline
+- Three-phase generation: Outline (editable) → Style Guide (editable) → Section-by-Section Generation → Assembled Document
+- Definitions Registry Protocol: each section prompt includes `---DEFINITIONS---` delimiter; definitions accumulate across sections for consistency
+- Section generation runs sequentially with previous section tail (~200 words) for continuity, plus section-specific actionable notes
+- Pause/resume support: abort current stream and skip to next section, or resume from where you left off
+- Per-section retry for failed generations; truncation detection via `finishReason === 'MAX_TOKENS'`
+- Final assembled document is editable with inline AI Rework and exports to DOCX, PDF, or TXT
+
+**March 18, 2026 — Vertex AI Support with Admin Panel**
+- Admin users can configure Vertex AI as an alternative Gemini backend via the Settings modal
+- Dual-path proxy in `functions/api/gemini/[model].js`: reads `app_settings` table per-request to choose Consumer API or Vertex AI
+- JWT token minting via Web Crypto API (RS256) with automatic access token exchange
+- Admin panel: radio toggle between Consumer/Vertex AI, service account JSON upload, manual field entry, "Test Connection" button
+- Settings persisted to `app_settings` key-value table in PostgreSQL
+- Fixed Vertex AI endpoint routing and settings modal overflow issues
+
+**March 19, 2026 — Multi-Turn Chat with Compaction**
+- Refactored chat from single-prompt-per-message to true multi-turn Gemini conversation
+- Analysis context (summary, comparison, language tables) moved to `systemInstruction` instead of repeating in every message
+- Documents attached to the first user turn in `contents`, not re-uploaded per message
+- Automatic conversation compaction: after 10 turn-pairs (configurable), a cheap model (gemini-2.0-flash) summarizes the conversation history
+- Compaction summary injected into `systemInstruction` for subsequent turns; only post-compaction messages sent as `contents`
+- Visual "Conversation summarized" dividers in chat UI
+- Compaction state persisted to DB via `is_compaction` flag on `chat_messages` table and reconstructed on session reload
+- Schema migration: `is_compaction BOOLEAN` column on `chat_messages`, `system` role added to role constraint
 
 ## License
 

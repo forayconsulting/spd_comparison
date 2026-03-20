@@ -46,7 +46,7 @@ export async function onRequestGet(context) {
 
     // Get chat messages for this analysis (user-specific: only their own messages)
     const chatMessages = await sql`
-      SELECT id, role, content, created_at
+      SELECT id, role, content, is_compaction, created_at
       FROM chat_messages
       WHERE analysis_id = ${analysisId}
       ORDER BY created_at ASC
@@ -124,6 +124,7 @@ export async function onRequestGet(context) {
       chat_messages: chatMessages.map(m => ({
         role: m.role,
         content: m.content,
+        is_compaction: m.is_compaction || false,
         timestamp: m.created_at
       })),
       notes: notesWithReplies
@@ -235,11 +236,12 @@ export async function onRequestPatch(context) {
         for (const msg of new_messages) {
           if (msg.role && msg.content) {
             await sql`
-              INSERT INTO chat_messages (analysis_id, role, content, created_at)
+              INSERT INTO chat_messages (analysis_id, role, content, is_compaction, created_at)
               VALUES (
                 ${analysisId},
                 ${msg.role},
                 ${msg.content},
+                ${msg.is_compaction || false},
                 ${msg.timestamp || new Date().toISOString()}
               )
             `;

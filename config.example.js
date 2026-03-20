@@ -26,5 +26,9 @@ const CONFIG = {
   // Type: OAuth 2.0 Client ID (Web application)
   // Authorized JavaScript origins: your deployment URL + http://localhost:8788
   // Also enable the Google Sheets API in the same project
-  GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID_HERE'
+  GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID_HERE',
+
+  // Multi-turn chat compaction settings (optional)
+  // COMPACTION_MODEL: 'gemini-2.0-flash',  // Model for conversation compaction (cheap/fast)
+  // COMPACTION_THRESHOLD: 10,               // Turn-pairs before compaction triggers
 };

@@ -3102,6 +3102,35 @@
       display: inline;
     }
 
+    .chat-compaction-marker {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+    }
+
+    .compaction-line {
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .compaction-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.4);
+      white-space: nowrap;
+    }
+
+    .chat-compaction-indicator {
+      text-align: center;
+      padding: 8px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 13px;
+      font-style: italic;
+    }
+
     .chat-input-area {
       padding: 16px 20px;
       border-top: 1px solid var(--border-medium);
@@ -5150,6 +5179,11 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         isResizing: false, // Track if user is dragging resize handle
         chatPanelCollapsed: true, // Track if chat panel is collapsed (default: collapsed)
         chatPanelWidth: 400, // Width of chat panel in pixels when expanded
+        // Multi-turn chat compaction
+        chatTurnsSinceCompaction: 0,
+        compactionSummary: null,
+        compactionCount: 0,
+        isCompacting: false,
         // API key management
         sessionApiKey: null, // API key from modal (session only)
         // Google Sheets export
@@ -7479,6 +7513,13 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       async sendChatMessage(userQuestion) {
+        const compactionThreshold = (typeof CONFIG !== 'undefined' && CONFIG.COMPACTION_THRESHOLD) || 10;
+
+        // Check if compaction needed before sending
+        if (this.state.chatTurnsSinceCompaction >= compactionThreshold) {
+          await this.runCompaction();
+        }
+
         // Add user message to chat history
         this.state.chatMessages.push({
           role: 'user',
@@ -7488,10 +7529,11 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
 
         this.renderChatMessages();
 
-        // Build context-enriched prompt
-        const contextPrompt = this.buildChatContextPrompt(userQuestion);
+        // Build multi-turn contents and system instruction
+        const contents = this.buildChatContents(userQuestion);
+        const systemInstruction = this.buildChatSystemInstruction();
 
-        // Stream response with PDFs re-uploaded
+        // Stream response
         this.state.isChatStreaming = true;
         this.state.currentChatResponse = '';
 
@@ -7505,7 +7547,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         }
 
         try {
-          const response = await this.streamChatResponse(contextPrompt, true);
+          const response = await this.streamChatResponseMultiTurn(contents, systemInstruction);
 
           // Check if response is a table rearrangement command
           const rearrangement = this.parseRearrangementResponse(response);
@@ -7528,6 +7570,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
               timestamp: new Date().toISOString()
             });
           }
+
+          // Track turns for compaction
+          this.state.chatTurnsSinceCompaction++;
 
           this.renderChatMessages();
 
@@ -7552,9 +7597,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         }
       },
 
-      buildChatContextPrompt(userQuestion) {
+      buildChatSystemInstruction() {
         const fileList = this.getUploadedFileList();
-        return `You are analyzing pension plan documents. Here is the completed analysis:
+        let instruction = `You are analyzing pension plan documents. Here is the completed analysis:
 
 <document_summary>
 ${this.state.summaryResponse}
@@ -7585,48 +7630,88 @@ If the user asks you to rearrange, reorder, group, or reorganize the comparison 
 \`\`\`
 The "tab" field should be "comparison" or "language". Each row has a numeric ID starting from 0 (first data row after the header). The "rowIds" arrays should contain ALL row IDs, distributed across groups. If the user just wants to reorder without grouping, use a single group with all IDs in the desired order.
 
-${this.getTableRowReference()}
+${this.getTableRowReference()}`;
 
-User Question: ${userQuestion}`;
-      },
-
-      async streamChatResponse(prompt, uploadFiles) {
-        this.state.abortController = new AbortController();
-
-        // Build message parts
-        const parts = [];
-
-        // Re-upload PDFs
-        if (uploadFiles) {
-          const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
-          uploadedFiles.forEach(file => {
-            if (file.extractedText) {
-              // Non-PDF: send extracted text with §N markers
-              parts.push({ text: `[Document: ${file.filename}]\n${file.extractedText}` });
-            } else {
-              // PDF: send as binary inline_data
-              parts.push({
-                inline_data: {
-                  mime_type: file.mimeType,
-                  data: file.base64Data
-                }
-              });
-            }
-          });
-          console.log(`📤 Chat API Request: Uploading ${uploadedFiles.length} file(s)`);
+        if (this.state.compactionSummary) {
+          instruction += `\n\nCONVERSATION CONTEXT (summary of earlier discussion):\n${this.state.compactionSummary}`;
         }
 
-        parts.push({ text: prompt });
+        return {
+          parts: [{ text: instruction }]
+        };
+      },
 
-        const contents = [{ role: 'user', parts }];
+      buildChatContents(userQuestion) {
+        const contents = [];
+        const history = this.getMessagesSinceCompaction();
+
+        // Build file parts for the first user message
+        const fileParts = [];
+        const uploadedFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded');
+        uploadedFiles.forEach(file => {
+          if (file.extractedText) {
+            fileParts.push({ text: `[Document: ${file.filename}]\n${file.extractedText}` });
+          } else {
+            fileParts.push({
+              inline_data: {
+                mime_type: file.mimeType,
+                data: file.base64Data
+              }
+            });
+          }
+        });
+
+        let firstUserSeen = false;
+
+        for (const msg of history) {
+          const role = msg.role === 'assistant' ? 'model' : 'user';
+          const parts = [];
+
+          // Attach files to the first user message
+          if (role === 'user' && !firstUserSeen) {
+            parts.push(...fileParts);
+            firstUserSeen = true;
+          }
+
+          parts.push({ text: msg.content });
+          contents.push({ role, parts });
+        }
+
+        // Append current user question
+        const currentParts = [];
+        if (!firstUserSeen) {
+          currentParts.push(...fileParts);
+        }
+        currentParts.push({ text: userQuestion });
+        contents.push({ role: 'user', parts: currentParts });
+
+        console.log(`📤 Chat API Request: ${contents.length} turns, ${uploadedFiles.length} file(s) attached`);
+
+        return contents;
+      },
+
+      getMessagesSinceCompaction() {
+        const messages = this.state.chatMessages;
+        let lastCompactionIndex = -1;
+
+        for (let i = messages.length - 1; i >= 0; i--) {
+          if (messages[i].isCompactionMarker) {
+            lastCompactionIndex = i;
+            break;
+          }
+        }
+
+        return messages.slice(lastCompactionIndex + 1).filter(m => !m.isCompactionMarker);
+      },
+
+      async streamChatResponseMultiTurn(contents, systemInstruction) {
+        this.state.abortController = new AbortController();
 
         const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
 
         const requestBody = {
-          systemInstruction: {
-            parts: [{ text: 'You are a helpful assistant.' }]
-          },
-          contents: contents,
+          systemInstruction,
+          contents,
           generationConfig: {
             maxOutputTokens: CONFIG.MAX_OUTPUT_TOKENS || 32768,
             temperature: 1.0,
@@ -7636,7 +7721,7 @@ User Question: ${userQuestion}`;
           }
         };
 
-        console.log(`📤 Chat API Request to ${model}`);
+        console.log(`📤 Chat API Request to ${model} (${contents.length} turns)`);
 
         const response = await this.fetchWithRetry(
           this.getApiUrl(model),
@@ -7693,6 +7778,188 @@ User Question: ${userQuestion}`;
         console.log(`✅ Chat API Response Complete: ${chunkCount} chunks, ${this.state.currentChatResponse.length} chars`);
 
         return this.state.currentChatResponse;
+      },
+
+      async runCompaction() {
+        console.log('🔄 Running chat compaction...');
+        this.state.isCompacting = true;
+        this.showCompactionIndicator();
+
+        try {
+          const history = this.getMessagesSinceCompaction();
+
+          // Format conversation for summarization
+          let conversationText = '';
+          if (this.state.compactionSummary) {
+            conversationText += `Previous conversation summary:\n${this.state.compactionSummary}\n\n---\n\n`;
+          }
+          for (const msg of history) {
+            const role = msg.role === 'user' ? 'User' : 'Assistant';
+            conversationText += `${role}: ${msg.content}\n\n`;
+          }
+
+          const compactionPrompt = `Summarize the following conversation about pension plan document analysis. Focus on:
+- Key questions asked and answers given
+- Specific findings, citations, or document references mentioned
+- Any unresolved topics or follow-up items
+- Table rearrangements or organizational changes made
+
+Be concise but preserve important details and specific citations.
+
+CONVERSATION:
+${conversationText}`;
+
+          const compactionModel = (typeof CONFIG !== 'undefined' && CONFIG.COMPACTION_MODEL) || 'gemini-2.0-flash';
+
+          const requestBody = {
+            contents: [{ role: 'user', parts: [{ text: compactionPrompt }] }],
+            generationConfig: {
+              maxOutputTokens: 4096,
+              temperature: 0.2
+            }
+          };
+
+          const response = await this.fetchWithRetry(
+            this.getApiUrl(compactionModel),
+            {
+              method: 'POST',
+              headers: this.getApiHeaders(),
+              body: JSON.stringify(requestBody)
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Compaction API error: ${response.status}`);
+          }
+
+          // Parse SSE streaming response
+          let compactionResult = '';
+          const reader = response.body
+            .pipeThrough(new TextDecoderStream())
+            .getReader();
+
+          let buffer = '';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += value;
+            const events = buffer.split(/\r?\n\r?\n/);
+            buffer = events.pop() || '';
+
+            for (const event of events) {
+              if (!event.trim()) continue;
+              const lines = event.split(/\r?\n/);
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const chunk = JSON.parse(line.slice(6));
+                    const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) compactionResult += text;
+                  } catch (e) {
+                    // ignore parse errors
+                  }
+                }
+              }
+            }
+          }
+
+          if (compactionResult) {
+            this.state.compactionSummary = compactionResult;
+            this.state.compactionCount++;
+            this.state.chatTurnsSinceCompaction = 0;
+
+            // Insert compaction marker into chat history
+            this.state.chatMessages.push({
+              role: 'system',
+              isCompactionMarker: true,
+              compactionSummary: compactionResult,
+              content: compactionResult,
+              timestamp: new Date().toISOString()
+            });
+
+            // Save to backend
+            this.saveChatCompactionState();
+
+            this.renderChatMessages();
+            console.log(`✅ Compaction complete (${compactionResult.length} chars). Count: ${this.state.compactionCount}`);
+          }
+        } catch (error) {
+          console.warn('⚠️ Compaction failed, continuing with full history:', error.message);
+          // Graceful degradation - continue without compacting
+        } finally {
+          this.state.isCompacting = false;
+          this.hideCompactionIndicator();
+        }
+      },
+
+      showCompactionIndicator() {
+        const chatMessages = document.getElementById('chat-messages');
+        if (!chatMessages) return;
+        const indicator = document.createElement('div');
+        indicator.id = 'compaction-indicator';
+        indicator.className = 'chat-compaction-indicator';
+        indicator.textContent = 'Summarizing conversation\u2026';
+        chatMessages.appendChild(indicator);
+        this.scrollChatToBottom();
+      },
+
+      hideCompactionIndicator() {
+        const indicator = document.getElementById('compaction-indicator');
+        if (indicator) indicator.remove();
+      },
+
+      async saveChatCompactionState() {
+        if (!this.isProxyMode() || !this.state.currentAnalysisId) return;
+
+        try {
+          await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              new_messages: [{
+                role: 'system',
+                content: this.state.compactionSummary,
+                is_compaction: true,
+                timestamp: new Date().toISOString()
+              }]
+            })
+          });
+        } catch (error) {
+          console.error('Failed to save compaction state:', error);
+        }
+      },
+
+      reconstructCompactionState() {
+        const messages = this.state.chatMessages;
+        let lastCompactionIndex = -1;
+        let compactionCount = 0;
+
+        for (let i = 0; i < messages.length; i++) {
+          if (messages[i].is_compaction) {
+            messages[i].isCompactionMarker = true;
+            messages[i].compactionSummary = messages[i].content;
+            messages[i].role = 'system';
+            compactionCount++;
+            lastCompactionIndex = i;
+          }
+        }
+
+        if (lastCompactionIndex >= 0) {
+          this.state.compactionSummary = messages[lastCompactionIndex].content;
+          this.state.compactionCount = compactionCount;
+
+          // Count assistant messages after last compaction
+          let turnsSince = 0;
+          for (let i = lastCompactionIndex + 1; i < messages.length; i++) {
+            if (messages[i].role === 'assistant') turnsSince++;
+          }
+          this.state.chatTurnsSinceCompaction = turnsSince;
+        } else {
+          this.state.compactionSummary = null;
+          this.state.compactionCount = 0;
+          this.state.chatTurnsSinceCompaction = messages.filter(m => m.role === 'assistant').length;
+        }
       },
 
       // ===== Interactive Table Controls =====
@@ -8364,6 +8631,17 @@ User Question: ${userQuestion}`;
 
         // Render all messages
         chatMessages.innerHTML = this.state.chatMessages.map((msg, index) => {
+          // Render compaction markers as dividers
+          if (msg.isCompactionMarker) {
+            return `
+              <div class="chat-compaction-marker">
+                <div class="compaction-line"></div>
+                <span class="compaction-label">Conversation summarized</span>
+                <div class="compaction-line"></div>
+              </div>
+            `;
+          }
+
           const roleClass = msg.role === 'user' ? 'user' : 'assistant';
           const header = msg.role === 'user' ? 'You' : 'Assistant';
 
@@ -11149,8 +11427,9 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         if (!this.isProxyMode() || !this.state.currentAnalysisId) return;
 
         try {
-          // Send the last 2 messages (user question + assistant response)
-          const lastTwo = this.state.chatMessages.slice(-2);
+          // Send the last 2 messages (user question + assistant response), skipping compaction markers
+          const nonMarkerMessages = this.state.chatMessages.filter(m => !m.isCompactionMarker);
+          const lastTwo = nonMarkerMessages.slice(-2);
 
           await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
             method: 'PATCH',
@@ -11184,6 +11463,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           this.state.comparisonResponse = data.comparison_response;
           this.state.languageResponse = data.language_response;
           this.state.chatMessages = data.chat_messages || [];
+          this.reconstructCompactionState();
           this.state.notes = data.notes || [];
           this.state._savedTableViewState = data.table_view_state || null;
           this.state._savedDraftState = data.draft_state || null;
@@ -11319,6 +11599,10 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.regenIsPaused = false;
         this.state.isRegenStreaming = false;
         this.state.currentRegenResponse = '';
+        this.state.chatTurnsSinceCompaction = 0;
+        this.state.compactionSummary = null;
+        this.state.compactionCount = 0;
+        this.state.isCompacting = false;
       },
 
       /**
@@ -11843,6 +12127,10 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.currentChatResponse = '';
         this.state.isComparisonRequest = false;
         this.state.analysisMode = 'cross-plan';
+        this.state.chatTurnsSinceCompaction = 0;
+        this.state.compactionSummary = null;
+        this.state.compactionCount = 0;
+        this.state.isCompacting = false;
 
         // Reset sharing state
         this.state.isOwner = true;
