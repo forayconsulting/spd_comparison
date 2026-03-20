@@ -78,6 +78,28 @@ The project uses a browser-based application (`index.html`) that integrates with
    - Output: Markdown table with full legal text and citations in format: (filename, page_number, paragraph_number) - table only, no preamble
    - Populates: Language tab
 
+**Timeline Analysis (Minutes Analysis Mode):**
+
+When `analysisMode === 'minutes-analysis'`, the app takes an entirely different path — a **2-phase AI workflow** produces structured JSON (not markdown tables), which feeds a **timeline workspace** that replaces the tab-based view entirely.
+
+1. **Phase 1: Summary + Ontology**
+   - Same Phase 1 prompt with minutes-specific addendum requesting a fenced `json` block containing `{meetings: [...], topics: [...]}`
+   - Output: Text overview + JSON ontology parsed via `parseTimelineJSON()`
+   - `PROMPT_TEMPLATES.phase1()` with `MODE_ADDENDA['minutes-analysis'].phase1`
+
+2. **Phase 2: Topic Extraction**
+   - Custom prompt `PROMPT_TEMPLATES.timelinePhase2(ontologyJSON, fileList)`
+   - Output: Fenced JSON array of meeting objects with `{id, title, date, type, file, topics: {name: {text, citations}}}`
+   - Stored in `comparisonResponse` for persistence (same DB column, different format)
+
+- **Rendering:** `renderTimelineWorkspace()` → horizontal timeline with meeting nodes, topic blips, thread lines, detail panel, filters, chat sidebar
+- **Topic colors:** `TIMELINE_TOPIC_COLORS` palette (10 colors), assigned by index from ontology
+- **Custom AI filters:** `submitTimelineCustomFilter()` makes a single-turn API call to search meeting data
+- **Chat:** Uses same multi-turn infrastructure but routes DOM elements via `getChatMessagesEl()`, `getChatInputEl()`, `getChatSendBtnEl()` helpers
+- **Session restore:** `renderLoadedTimelineAnalysis()` rebuilds ontology from stored meetings JSON; graceful fallback to tab view if parsing fails
+- **View state:** Zoom level, active topic, custom filters persisted to `table_view_state` JSONB column
+- **No backend changes:** Same DB schema, same API endpoints
+
 **Configuration:**
 - `config.js` (gitignored) contains actual API key
 - `config.example.js` provides template
@@ -95,6 +117,7 @@ The project uses a browser-based application (`index.html`) that integrates with
 /
 ├── index.html                      # Main three-output interface (Gemini-powered)
 ├── viewer.html                     # PDF.js viewer for citation links (Safari-compatible)
+├── timeline-prototype.html         # Standalone timeline visualization prototype (reference)
 ├── config.js                       # API key configuration (gitignored)
 ├── config.example.js               # Config template
 ├── wrangler.toml                   # Cloudflare Pages configuration

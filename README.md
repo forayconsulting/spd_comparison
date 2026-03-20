@@ -6,7 +6,8 @@
 
 **Key Features:**
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
-- **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking (single plan + amendments), or Minutes Analysis (meeting minutes/transcripts) — each mode appends context-specific addenda to all three phase prompts
+- **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking (single plan + amendments), or Minutes Analysis — each mode appends context-specific addenda to prompts
+- **Timeline visualization (Minutes Analysis):** Meeting notes are analyzed via a 2-phase AI workflow producing structured JSON, then rendered as an interactive horizontal timeline with topic filtering, thread tracing, detail panels with citations, custom AI search, and an integrated chat sidebar
 - **Interactive tables:** Sort columns, filter by value, drag-reorder rows via visible handles, and ask AI to group related provisions
 - **Multi-turn chat with compaction:** Ask follow-up questions with full conversation history; long sessions auto-summarize to stay within context limits
 - **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
@@ -304,6 +305,20 @@ gitGraph TB:
 - Visual "Conversation summarized" dividers in chat UI
 - Compaction state persisted to DB via `is_compaction` flag on `chat_messages` table and reconstructed on session reload
 - Schema migration: `is_compaction BOOLEAN` column on `chat_messages`, `system` role added to role constraint
+
+**March 20, 2026 — Timeline-Based Minutes Analysis**
+- Minutes Analysis mode now uses a completely different workflow: 2-phase AI analysis producing structured JSON instead of the 3-phase markdown table pipeline
+- Phase 1 extracts a text summary plus a fenced JSON ontology of meetings and topics; Phase 2 extracts detailed per-topic excerpts and citations for each meeting
+- Interactive horizontal timeline replaces the tab-based view: meeting nodes alternate above/below a central axis with topic color blips, connecting thread lines when a topic is filtered
+- Topic filtering via dropdown panel with counts; active filter shows a horizontal evolution strip tracing a topic's progression across meetings
+- Custom AI search: type a natural-language query to find related meetings across all data (makes a real API call, not just text matching)
+- Detail panel opens on meeting click showing all topics discussed with excerpts and clickable PDF citations
+- Integrated chat sidebar (collapsed by default) reuses the existing multi-turn chat infrastructure with a timeline-specific system instruction
+- Rich phase progress indicator during analysis: glassmorphism card with SVG spinner, rotating contextual messages, and a 2-step progress tracker
+- Session save/restore: meetings JSON stored in `comparison_response` column, view state (zoom, filters) in `table_view_state`; graceful fallback to tab view if timeline data can't be parsed
+- Export as JSON or XLSX (flattened to Date/Meeting/Type/File/Topic/Excerpt/Citations rows)
+- Cross-plan and amendment-tracking modes completely untouched — all changes gated behind `analysisMode === 'minutes-analysis'`
+- No backend changes: same DB schema, same API endpoints
 
 ## License
 

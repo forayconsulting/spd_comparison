@@ -3852,6 +3852,620 @@
       border-color: var(--accent-secondary);
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       Timeline Workspace Styles
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* Timeline workspace container */
+    .timeline-workspace {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .timeline-workspace.active {
+      display: flex;
+    }
+
+    /* ── Output header bar ── */
+    .tl-output-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 32px;
+      border-bottom: 1px solid var(--border-medium);
+      background: var(--bg-primary);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 50;
+    }
+    .tl-output-title-group { display: flex; align-items: baseline; gap: 16px; }
+    .tl-output-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px; font-weight: 700; color: var(--text-primary);
+    }
+    .tl-output-stats { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); }
+    .tl-output-stats span { color: var(--text-secondary); font-weight: 600; }
+    .tl-output-right { display: flex; align-items: center; gap: 12px; }
+
+    /* ── Collapsible topic filters ── */
+    .tl-filters-toggle {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px;
+      border: 1px solid var(--border-medium); background: var(--bg-primary);
+      color: var(--text-secondary); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .tl-filters-toggle:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .tl-filters-toggle.has-active {
+      border-color: var(--active-filter-color, var(--accent-primary));
+      color: var(--active-filter-color, var(--accent-primary));
+      background: color-mix(in srgb, var(--active-filter-color, var(--accent-primary)) 6%, white);
+    }
+    .tl-filters-toggle svg { transition: transform 0.2s; }
+    .tl-filters-toggle.open svg { transform: rotate(180deg); }
+    .tl-filter-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 9px;
+      background: var(--accent-primary); color: white;
+      font-size: 10px; font-weight: 700; padding: 0 5px;
+    }
+
+    .tl-filters-panel {
+      display: none;
+      position: absolute; top: calc(100% + 6px); left: 0;
+      min-width: 340px; max-width: 480px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      z-index: 500;
+      animation: tlPanelIn 0.15s ease;
+      overflow: hidden;
+    }
+    .tl-filters-panel.open { display: block; }
+    @keyframes tlPanelIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: translateY(0); } }
+
+    .tl-filters-panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-secondary);
+    }
+    .tl-filters-panel-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .tl-filters-panel-body { padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .tl-topic-filter {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px;
+      border: 1px solid var(--border-medium); background: var(--bg-primary);
+      color: var(--text-secondary); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .tl-topic-filter:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .tl-topic-filter.active {
+      border-color: var(--topic-color, var(--accent-primary));
+      background: color-mix(in srgb, var(--topic-color, var(--accent-primary)) 10%, white);
+      color: var(--topic-color, var(--accent-primary));
+      font-weight: 600;
+    }
+    .tl-filter-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--topic-color); opacity: 0.4; transition: opacity 0.2s; }
+    .tl-topic-filter.active .tl-filter-dot { opacity: 1; }
+    .tl-filter-count { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* AI filter section within panel */
+    .tl-ai-filter-section {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .tl-ai-filter-section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted);
+      margin-bottom: 8px; font-family: 'Space Grotesk', sans-serif;
+    }
+    .tl-ai-filter-row { display: flex; gap: 8px; }
+    .tl-ai-filter-input {
+      flex: 1; padding: 8px 12px;
+      border: 1px solid var(--border-medium); border-radius: 8px;
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--text-primary); background: var(--bg-secondary); outline: none;
+    }
+    .tl-ai-filter-input:focus { border-color: var(--accent-primary); }
+    .tl-ai-filter-input::placeholder { color: var(--text-muted); }
+    .tl-ai-filter-submit {
+      padding: 8px 16px; border-radius: 8px; border: none;
+      background: var(--gradient-primary); color: white;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; transition: all 0.2s;
+    }
+    .tl-ai-filter-submit:hover { box-shadow: var(--shadow-sm); }
+
+    .tl-topic-filter.custom { border-style: dashed; }
+    .tl-filter-ai-badge { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; }
+    .tl-topic-filter.generating { opacity: 0.6; pointer-events: none; }
+    .tl-filter-remove { display: none; font-size: 14px; line-height: 1; opacity: 0.5; cursor: pointer; margin-left: 2px; }
+    .tl-topic-filter.custom:hover .tl-filter-remove { display: inline; }
+    .tl-filter-remove:hover { opacity: 1; }
+
+    /* Active filter indicator strip (shown when a topic is active) */
+    .tl-active-filter-strip {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 32px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    .tl-active-filter-strip.visible { display: flex; }
+    .tl-active-filter-strip-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .tl-active-filter-strip-label { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; }
+    .tl-active-filter-strip-count { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .tl-active-filter-strip-clear {
+      margin-left: auto; padding: 4px 12px;
+      border: 1px solid var(--border-medium); border-radius: 6px;
+      background: none; color: var(--text-muted); font-size: 11px;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .tl-active-filter-strip-clear:hover { border-color: var(--error); color: var(--error); }
+
+    /* Topic thread evolution (inline in active filter strip) */
+    .tl-thread-evolution {
+      display: flex; gap: 6px; overflow-x: auto; flex: 1; padding: 2px 0;
+    }
+    .tl-thread-evolution::-webkit-scrollbar { height: 3px; }
+    .tl-thread-evolution::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 2px; }
+    .tl-evolution-step {
+      flex-shrink: 0; padding: 8px 12px;
+      background: var(--bg-primary); border: 1px solid var(--border-subtle);
+      border-radius: 6px; font-size: 10px; color: var(--text-secondary);
+      line-height: 1.4; max-width: 200px; cursor: pointer; transition: all 0.2s;
+      overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    }
+    .tl-evolution-step:hover { border-color: var(--accent-primary); box-shadow: var(--shadow-sm); }
+    .tl-evolution-step.has-decision { border-left: 3px solid var(--accent-success); }
+    .tl-evolution-date { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
+    .tl-evolution-arrow { flex-shrink: 0; color: var(--border-medium); font-size: 12px; display: flex; align-items: center; }
+
+    /* ── Content row (timeline + chat side-by-side) ── */
+    .tl-content-row { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    .tl-main-content { display: flex; flex: 1; min-height: 0; overflow: hidden; flex-direction: column; }
+    .tl-main-content > div { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+    /* ── Timeline viewport ── */
+    .tl-viewport { flex: 1; overflow: auto; position: relative; cursor: grab; }
+    .tl-viewport:active { cursor: grabbing; }
+    .tl-canvas { position: relative; min-height: 100%; padding: 20px 48px 20px; display: flex; align-items: center; }
+
+    /* ── Timeline axis ── */
+    .tl-track { position: relative; }
+    .tl-axis {
+      position: absolute; top: 50%; left: 0; right: 0;
+      height: 2px; background: var(--border-medium); transform: translateY(-50%);
+    }
+    .tl-axis::before, .tl-axis::after {
+      content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+      width: 8px; height: 8px; border-radius: 50%; background: var(--border-medium);
+    }
+    .tl-axis::before { left: -4px; }
+    .tl-axis::after { right: -4px; }
+
+    .tl-month-marker {
+      position: absolute; transform: translateX(-50%);
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text-muted); font-family: 'Space Grotesk', sans-serif; white-space: nowrap;
+    }
+    .tl-month-marker.above { bottom: calc(50% + 14px); }
+    .tl-month-tick { position: absolute; left: 50%; width: 1px; height: 10px; background: var(--border-medium); }
+    .tl-month-marker.above .tl-month-tick { bottom: -12px; }
+
+    /* ── Meeting nodes ── */
+    .tl-meeting-node {
+      position: absolute; transform: translateX(-50%);
+      cursor: pointer; transition: all 0.3s ease; z-index: 2;
+      animation: tlNodeIn 0.35s ease-out backwards;
+    }
+    .tl-meeting-node.above { bottom: calc(50% + 6px); }
+    .tl-meeting-node.below { top: calc(50% + 6px); }
+    .tl-node-connector { width: 1px; background: var(--border-medium); margin: 0 auto; transition: all 0.3s; }
+    .tl-node-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--bg-primary); border: 2px solid var(--border-medium);
+      margin: 0 auto; position: relative; z-index: 3; transition: all 0.3s;
+    }
+    .tl-meeting-node:hover .tl-node-dot {
+      border-color: var(--accent-primary); background: var(--accent-primary);
+      box-shadow: 0 0 12px rgba(30,58,95,0.3); transform: scale(1.2);
+    }
+    .tl-meeting-node.highlighted .tl-node-dot {
+      border-color: var(--topic-color, var(--accent-primary));
+      background: var(--topic-color, var(--accent-primary));
+      box-shadow: 0 0 16px color-mix(in srgb, var(--topic-color, var(--accent-primary)) 40%, transparent);
+      transform: scale(1.3);
+    }
+    .tl-meeting-node.highlighted .tl-node-connector { background: color-mix(in srgb, var(--topic-color) 30%, transparent); width: 2px; }
+    .tl-meeting-node.dimmed { opacity: 0.2; }
+    .tl-meeting-node.selected .tl-node-dot {
+      border-color: var(--accent-primary); background: var(--accent-primary);
+      box-shadow: 0 0 20px rgba(30,58,95,0.35), 0 0 40px rgba(30,58,95,0.15);
+      transform: scale(1.5);
+    }
+
+    .tl-node-card {
+      background: var(--bg-primary); border: 1px solid var(--border-subtle);
+      border-radius: 10px; padding: 10px 14px; box-shadow: var(--shadow-sm);
+      width: 160px; text-align: center; transition: all 0.3s;
+    }
+    .tl-meeting-node:hover .tl-node-card { border-color: var(--accent-primary); box-shadow: var(--shadow-md); }
+    .tl-meeting-node.highlighted .tl-node-card {
+      border-color: var(--topic-color); box-shadow: 0 2px 12px color-mix(in srgb, var(--topic-color) 15%, transparent);
+    }
+    .tl-meeting-node.selected .tl-node-card { border-color: var(--accent-primary); box-shadow: var(--shadow-lg); background: rgba(30,58,95,0.03); }
+    .tl-node-title { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.35; margin-bottom: 4px; }
+    .tl-node-date { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .tl-node-type { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+    .tl-node-blips { display: flex; gap: 3px; justify-content: center; margin: 4px auto; flex-wrap: wrap; max-width: 80px; }
+    .tl-topic-blip { width: 6px; height: 6px; border-radius: 50%; transition: all 0.3s; }
+    .tl-topic-blip.dimmed { opacity: 0.15; }
+    .tl-topic-blip.lit { transform: scale(1.6); box-shadow: 0 0 6px currentColor; animation: tlBlipPulse 2.5s ease-in-out infinite; }
+
+    .tl-thread-line {
+      position: absolute; height: 3px; border-radius: 1.5px; top: 50%;
+      transform: translateY(-50%); z-index: 1; opacity: 0; transition: opacity 0.4s;
+    }
+    .tl-thread-line.visible { opacity: 0.35; }
+
+    /* ── Onboarding hint ── */
+    .tl-onboarding-hint {
+      text-align: center;
+      padding: 8px 32px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      opacity: 1; transition: all 0.5s ease;
+    }
+    .tl-onboarding-hint.hidden { opacity: 0; height: 0; padding: 0; overflow: hidden; transition: all 0.3s ease; }
+    .tl-onboarding-hint-text {
+      font-size: 14px; color: var(--text-muted);
+      font-family: 'Inter', sans-serif; font-weight: 400;
+    }
+    .tl-onboarding-hint-sub {
+      font-size: 12px; color: var(--accent-light); margin-top: 2px;
+    }
+
+    /* ── Detail panel (right sidebar) ── */
+    .tl-detail-panel {
+      width: 0; overflow: hidden;
+      border-left: 1px solid var(--border-medium);
+      background: var(--bg-primary);
+      transition: width 0.3s ease; flex-shrink: 0;
+      display: flex; flex-direction: column;
+    }
+    .tl-detail-panel.open { width: 420px; }
+    .tl-detail-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 24px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;
+    }
+    .tl-detail-title { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; }
+    .tl-detail-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .tl-detail-close {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 20px; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; line-height: 1;
+    }
+    .tl-detail-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
+    .tl-detail-body { flex: 1; overflow-y: auto; padding: 24px; }
+    .tl-detail-body::-webkit-scrollbar { width: 6px; }
+    .tl-detail-body::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+
+    .tl-detail-section { margin-bottom: 24px; }
+    .tl-detail-section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .tl-detail-topics-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .tl-detail-topic-chip {
+      font-size: 11px; padding: 4px 10px; border-radius: 14px;
+      border: 1px solid; cursor: pointer; transition: all 0.2s; font-weight: 500;
+    }
+    .tl-detail-topic-chip:hover { opacity: 0.75; }
+
+    .tl-excerpt-card {
+      background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+      border-radius: 8px; padding: 16px; margin-bottom: 12px;
+      border-left: 3px solid var(--border-subtle); transition: all 0.3s;
+    }
+    .tl-excerpt-card.active-topic {
+      border-left-color: var(--topic-color, var(--accent-primary));
+      background: color-mix(in srgb, var(--topic-color) 4%, var(--bg-secondary));
+    }
+    .tl-excerpt-topic-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .tl-excerpt-text { font-size: 13px; line-height: 1.7; color: var(--text-secondary); }
+    .tl-excerpt-text mark { background: rgba(30,58,95,0.12); color: var(--text-primary); padding: 1px 4px; border-radius: 3px; }
+    .tl-excerpt-text .tl-decision-tag {
+      display: inline-block; background: var(--gradient-success); color: white;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 2px 8px; border-radius: 4px; margin-right: 6px; vertical-align: middle;
+    }
+
+    .tl-citation-link {
+      cursor: pointer; text-decoration: none; color: var(--accent-primary);
+      background: rgba(30,58,95,0.06); padding: 1px 6px; border-radius: 3px;
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      border-bottom: 1px dashed var(--accent-primary); transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .tl-citation-link:hover { background: rgba(30,58,95,0.15); }
+    .tl-excerpt-citations {
+      margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-subtle);
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }
+    .tl-citations-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 2px; }
+
+    /* ── Chat side panel ── */
+    .tl-chat-sidebar {
+      width: 48px; /* collapsed */
+      flex-shrink: 0;
+      display: flex; flex-direction: row;
+      transition: width 0.3s ease;
+      border-left: 1px solid var(--border-medium);
+      min-height: 0;
+      overflow: hidden;
+    }
+    .tl-chat-sidebar.expanded { width: 400px; }
+
+    .tl-chat-panel {
+      flex: 1; display: flex; flex-direction: column;
+      background: var(--bg-primary); overflow: hidden;
+      width: 100%;
+    }
+
+    .tl-chat-messages {
+      flex: 1; overflow-y: auto; padding: 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .tl-chat-messages::-webkit-scrollbar { width: 8px; }
+    .tl-chat-messages::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 4px; }
+
+    .tl-chat-message { animation: tlSlideInUp 0.3s ease; }
+    .tl-chat-message.user { align-self: flex-end; max-width: 80%; }
+    .tl-chat-message.assistant { align-self: flex-start; max-width: 90%; }
+    .tl-chat-message-header {
+      font-size: 11px; font-weight: 700; color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 6px;
+    }
+    .tl-chat-message-content {
+      background: var(--surface-glass); backdrop-filter: blur(12px);
+      padding: 16px 20px; border-radius: 12px;
+      border: 1px solid var(--border-medium); box-shadow: var(--shadow-sm);
+    }
+    .tl-chat-message.user .tl-chat-message-content {
+      background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.15);
+    }
+    .tl-chat-message-content p { margin: 0; font-size: 14px; line-height: 1.6; }
+    @keyframes tlSlideInUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+    .tl-chat-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-medium);
+      background: var(--bg-secondary);
+      display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0;
+    }
+    .tl-chat-input-area textarea {
+      flex: 1; min-height: 44px; max-height: 150px;
+      padding: 12px 16px; border: 1px solid var(--border-medium);
+      border-radius: 10px; background: var(--bg-primary);
+      color: var(--text-primary); font-family: 'Inter', sans-serif;
+      font-size: 14px; line-height: 1.5; resize: none; outline: none; transition: all 0.2s;
+    }
+    .tl-chat-input-area textarea:focus { border-color: var(--text-primary); box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+    .tl-chat-input-area textarea::placeholder { color: var(--text-muted); }
+    .tl-chat-send-btn {
+      padding: 12px 24px; background: var(--gradient-primary); color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: 'Space Grotesk', sans-serif; white-space: nowrap;
+      transition: all 0.3s;
+    }
+    .tl-chat-send-btn:hover { box-shadow: var(--shadow-md); }
+
+    /* Chat collapsed/expanded states */
+    .tl-chat-panel-main { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+    .tl-chat-sidebar:not(.expanded) .tl-chat-panel-main { display: none; }
+
+    .tl-chat-panel-collapsed-ui {
+      display: flex; width: 100%; height: 100%;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 16px 0; background: var(--bg-tertiary);
+    }
+    .tl-chat-sidebar.expanded .tl-chat-panel-collapsed-ui { display: none; }
+
+    .tl-expand-chat-button {
+      writing-mode: vertical-rl; text-orientation: mixed;
+      padding: 16px 10px; background: var(--text-primary); color: white;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      letter-spacing: 1px; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .tl-expand-chat-button:hover { background: var(--text-secondary); transform: scale(1.05); }
+
+    .tl-collapse-button {
+      position: absolute; top: 12px; left: 8px;
+      width: 32px; height: 32px;
+      background: var(--surface-glass); backdrop-filter: blur(10px);
+      border: 1px solid var(--border-medium); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px; color: var(--text-primary);
+      transition: all 0.2s; z-index: 1000;
+    }
+    .tl-collapse-button:hover { background: var(--text-primary); color: white; transform: scale(1.1); border-color: var(--text-primary); }
+    .tl-chat-sidebar:not(.expanded) .tl-collapse-button { display: none; }
+
+    /* ── Zoom controls ── */
+    .tl-zoom-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid var(--border-medium); background: var(--bg-primary);
+      color: var(--text-secondary); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .tl-zoom-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .tl-zoom-level { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: center; }
+    .tl-timeline-controls { display: flex; align-items: center; gap: 6px; }
+
+    /* ── Timeline Animations ── */
+    @keyframes tlBlipPulse { 0%,100% { box-shadow: 0 0 4px currentColor; } 50% { box-shadow: 0 0 10px currentColor, 0 0 16px currentColor; } }
+    @keyframes tlNodeIn { from { opacity:0; transform: translateX(-50%) translateY(8px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+    /* ── Timeline responsive ── */
+    @media (max-width: 1200px) {
+      .tl-detail-panel.open { width: 340px; }
+      .tl-node-card { width: 140px; padding: 8px 10px; }
+      .tl-node-title { font-size: 12px; }
+    }
+
+    /* ── Timeline phase progress indicator ── */
+    .tl-phase-progress {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-primary);
+    }
+    .tl-progress-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 60px 40px;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(12px);
+      min-width: 340px;
+      animation: tlProgressFadeIn 0.4s ease;
+    }
+    @keyframes tlProgressFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tl-progress-icon {
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tl-progress-spinner {
+      width: 56px; height: 56px;
+      animation: tlSpin 1.2s linear infinite;
+    }
+    @keyframes tlSpin {
+      to { transform: rotate(360deg); }
+    }
+    .tl-progress-text-group {
+      text-align: center;
+    }
+    .tl-progress-message {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .tl-progress-dots {
+      display: inline-block;
+      width: 1.5em;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .tl-progress-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .tl-progress-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-top: 4px;
+    }
+    .tl-progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .tl-step-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--border-medium);
+      transition: all 0.4s ease;
+    }
+    .tl-step-dot.active {
+      background: var(--accent-primary);
+      box-shadow: 0 0 10px rgba(30,58,95,0.3);
+      animation: tlStepPulse 1.5s ease-in-out infinite;
+    }
+    .tl-step-dot.complete {
+      background: #22c55e;
+      box-shadow: 0 0 8px rgba(34,197,94,0.3);
+    }
+    @keyframes tlStepPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+    }
+    .tl-step-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-family: 'Space Grotesk', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tl-progress-step-line {
+      width: 48px; height: 2px;
+      background: var(--border-medium);
+      margin: 0 8px;
+      margin-bottom: 20px;
+      transition: background 0.4s ease;
+    }
+    .tl-progress-step-line.active {
+      background: var(--accent-primary);
+    }
+    .tl-progress-step-line.complete {
+      background: #22c55e;
+    }
+
+    /* ── AI filter searching state ── */
+    .tl-topic-filter.generating {
+      opacity: 0.7;
+      pointer-events: none;
+      position: relative;
+    }
+    .tl-topic-filter.generating::after {
+      content: '';
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid var(--border-medium);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: tlFilterSpin 0.6s linear infinite;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    @keyframes tlFilterSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       End Timeline Workspace Styles
+       ═══════════════════════════════════════════════════════════════ */
+
     /* Resize Handle for Split View */
     .resize-handle {
       flex: 0 0 4px;
@@ -4948,6 +5562,118 @@
       </div>
     </div>
 
+    <!-- Timeline Workspace (Minutes Analysis mode) -->
+    <div class="timeline-workspace" id="timeline-workspace">
+      <!-- Output header bar -->
+      <div class="tl-output-header">
+        <div class="tl-output-title-group">
+          <h2 class="tl-output-title">Meeting Notes Timeline</h2>
+          <div class="tl-output-stats" id="tl-output-stats"></div>
+        </div>
+        <div class="tl-output-right">
+          <div style="position:relative;">
+            <button class="tl-filters-toggle" id="tl-filters-toggle" onclick="ChatApp.toggleTimelineFiltersPanel()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Topics
+              <span class="tl-filter-badge" id="tl-filter-badge" style="display:none"></span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="tl-filters-panel" id="tl-filters-panel"></div>
+          </div>
+          <div class="tl-timeline-controls">
+            <button class="tl-zoom-btn" onclick="ChatApp.timelineZoom(-1)">&minus;</button>
+            <span class="tl-zoom-level" id="tl-zoom-level">100%</span>
+            <button class="tl-zoom-btn" onclick="ChatApp.timelineZoom(1)">+</button>
+          </div>
+          <div class="export-dropdown" id="export-timeline">
+            <button class="export-button" id="export-timeline-btn" onclick="ChatApp.toggleExportMenu('timeline')">
+              Export <span class="export-caret">&#9662;</span>
+            </button>
+            <div class="export-menu" id="export-menu-timeline">
+              <button class="export-menu-item" onclick="ChatApp.exportTimelineJSON()">Download as JSON</button>
+              <button class="export-menu-item" onclick="ChatApp.exportTimelineXLSX()">Download as XLSX</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onboarding hint -->
+      <div class="tl-onboarding-hint" id="tl-onboarding-hint">
+        <div class="tl-onboarding-hint-text">Click a meeting to explore, or filter by topic</div>
+        <div class="tl-onboarding-hint-sub">Use the Topics dropdown above to trace threads across meetings</div>
+      </div>
+
+      <!-- Active filter strip -->
+      <div class="tl-active-filter-strip" id="tl-active-filter-strip"></div>
+
+      <!-- Content row: timeline + detail + chat -->
+      <div class="tl-content-row">
+        <div class="tl-main-content" id="tl-main-content">
+          <div style="display:flex; flex:1; overflow:hidden;">
+            <div class="tl-viewport" id="tl-viewport">
+              <div class="tl-canvas" id="tl-canvas"></div>
+            </div>
+            <div class="tl-detail-panel" id="tl-detail-panel">
+              <div class="tl-detail-header">
+                <div>
+                  <div class="tl-detail-title" id="tl-detail-title"></div>
+                  <div class="tl-detail-meta" id="tl-detail-meta"></div>
+                </div>
+                <button class="tl-detail-close" onclick="ChatApp.closeTimelineDetail()">&times;</button>
+              </div>
+              <div class="tl-detail-body" id="tl-detail-body"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat side panel -->
+        <div class="tl-chat-sidebar" id="tl-chat-sidebar">
+          <div class="tl-chat-panel" style="position:relative;">
+            <button class="tl-collapse-button" onclick="ChatApp.toggleTimelineChat()" title="Collapse chat">&#9656;</button>
+            <div class="tl-chat-panel-main">
+              <div class="tl-chat-messages" id="tl-chat-messages"></div>
+              <div class="tl-chat-input-area">
+                <textarea id="tl-chat-input" placeholder="Ask about the meeting notes..." rows="1"></textarea>
+                <button class="tl-chat-send-btn" id="tl-chat-send-button">Send</button>
+              </div>
+            </div>
+            <div class="tl-chat-panel-collapsed-ui">
+              <button class="tl-expand-chat-button" onclick="ChatApp.toggleTimelineChat()">Chat</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase progress (shown during analysis) -->
+      <div class="tl-phase-progress" id="tl-phase-progress" style="display:none;">
+        <div class="tl-progress-container">
+          <div class="tl-progress-icon">
+            <svg class="tl-progress-spinner" viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="var(--border-medium)" stroke-width="3"/>
+              <circle cx="25" cy="25" r="20" fill="none" stroke="var(--accent-primary)" stroke-width="3" stroke-dasharray="31.4 94.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="tl-progress-text-group">
+            <div class="tl-progress-message">
+              <span id="tl-phase-text">Analyzing meeting notes</span><span class="tl-progress-dots" id="tl-phase-dots">...</span>
+            </div>
+            <div class="tl-progress-sub" id="tl-phase-sub">Phase 1 of 2</div>
+          </div>
+          <div class="tl-progress-steps">
+            <div class="tl-progress-step" id="tl-step-1">
+              <span class="tl-step-dot active"></span>
+              <span class="tl-step-label">Read</span>
+            </div>
+            <div class="tl-progress-step-line" id="tl-step-line-1"></div>
+            <div class="tl-progress-step" id="tl-step-2">
+              <span class="tl-step-dot"></span>
+              <span class="tl-step-label">Extract</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Split View for Chat (shown when chat tab is active) -->
     <div class="split-view" id="split-view">
       <!-- Left panel: Results -->
@@ -5044,9 +5770,30 @@
         phase3: `\n\nIMPORTANT CONTEXT: These documents are from a SINGLE plan — a base SPD plus its amendments/SMMs. Maintain the same chronological column structure. Quote exact language from each version of each provision. Clearly mark superseded provisions and note the effective date of each change.`
       },
       'minutes-analysis': {
-        phase1: `\n\nIMPORTANT CONTEXT: These documents are meeting minutes, transcripts, or similar records. Identify the date, participants, and purpose of each document. Note the chronological sequence and any recurring topics or ongoing discussions.`,
-        phase2: `\n\nIMPORTANT CONTEXT: These documents are meeting minutes/transcripts. Columns should represent meetings in chronological order. Rows should represent topics, decisions, and action items. Track the status of each item (open, completed, deferred) and note responsible parties where identified.`,
-        phase3: `\n\nIMPORTANT CONTEXT: These documents are meeting minutes/transcripts. Maintain the same chronological column structure. Quote exact discussion language from each meeting. Show the evolution of decisions and action items across meetings.`
+        phase1: `\n\nIMPORTANT CONTEXT: These documents are meeting minutes, transcripts, or similar records.
+
+Your response must contain TWO parts:
+
+PART 1: A text overview (max 500 words) identifying:
+- Each document's date, type (board meeting, committee meeting, working session, etc.), and purpose
+- The chronological sequence of meetings
+- Key recurring topics and their evolution across meetings
+- Major decisions, action items, and responsible parties
+
+PART 2: Immediately after the text overview, output a fenced JSON block with the following structure:
+
+\`\`\`json
+{
+  "meetings": [
+    {"id": "m1", "title": "Short meeting title", "date": "YYYY-MM-DD", "type": "Board Meeting", "file": "exact_filename.pdf"}
+  ],
+  "topics": ["Topic Name 1", "Topic Name 2"]
+}
+\`\`\`
+
+The "meetings" array should list every distinct meeting in chronological order. The "topics" array should list the 5-15 most significant recurring themes or discussion areas. Use the EXACT filenames provided. Meeting IDs should be sequential (m1, m2, ...).`,
+        phase2: '', // Not used for minutes-analysis (has custom Phase 2)
+        phase3: ''  // Not used for minutes-analysis (only 2 phases)
       }
     };
 
@@ -5109,6 +5856,78 @@ CITATION FORMAT:
 Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.${addendum}`;
       }
     };
+
+    // Timeline topic color palette (10 distinct colors)
+    const TIMELINE_TOPIC_COLORS = [
+      '#1e3a5f', '#b45309', '#0d6e6e', '#b91c1c', '#6d28d9',
+      '#be185d', '#0e7490', '#c2410c', '#7c3aed', '#0891b2'
+    ];
+    const TIMELINE_CUSTOM_FILTER_COLORS = [
+      '#d946ef', '#059669', '#dc2626', '#2563eb', '#ca8a04',
+      '#9333ea', '#e11d48', '#0d9488'
+    ];
+
+    // Timeline Phase 2 prompt template
+    PROMPT_TEMPLATES.timelinePhase2 = (ontologyJSON, fileList) => {
+      return `Comprehensively read all attached documents. Here is the ontology of meetings and topics identified in Phase 1:
+
+<ontology>
+${ontologyJSON}
+</ontology>
+
+The uploaded documents are (in order):
+${fileList}
+
+For EACH meeting listed in the ontology, extract ALL topics discussed. For each topic in each meeting, provide:
+1. A detailed excerpt summarizing what was discussed about that topic (preserve key facts, numbers, decisions)
+2. Specific citations from the source document
+
+Return your response as a fenced JSON code block with this EXACT structure:
+
+\`\`\`json
+[
+  {
+    "id": "m1",
+    "title": "Meeting Title",
+    "date": "YYYY-MM-DD",
+    "type": "Board Meeting",
+    "file": "exact_filename.pdf",
+    "topics": {
+      "Topic Name": {
+        "text": "Detailed excerpt of what was discussed about this topic in this meeting. Include specific facts, numbers, names, and decisions. Mark board decisions with [DECISION] prefix.",
+        "citations": [{"label": "p. 3, §2", "page": 3}]
+      }
+    }
+  }
+]
+\`\`\`
+
+IMPORTANT:
+- Use EXACT filenames from the list above
+- Use EXACT topic names from the ontology
+- Include ALL topics for each meeting (don't skip any)
+- Citations must reference actual page numbers from the source documents
+- Mark formal decisions/votes with [DECISION] prefix in the text
+- Be comprehensive — extract the full substance of each discussion point
+- Return ONLY the JSON block, no other text`;
+    };
+
+    // Helper to extract JSON from fenced code blocks
+    function parseTimelineJSON(responseText) {
+      // Try fenced JSON block first
+      const fenceMatch = responseText.match(/```json\s*([\s\S]*?)```/);
+      if (fenceMatch) {
+        try { return JSON.parse(fenceMatch[1].trim()); } catch (e) { /* fall through */ }
+      }
+      // Try raw JSON parse
+      try { return JSON.parse(responseText.trim()); } catch (e) { /* fall through */ }
+      // Try to find JSON array or object in the text
+      const jsonMatch = responseText.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+      if (jsonMatch) {
+        try { return JSON.parse(jsonMatch[1]); } catch (e) { /* fall through */ }
+      }
+      return null;
+    }
 
     // Phase Progress Messages - Contextual phrases that rotate during analysis
     const PHASE_MESSAGES = {
@@ -5241,6 +6060,18 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         regenIsPaused: false,
         isRegenStreaming: false,
         currentRegenResponse: '',
+        // Timeline state (minutes-analysis mode)
+        timelineOntology: null,        // {meetings: [...], topics: [...]} from Phase 1
+        timelineMeetings: null,        // Full meeting data array from Phase 2
+        timelineTopicColors: {},       // {topicName: '#color'}
+        timelineActiveTopic: null,     // Currently filtered topic name
+        timelineSelectedMeeting: null, // Currently selected meeting ID
+        timelineZoomLevel: 1,          // Zoom multiplier
+        timelineFiltersOpen: false,    // Filters panel open state
+        timelineChatExpanded: false,   // Chat sidebar expanded
+        timelineCustomFilters: [],     // AI custom filters
+        timelineCustomColorIdx: 0,     // Next custom filter color index
+        timelineHasInteracted: false,  // Onboarding hint dismissed
         // Admin state
         isAdmin: false,
         vertexAiSettings: null,  // Cached settings from /api/admin/settings
@@ -5899,6 +6730,11 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       async runThreePhaseComparison() {
+        // Minutes analysis takes a completely different path
+        if (this.state.analysisMode === 'minutes-analysis') {
+          return this.runTimelineAnalysis();
+        }
+
         this.state.isStreaming = true;
         this.updateSendButton(true);
 
@@ -6192,8 +7028,8 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
             this.state.currentThinking += thinkingText;
             this.updateStreamingThinking();
           } else if (part.text) {
-            // Activate tab on first text chunk (switch happens when content starts, not when request is sent)
-            if (this.state.isComparisonRequest && !this.state.hasActivatedPhaseTab) {
+            // Activate tab on first text chunk (skip for timeline mode which doesn't use tabs)
+            if (this.state.isComparisonRequest && !this.state.hasActivatedPhaseTab && this.state.analysisMode !== 'minutes-analysis') {
               this.activatePhaseTab();
               this.state.hasActivatedPhaseTab = true;
             }
@@ -6243,6 +7079,9 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       updateStreamingResponse() {
+        // Timeline analysis streams to accumulator only (no live DOM rendering of JSON)
+        if (this.state.analysisMode === 'minutes-analysis' && this.state.isComparisonRequest) return;
+
         let outputDiv;
 
         // For comparison requests, stream to the active phase's tab
@@ -7480,8 +8319,10 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       initChatEventListeners() {
-        const chatInput = document.getElementById('chat-input');
-        const chatSendButton = document.getElementById('chat-send-button');
+        const chatInput = this.getChatInputEl();
+        const chatSendButton = this.getChatSendBtnEl();
+
+        if (!chatInput || !chatSendButton) return;
 
         // Remove existing listeners to avoid duplicates
         const newChatInput = chatInput.cloneNode(true);
@@ -7540,7 +8381,7 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         // Show streaming indicator
         this.showChatStreamingIndicator();
 
-        const chatSendButton = document.getElementById('chat-send-button');
+        const chatSendButton = this.getChatSendBtnEl();
         if (chatSendButton) {
           chatSendButton.disabled = true;
           chatSendButton.textContent = 'Sending...';
@@ -7549,8 +8390,10 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
         try {
           const response = await this.streamChatResponseMultiTurn(contents, systemInstruction);
 
-          // Check if response is a table rearrangement command
-          const rearrangement = this.parseRearrangementResponse(response);
+          // Check if response is a table rearrangement command (not for timeline mode)
+          const rearrangement = this.state.analysisMode !== 'minutes-analysis'
+            ? this.parseRearrangementResponse(response)
+            : null;
           if (rearrangement) {
             const applied = this.applyRearrangement(rearrangement);
             const displayMsg = applied
@@ -7598,6 +8441,11 @@ Return ONLY the detailed comparison table with no preamble, introduction, or foo
       },
 
       buildChatSystemInstruction() {
+        // Timeline mode uses a different system instruction
+        if (this.state.analysisMode === 'minutes-analysis') {
+          return this.buildTimelineChatSystemInstruction();
+        }
+
         const fileList = this.getUploadedFileList();
         let instruction = `You are analyzing pension plan documents. Here is the completed analysis:
 
@@ -7894,7 +8742,7 @@ ${conversationText}`;
       },
 
       showCompactionIndicator() {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = this.getChatMessagesEl();
         if (!chatMessages) return;
         const indicator = document.createElement('div');
         indicator.id = 'compaction-indicator';
@@ -8593,7 +9441,7 @@ ${conversationText}`;
       },
 
       showChatStreamingIndicator() {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = this.getChatMessagesEl();
         const streamingDiv = document.createElement('div');
         streamingDiv.id = 'chat-streaming-message';
         streamingDiv.className = 'chat-message assistant';
@@ -8621,7 +9469,7 @@ ${conversationText}`;
       },
 
       renderChatMessages() {
-        const chatMessages = document.getElementById('chat-messages');
+        const chatMessages = this.getChatMessagesEl();
 
         // Remove streaming message if exists
         const streamingMsg = document.getElementById('chat-streaming-message');
@@ -8659,7 +9507,7 @@ ${conversationText}`;
       },
 
       scrollChatToBottom() {
-        const container = document.getElementById('chat-messages');
+        const container = this.getChatMessagesEl();
         if (container) {
           container.scrollTop = container.scrollHeight;
         }
@@ -10346,6 +11194,931 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
 
       // ===== End SPD Regeneration Methods =====
 
+      // ===== Timeline Methods (Minutes Analysis Mode) =====
+
+      // --- Chat element routing helpers ---
+      getChatMessagesEl() {
+        if (this.state.analysisMode === 'minutes-analysis') {
+          return document.getElementById('tl-chat-messages') || document.getElementById('chat-messages');
+        }
+        return document.getElementById('chat-messages');
+      },
+      getChatInputEl() {
+        if (this.state.analysisMode === 'minutes-analysis') {
+          return document.getElementById('tl-chat-input') || document.getElementById('chat-input');
+        }
+        return document.getElementById('chat-input');
+      },
+      getChatSendBtnEl() {
+        if (this.state.analysisMode === 'minutes-analysis') {
+          return document.getElementById('tl-chat-send-button') || document.getElementById('chat-send-button');
+        }
+        return document.getElementById('chat-send-button');
+      },
+
+      // --- Two-phase timeline analysis workflow ---
+      async runTimelineAnalysis() {
+        this.state.isStreaming = true;
+        this.updateSendButton(true);
+
+        // Clear previous state
+        this.state.summaryResponse = null;
+        this.state.comparisonResponse = null;
+        this.state.languageResponse = null;
+        this.state.comparisonTableData = null;
+        this.state.languageTableData = null;
+        this.state.notes = [];
+        this.state.currentAnalysisId = null;
+        this.state.timelineOntology = null;
+        this.state.timelineMeetings = null;
+        this.state.timelineTopicColors = {};
+        this.state.timelineActiveTopic = null;
+        this.state.timelineSelectedMeeting = null;
+        this.state.timelineZoomLevel = 1;
+        this.state.timelineCustomFilters = [];
+        this.state.timelineCustomColorIdx = 0;
+        this.state.timelineHasInteracted = false;
+
+        // Hide messages, output-tabs; show timeline workspace with progress
+        document.getElementById('messages').style.display = 'none';
+        document.getElementById('output-tabs').classList.remove('active');
+        const ws = document.getElementById('timeline-workspace');
+        ws.classList.add('active');
+
+        // Show phase progress in timeline workspace
+        const phaseProgress = document.getElementById('tl-phase-progress');
+        const phaseText = document.getElementById('tl-phase-text');
+        const phaseSub = document.getElementById('tl-phase-sub');
+        if (phaseProgress) phaseProgress.style.display = 'block';
+        // Hide the main content row during analysis
+        const contentRow = ws.querySelector('.tl-content-row');
+        if (contentRow) contentRow.style.display = 'none';
+        const onboarding = document.getElementById('tl-onboarding-hint');
+        if (onboarding) onboarding.style.display = 'none';
+        const outputHeader = ws.querySelector('.tl-output-header');
+        if (outputHeader) outputHeader.style.display = 'none';
+        const filterStrip = document.getElementById('tl-active-filter-strip');
+        if (filterStrip) filterStrip.style.display = 'none';
+
+        try {
+          const fileList = this.getUploadedFileList();
+          const analysisMode = this.state.analysisMode;
+
+          // PHASE 1: Document Summary + Ontology extraction
+          this.state.currentPhase = 1;
+          this.state.hasActivatedPhaseTab = false;
+          this.state.currentResponse = '';
+          this.state.currentThinking = '';
+          this.startTimelineProgressRotation(1);
+
+          const prompt1 = PROMPT_TEMPLATES.phase1(fileList, analysisMode);
+          this.state.summaryResponse = await this.streamResponse(prompt1, true);
+
+          // Parse ontology JSON from Phase 1 response
+          const ontology = parseTimelineJSON(this.state.summaryResponse);
+          if (!ontology || !ontology.meetings || !ontology.topics) {
+            throw new Error('Failed to parse meeting ontology from Phase 1 response. Please try again.');
+          }
+          this.state.timelineOntology = ontology;
+
+          // Assign colors to topics
+          ontology.topics.forEach((topic, i) => {
+            this.state.timelineTopicColors[topic] = TIMELINE_TOPIC_COLORS[i % TIMELINE_TOPIC_COLORS.length];
+          });
+
+          // PHASE 2: Detailed topic extraction
+          this.state.currentPhase = 2;
+          this.state.hasActivatedPhaseTab = false;
+          this.state.currentResponse = '';
+          this.state.currentThinking = '';
+          this.startTimelineProgressRotation(2);
+
+          const prompt2 = PROMPT_TEMPLATES.timelinePhase2(JSON.stringify(ontology, null, 2), fileList);
+          this.state.comparisonResponse = await this.streamResponse(prompt2, true);
+
+          // Parse meetings JSON from Phase 2 response
+          const meetings = parseTimelineJSON(this.state.comparisonResponse);
+          if (!meetings || !Array.isArray(meetings)) {
+            throw new Error('Failed to parse meeting data from Phase 2 response. Please try again.');
+          }
+          this.state.timelineMeetings = meetings;
+
+          // Assign colors to any topics found in meetings that weren't in ontology
+          meetings.forEach(m => {
+            if (m.topics) {
+              Object.keys(m.topics).forEach(t => {
+                if (!this.state.timelineTopicColors[t]) {
+                  const existingColors = Object.values(this.state.timelineTopicColors);
+                  const nextColor = TIMELINE_TOPIC_COLORS.find(c => !existingColors.includes(c)) || TIMELINE_TOPIC_COLORS[existingColors.length % TIMELINE_TOPIC_COLORS.length];
+                  this.state.timelineTopicColors[t] = nextColor;
+                }
+              });
+            }
+          });
+
+          // Finalize
+          this.finalizeTimelineAnalysis();
+
+        } catch (error) {
+          console.error('Timeline analysis error:', error);
+          this.stopTimelineProgressRotation();
+          if (phaseText) phaseText.textContent = 'Analysis failed';
+          if (phaseSub) phaseSub.textContent = error.message;
+          // Stop spinner on error
+          const spinner = document.querySelector('.tl-progress-spinner');
+          if (spinner) spinner.style.animation = 'none';
+          this.handleError(error);
+        } finally {
+          this.state.isStreaming = false;
+          this.state.currentPhase = 0;
+          this.updateSendButton(false);
+        }
+      },
+
+      finalizeTimelineAnalysis() {
+        // Stop animation and hide phase progress
+        this.stopTimelineProgressRotation();
+        const phaseProgress = document.getElementById('tl-phase-progress');
+        if (phaseProgress) phaseProgress.style.display = 'none';
+
+        const ws = document.getElementById('timeline-workspace');
+        const contentRow = ws.querySelector('.tl-content-row');
+        if (contentRow) contentRow.style.display = '';
+        const outputHeader = ws.querySelector('.tl-output-header');
+        if (outputHeader) outputHeader.style.display = '';
+        const onboarding = document.getElementById('tl-onboarding-hint');
+        if (onboarding) { onboarding.style.display = ''; onboarding.classList.remove('hidden'); }
+
+        // Render timeline
+        this.renderTimelineWorkspace();
+        this.setupTimelineEvents();
+
+        // Initialize chat
+        this.initChatEventListeners();
+
+        // Hide input container
+        const inputContainer = document.querySelector('.input-container');
+        if (inputContainer) inputContainer.style.display = 'none';
+
+        // Collapse files panel
+        if (this.state.filesPanelExpanded) this.toggleFilesPanel();
+
+        // Reset state
+        this.state.isComparisonRequest = false;
+
+        // Save analysis (async, non-blocking)
+        this.saveAnalysis();
+
+        // Show new analysis button
+        const newBtn = document.getElementById('new-analysis-header-btn');
+        if (newBtn) newBtn.style.display = '';
+      },
+
+      // --- Session restore ---
+      renderLoadedTimelineAnalysis() {
+        // Parse meetings from stored comparisonResponse FIRST before modifying DOM
+        const meetings = parseTimelineJSON(this.state.comparisonResponse);
+        if (!meetings || !Array.isArray(meetings) || meetings.length === 0) {
+          console.error('Failed to parse timeline data from saved analysis, falling back to tab view');
+          // Fall back to standard tab rendering — reset mode and delegate
+          this.state.analysisMode = 'cross-plan';
+          // Call the parent method directly (bypass the minutes-analysis branch)
+          this.updateShareButtonVisibility();
+          this.updateSessionNameDisplay();
+          const newBtn = document.getElementById('new-analysis-header-btn');
+          if (newBtn) newBtn.style.display = '';
+          document.getElementById('messages').style.display = 'none';
+          const inputContainer = document.querySelector('.input-container');
+          if (inputContainer) inputContainer.style.display = 'none';
+          if (this.state.filesPanelExpanded) this.toggleFilesPanel();
+          // Show raw response in summary tab as fallback
+          const outputTabs = document.getElementById('output-tabs');
+          outputTabs.classList.add('active');
+          this.renderSummaryTab();
+          if (this.state.summaryResponse) document.getElementById('export-summary-btn').style.display = 'inline-flex';
+          return;
+        }
+
+        this.updateShareButtonVisibility();
+        this.updateSessionNameDisplay();
+
+        const newBtn = document.getElementById('new-analysis-header-btn');
+        if (newBtn) newBtn.style.display = '';
+
+        document.getElementById('messages').style.display = 'none';
+        document.getElementById('output-tabs').classList.remove('active');
+        const inputContainer = document.querySelector('.input-container');
+        if (inputContainer) inputContainer.style.display = 'none';
+        if (this.state.filesPanelExpanded) this.toggleFilesPanel();
+        this.state.timelineMeetings = meetings;
+
+        // Rebuild ontology from meetings data
+        const topicsSet = new Set();
+        meetings.forEach(m => {
+          if (m.topics) Object.keys(m.topics).forEach(t => topicsSet.add(t));
+        });
+        this.state.timelineOntology = {
+          meetings: meetings.map(m => ({ id: m.id, title: m.title, date: m.date, type: m.type, file: m.file })),
+          topics: Array.from(topicsSet)
+        };
+
+        // Assign topic colors
+        this.state.timelineTopicColors = {};
+        Array.from(topicsSet).forEach((topic, i) => {
+          this.state.timelineTopicColors[topic] = TIMELINE_TOPIC_COLORS[i % TIMELINE_TOPIC_COLORS.length];
+        });
+
+        // Restore view state from table_view_state if available
+        if (this.state._savedTableViewState) {
+          let viewState = this.state._savedTableViewState;
+          if (typeof viewState === 'string') {
+            try { viewState = JSON.parse(viewState); } catch (e) { viewState = null; }
+          }
+          if (viewState) {
+            if (viewState.timelineZoomLevel) this.state.timelineZoomLevel = viewState.timelineZoomLevel;
+            if (viewState.timelineCustomFilters) this.state.timelineCustomFilters = viewState.timelineCustomFilters;
+            if (viewState.timelineActiveTopic) this.state.timelineActiveTopic = viewState.timelineActiveTopic;
+          }
+          this.state._savedTableViewState = null;
+        }
+
+        // Show timeline workspace
+        const ws = document.getElementById('timeline-workspace');
+        ws.classList.add('active');
+
+        this.renderTimelineWorkspace();
+        this.setupTimelineEvents();
+        this.initChatEventListeners();
+
+        // Restore chat messages
+        if (this.state.chatMessages.length > 0) {
+          this.renderChatMessages();
+        }
+      },
+
+      // --- Timeline rendering ---
+      renderTimelineWorkspace() {
+        this.renderTimelineStats();
+        this.renderTimelineFiltersPanel();
+        this.renderTimeline();
+        this.renderTimelineActiveFilterStrip();
+      },
+
+      renderTimelineStats() {
+        const meetings = this.state.timelineMeetings || [];
+        const topics = new Set();
+        let cites = 0;
+        meetings.forEach(m => {
+          if (m.topics) {
+            Object.entries(m.topics).forEach(([t, d]) => {
+              topics.add(t);
+              if (d.citations) cites += d.citations.length;
+            });
+          }
+        });
+        const statsEl = document.getElementById('tl-output-stats');
+        if (statsEl && meetings.length > 0) {
+          const fmtShort = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          statsEl.innerHTML = `
+            <div><span style="color:var(--text-secondary);font-weight:600;">${meetings.length}</span> meetings</div>
+            <div><span style="color:var(--text-secondary);font-weight:600;">${topics.size}</span> topics</div>
+            <div><span style="color:var(--text-secondary);font-weight:600;">${cites}</span> citations</div>
+            <div>${fmtShort(meetings[0].date)} \u2013 ${fmtShort(meetings[meetings.length - 1].date)}</div>
+          `;
+        }
+      },
+
+      renderTimelineFiltersPanel() {
+        const btn = document.getElementById('tl-filters-toggle');
+        const panel = document.getElementById('tl-filters-panel');
+        const badge = document.getElementById('tl-filter-badge');
+        if (!btn || !panel) return;
+
+        btn.classList.toggle('open', this.state.timelineFiltersOpen);
+        panel.classList.toggle('open', this.state.timelineFiltersOpen);
+
+        if (this.state.timelineActiveTopic) {
+          if (badge) { badge.style.display = 'inline-flex'; badge.textContent = '1'; }
+          btn.classList.add('has-active');
+          btn.style.setProperty('--active-filter-color', this.state.timelineTopicColors[this.state.timelineActiveTopic]);
+        } else {
+          if (badge) badge.style.display = 'none';
+          btn.classList.remove('has-active');
+        }
+
+        if (!this.state.timelineFiltersOpen) return;
+
+        const meetings = this.state.timelineMeetings || [];
+        const counts = {};
+        meetings.forEach(m => {
+          if (m.topics) Object.keys(m.topics).forEach(t => counts[t] = (counts[t] || 0) + 1);
+        });
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+        const builtIn = sorted.map(([topic, count]) => `
+          <button class="tl-topic-filter ${this.state.timelineActiveTopic === topic ? 'active' : ''}"
+                  style="--topic-color:${this.state.timelineTopicColors[topic] || '#666'}"
+                  onclick="ChatApp.toggleTimelineTopic('${this.escapeHtml(topic).replace(/'/g, "\\'")}')">
+            <span class="tl-filter-dot"></span>
+            ${this.escapeHtml(topic)}
+            <span class="tl-filter-count">${count}</span>
+          </button>
+        `).join('');
+
+        const custom = this.state.timelineCustomFilters.map((cf, i) => `
+          <button class="tl-topic-filter custom ${this.state.timelineActiveTopic === cf.name ? 'active' : ''} ${cf.generating ? 'generating' : ''}"
+                  style="--topic-color:${cf.color}"
+                  onclick="${cf.generating ? '' : `ChatApp.toggleTimelineTopic('${cf.name.replace(/'/g, "\\'")}')`}">
+            <span class="tl-filter-dot"></span>
+            ${cf.generating ? 'Searching...' : this.escapeHtml(cf.name)}
+            ${cf.generating ? '' : `<span class="tl-filter-count">${cf.meetingIds.length}</span>`}
+            <span class="tl-filter-ai-badge">AI</span>
+            ${cf.generating ? '' : `<span class="tl-filter-remove" onclick="event.stopPropagation();ChatApp.removeTimelineCustomFilter(${i})">&times;</span>`}
+          </button>
+        `).join('');
+
+        panel.innerHTML = `
+          <div class="tl-filters-panel-header">
+            <span class="tl-filters-panel-title">Filter by topic</span>
+            ${this.state.timelineActiveTopic ? `<button style="background:none;border:none;color:var(--error);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;" onclick="ChatApp.clearTimelineFilter()">Clear filter</button>` : ''}
+          </div>
+          <div class="tl-filters-panel-body">${builtIn}${custom}</div>
+          <div class="tl-ai-filter-section">
+            <div class="tl-ai-filter-section-label">Custom AI search</div>
+            <div class="tl-ai-filter-row">
+              <input class="tl-ai-filter-input" id="tl-ai-filter-input" placeholder='e.g. "San Diego treated differently"'
+                     onkeydown="if(event.key==='Enter')ChatApp.submitTimelineCustomFilter()">
+              <button class="tl-ai-filter-submit" onclick="ChatApp.submitTimelineCustomFilter()">Search</button>
+            </div>
+          </div>
+        `;
+      },
+
+      renderTimelineActiveFilterStrip() {
+        const strip = document.getElementById('tl-active-filter-strip');
+        if (!strip) return;
+
+        if (!this.state.timelineActiveTopic) {
+          strip.classList.remove('visible');
+          strip.style.display = 'none';
+          return;
+        }
+
+        const topic = this.state.timelineActiveTopic;
+        const color = this.state.timelineTopicColors[topic] || '#666';
+        const cf = this.getTimelineCustomFilter(topic);
+        const meetings = this.state.timelineMeetings || [];
+
+        const appearances = cf
+          ? meetings.filter(m => cf.meetingIds.includes(m.id))
+          : meetings.filter(m => m.topics && m.topics[topic]);
+
+        const fmtShort = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        const steps = appearances.map((m, i) => {
+          let preview, hasDecision = false;
+          if (cf && cf.meetingExcerpts && cf.meetingExcerpts[m.id]) {
+            preview = cf.meetingExcerpts[m.id][0].text.substring(0, 80) + '...';
+          } else if (m.topics && m.topics[topic]) {
+            const raw = m.topics[topic].text.replace(/<[^>]+>/g, '').replace(/\[DECISION\]\s*/g, '');
+            preview = raw.substring(0, 80) + (raw.length > 80 ? '...' : '');
+            hasDecision = m.topics[topic].text.includes('[DECISION]');
+          } else {
+            preview = '(AI match)';
+          }
+          return `
+            ${i > 0 ? '<span class="tl-evolution-arrow">\u2192</span>' : ''}
+            <div class="tl-evolution-step ${hasDecision ? 'has-decision' : ''}" onclick="ChatApp.selectTimelineMeeting('${m.id}')">
+              <div class="tl-evolution-date">${fmtShort(m.date)}</div>
+              ${this.escapeHtml(preview)}
+            </div>`;
+        }).join('');
+
+        const label = cf ? `"${this.escapeHtml(cf.prompt)}"` : this.escapeHtml(topic);
+        strip.innerHTML = `
+          <span class="tl-active-filter-strip-dot" style="background:${color}"></span>
+          <span class="tl-active-filter-strip-label" style="color:${color}">${label}</span>
+          <span class="tl-active-filter-strip-count">${appearances.length} mentions</span>
+          <div class="tl-thread-evolution">${steps}</div>
+          <button class="tl-active-filter-strip-clear" onclick="ChatApp.clearTimelineFilter()">Clear</button>
+        `;
+        strip.classList.add('visible');
+        strip.style.display = '';
+      },
+
+      renderTimeline() {
+        const canvas = document.getElementById('tl-canvas');
+        if (!canvas) return;
+        const meetings = this.state.timelineMeetings || [];
+        if (meetings.length === 0) { canvas.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">No meetings to display.</div>'; return; }
+
+        const dates = meetings.map(m => new Date(m.date + 'T12:00:00'));
+        const minDate = new Date(dates[0]); minDate.setDate(1);
+        const maxDate = new Date(dates[dates.length - 1]); maxDate.setMonth(maxDate.getMonth() + 1, 0);
+        const range = maxDate - minDate || 1;
+        const totalWidth = Math.max(1400, meetings.length * 160) * this.state.timelineZoomLevel;
+
+        const vpEl = document.getElementById('tl-viewport');
+        const trackHeight = Math.max(500, vpEl ? vpEl.clientHeight - 40 : 600);
+
+        const months = [];
+        const c = new Date(minDate);
+        while (c <= maxDate) {
+          months.push({ label: c.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }), pct: ((c - minDate) / range) * 100 });
+          c.setMonth(c.getMonth() + 1);
+        }
+
+        const nodes = meetings.map((m, i) => {
+          const d = new Date(m.date + 'T12:00:00');
+          const baseHeight = Math.max(60, Math.floor(trackHeight * 0.12));
+          const variation = Math.max(25, Math.floor(trackHeight * 0.06));
+          return { ...m, pct: ((d - minDate) / range) * 100, above: i % 2 === 0, stemHeight: baseHeight + (i % 3) * variation };
+        });
+
+        const cf = this.getTimelineCustomFilter(this.state.timelineActiveTopic);
+        let threadHTML = '';
+        if (this.state.timelineActiveTopic) {
+          const tn = cf
+            ? nodes.filter(n => cf.meetingIds.includes(n.id))
+            : nodes.filter(n => n.topics && n.topics[this.state.timelineActiveTopic]);
+          const color = this.state.timelineTopicColors[this.state.timelineActiveTopic] || '#666';
+          for (let i = 0; i < tn.length - 1; i++) {
+            threadHTML += `<div class="tl-thread-line visible" style="left:${tn[i].pct}%;width:${tn[i + 1].pct - tn[i].pct}%;background:${color};box-shadow:0 0 8px ${color};"></div>`;
+          }
+        }
+
+        canvas.innerHTML = `
+          <div class="tl-track" style="width:${totalWidth}px;height:${trackHeight}px;margin:0 auto;">
+            <div class="tl-axis" style="top:50%;">${threadHTML}</div>
+            ${months.map(m => `<div class="tl-month-marker above" style="left:${m.pct}%;">${m.label}<div class="tl-month-tick"></div></div>`).join('')}
+            ${nodes.map((n, i) => this.renderTimelineNode(n, i)).join('')}
+          </div>`;
+      },
+
+      renderTimelineNode(node, index) {
+        const cf = this.getTimelineCustomFilter(this.state.timelineActiveTopic);
+        const isHL = this.state.timelineActiveTopic && (cf ? cf.meetingIds.includes(node.id) : !!(node.topics && node.topics[this.state.timelineActiveTopic]));
+        const isDim = this.state.timelineActiveTopic && !isHL;
+        const isSel = this.state.timelineSelectedMeeting === node.id;
+
+        const cls = ['tl-meeting-node', node.above ? 'above' : 'below', isHL ? 'highlighted' : '', isDim ? 'dimmed' : '', isSel ? 'selected' : ''].filter(Boolean).join(' ');
+        const tc = this.state.timelineActiveTopic ? (this.state.timelineTopicColors[this.state.timelineActiveTopic] || 'var(--accent-primary)') : 'var(--accent-primary)';
+
+        const blips = node.topics ? Object.keys(node.topics).map(t => {
+          const lit = this.state.timelineActiveTopic === t && !cf;
+          const dim = this.state.timelineActiveTopic && !lit && !cf;
+          return `<span class="tl-topic-blip ${lit ? 'lit' : ''} ${dim ? 'dimmed' : ''}" style="color:${this.state.timelineTopicColors[t] || '#999'};background:${this.state.timelineTopicColors[t] || '#999'}"></span>`;
+        }).join('') : '';
+
+        const fmtShort = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const card = `<div class="tl-node-card"><div class="tl-node-title">${this.escapeHtml(node.title)}</div><div class="tl-node-date">${fmtShort(node.date)}</div><div class="tl-node-type">${this.escapeHtml(node.type || '')}</div></div>`;
+        const style = `left:${node.pct}%;--topic-color:${tc};animation-delay:${index * 0.04}s;`;
+
+        if (node.above) {
+          return `<div class="${cls}" style="${style}" onclick="ChatApp.selectTimelineMeeting('${node.id}')">${card}<div class="tl-node-blips">${blips}</div><div class="tl-node-connector" style="height:${node.stemHeight}px"></div><div class="tl-node-dot"></div></div>`;
+        } else {
+          return `<div class="${cls}" style="${style}" onclick="ChatApp.selectTimelineMeeting('${node.id}')"><div class="tl-node-dot"></div><div class="tl-node-connector" style="height:${node.stemHeight}px"></div><div class="tl-node-blips">${blips}</div>${card}</div>`;
+        }
+      },
+
+      // --- Detail panel ---
+      showTimelineDetail(meetingId) {
+        const meetings = this.state.timelineMeetings || [];
+        const m = meetings.find(x => x.id === meetingId);
+        if (!m) return;
+
+        const panel = document.getElementById('tl-detail-panel');
+        panel.classList.add('open');
+        document.getElementById('tl-detail-title').textContent = m.title;
+        const fmtLong = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        document.getElementById('tl-detail-meta').textContent = `${fmtLong(m.date)}  \u00b7  ${m.type || ''}`;
+
+        const chips = m.topics ? Object.keys(m.topics).map(t =>
+          `<span class="tl-detail-topic-chip" style="color:${this.state.timelineTopicColors[t] || '#666'};border-color:${this.state.timelineTopicColors[t] || '#666'};background:color-mix(in srgb,${this.state.timelineTopicColors[t] || '#666'} 8%,white);" onclick="ChatApp.toggleTimelineTopic('${t.replace(/'/g, "\\'")}')">${this.escapeHtml(t)}</span>`
+        ).join('') : '';
+
+        const excerpts = m.topics ? Object.entries(m.topics).map(([topic, data]) => {
+          const isActive = this.state.timelineActiveTopic === topic && !this.isTimelineCustomFilter(this.state.timelineActiveTopic);
+          const color = this.state.timelineTopicColors[topic] || '#666';
+          const citLinks = (data.citations || []).map(c =>
+            `<a class="tl-citation-link" onclick="ChatApp.openTimelineCitation('${(m.file || '').replace(/'/g, "\\'")}',${c.page || 1})" title="${this.escapeHtml(m.file || '')}, ${this.escapeHtml(c.label || '')}">${this.escapeHtml((m.file || '').replace('.pdf', ''))}, ${this.escapeHtml(c.label || '')}</a>`
+          ).join('');
+
+          // Format text — convert [DECISION] markers to styled tags
+          let text = data.text || '';
+          text = text.replace(/\[DECISION\]\s*/g, '<span class="tl-decision-tag">DECISION</span> ');
+
+          return `<div class="tl-excerpt-card ${isActive ? 'active-topic' : ''}" style="--topic-color:${color}">
+            <div class="tl-excerpt-topic-label" style="color:${color}">${this.escapeHtml(topic)}</div>
+            <div class="tl-excerpt-text">${text}</div>
+            ${citLinks ? `<div class="tl-excerpt-citations"><span class="tl-citations-label">Sources</span>${citLinks}</div>` : ''}
+          </div>`;
+        }).join('') : '';
+
+        // Custom filter excerpts
+        let customHTML = '';
+        const cf = this.getTimelineCustomFilter(this.state.timelineActiveTopic);
+        if (cf && cf.meetingExcerpts && cf.meetingExcerpts[m.id]) {
+          const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const cfEx = cf.meetingExcerpts[m.id].map(ex => {
+            const kws = cf.prompt.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+            let txt = ex.text;
+            kws.forEach(kw => { txt = txt.replace(new RegExp(`(${escRe(kw)})`, 'gi'), '<mark>$1</mark>'); });
+            const cl = (ex.citations || []).map(c => `<a class="tl-citation-link" onclick="ChatApp.openTimelineCitation('${(ex.file || '').replace(/'/g, "\\'")}',${c.page || 1})">${this.escapeHtml((ex.file || '').replace('.pdf', ''))}, ${this.escapeHtml(c.label || '')}</a>`).join('');
+            return `<div class="tl-excerpt-card active-topic" style="--topic-color:${cf.color}">
+              <div class="tl-excerpt-topic-label" style="color:${cf.color}">${this.escapeHtml(ex.topic || '')} (AI match)</div>
+              <div class="tl-excerpt-text">${txt}</div>
+              ${cl ? `<div class="tl-excerpt-citations"><span class="tl-citations-label">Sources</span>${cl}</div>` : ''}
+            </div>`;
+          }).join('');
+          customHTML = `<div class="tl-detail-section"><div class="tl-detail-section-label" style="color:${cf.color}">AI Filter: "${this.escapeHtml(cf.prompt)}"</div>${cfEx}</div>`;
+        }
+
+        document.getElementById('tl-detail-body').innerHTML = `
+          ${customHTML}
+          <div class="tl-detail-section"><div class="tl-detail-section-label">Topics Discussed</div><div class="tl-detail-topics-list">${chips}</div></div>
+          <div class="tl-detail-section"><div class="tl-detail-section-label">Meeting Notes</div>${excerpts}</div>`;
+      },
+
+      closeTimelineDetail() {
+        this.state.timelineSelectedMeeting = null;
+        document.getElementById('tl-detail-panel').classList.remove('open');
+        this.renderTimeline();
+      },
+
+      // --- Interactions ---
+      toggleTimelineTopic(topic) {
+        this.state.timelineActiveTopic = this.state.timelineActiveTopic === topic ? null : topic;
+        this.dismissTimelineOnboarding();
+        this.renderTimelineFiltersPanel();
+        this.renderTimeline();
+        this.renderTimelineActiveFilterStrip();
+        if (this.state.timelineSelectedMeeting) this.showTimelineDetail(this.state.timelineSelectedMeeting);
+        this.saveTimelineViewState();
+      },
+
+      clearTimelineFilter() {
+        this.state.timelineActiveTopic = null;
+        this.renderTimelineFiltersPanel();
+        this.renderTimeline();
+        this.renderTimelineActiveFilterStrip();
+        if (this.state.timelineSelectedMeeting) this.showTimelineDetail(this.state.timelineSelectedMeeting);
+        this.saveTimelineViewState();
+      },
+
+      selectTimelineMeeting(id) {
+        this.state.timelineSelectedMeeting = this.state.timelineSelectedMeeting === id ? null : id;
+        this.dismissTimelineOnboarding();
+        this.renderTimeline();
+        if (this.state.timelineSelectedMeeting) this.showTimelineDetail(id);
+        else this.closeTimelineDetail();
+      },
+
+      timelineZoom(dir) {
+        this.state.timelineZoomLevel = Math.max(0.5, Math.min(3, this.state.timelineZoomLevel + dir * 0.25));
+        const zoomEl = document.getElementById('tl-zoom-level');
+        if (zoomEl) zoomEl.textContent = Math.round(this.state.timelineZoomLevel * 100) + '%';
+        this.renderTimeline();
+        this.saveTimelineViewState();
+      },
+
+      dismissTimelineOnboarding() {
+        if (!this.state.timelineHasInteracted) {
+          this.state.timelineHasInteracted = true;
+          const hint = document.getElementById('tl-onboarding-hint');
+          if (hint) hint.classList.add('hidden');
+        }
+      },
+
+      toggleTimelineFiltersPanel() {
+        this.state.timelineFiltersOpen = !this.state.timelineFiltersOpen;
+        this.renderTimelineFiltersPanel();
+      },
+
+      toggleTimelineChat() {
+        this.state.timelineChatExpanded = !this.state.timelineChatExpanded;
+        const sidebar = document.getElementById('tl-chat-sidebar');
+        if (sidebar) sidebar.classList.toggle('expanded', this.state.timelineChatExpanded);
+        // Re-render timeline after transition for new viewport size
+        setTimeout(() => this.renderTimeline(), 310);
+      },
+
+      // --- Events ---
+      setupTimelineEvents() {
+        // Avoid duplicate event setup
+        if (this._timelineEventsInitialized) return;
+        this._timelineEventsInitialized = true;
+
+        // Keyboard
+        document.addEventListener('keydown', (e) => {
+          if (this.state.analysisMode !== 'minutes-analysis') return;
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          if (e.key === 'Escape') {
+            if (this.state.timelineSelectedMeeting) this.closeTimelineDetail();
+            else if (this.state.timelineActiveTopic) this.clearTimelineFilter();
+            else if (this.state.timelineFiltersOpen) this.toggleTimelineFiltersPanel();
+          }
+          if (e.key === '+' || e.key === '=') this.timelineZoom(1);
+          if (e.key === '-') this.timelineZoom(-1);
+        });
+
+        // Close filters on outside click
+        document.addEventListener('click', (e) => {
+          if (this.state.timelineFiltersOpen && !e.target.closest('#tl-filters-toggle') && !e.target.closest('#tl-filters-panel')) {
+            this.state.timelineFiltersOpen = false;
+            this.renderTimelineFiltersPanel();
+          }
+        });
+
+        // Pan
+        const vp = document.getElementById('tl-viewport');
+        if (vp) {
+          let dragging = false, sx, sl;
+          vp.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.tl-meeting-node')) return;
+            dragging = true; sx = e.pageX; sl = vp.scrollLeft; vp.style.cursor = 'grabbing';
+          });
+          window.addEventListener('mouseup', () => { dragging = false; if (vp) vp.style.cursor = ''; });
+          window.addEventListener('mousemove', (e) => { if (!dragging) return; e.preventDefault(); vp.scrollLeft = sl - (e.pageX - sx); });
+          vp.addEventListener('wheel', (e) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); this.timelineZoom(e.deltaY < 0 ? 1 : -1); } }, { passive: false });
+        }
+      },
+
+      // --- Timeline progress animation ---
+      startTimelineProgressRotation(phase) {
+        this.stopTimelineProgressRotation();
+
+        const phaseText = document.getElementById('tl-phase-text');
+        const phaseSub = document.getElementById('tl-phase-sub');
+        const phaseDots = document.getElementById('tl-phase-dots');
+
+        const messages = {
+          1: [
+            'Reading document contents',
+            'Identifying meeting dates and participants',
+            'Analyzing document relationships',
+            'Scanning for recurring topics',
+            'Mapping meeting hierarchy',
+            'Understanding discussion structure',
+            'Reviewing key discussions',
+            'Categorizing meeting types',
+            'Building meeting overview',
+            'Extracting topic ontology'
+          ],
+          2: [
+            'Extracting topics and citations',
+            'Analyzing discussion details',
+            'Cross-referencing meetings',
+            'Building topic threads',
+            'Identifying decisions and actions',
+            'Mapping topic evolution',
+            'Linking citations to sources',
+            'Synthesizing meeting data',
+            'Organizing timeline entries',
+            'Completing extraction'
+          ]
+        };
+
+        const phaseMessages = messages[phase] || messages[1];
+
+        // Update phase sub-text
+        if (phaseSub) phaseSub.textContent = `Phase ${phase} of 2`;
+
+        // Set initial message
+        if (phaseText) phaseText.textContent = phaseMessages[0];
+
+        // Update step dots
+        const step1Dot = document.querySelector('#tl-step-1 .tl-step-dot');
+        const step2Dot = document.querySelector('#tl-step-2 .tl-step-dot');
+        const stepLine = document.getElementById('tl-step-line-1');
+        if (phase === 1) {
+          if (step1Dot) { step1Dot.className = 'tl-step-dot active'; }
+          if (step2Dot) { step2Dot.className = 'tl-step-dot'; }
+          if (stepLine) { stepLine.className = 'tl-progress-step-line'; }
+        } else {
+          if (step1Dot) { step1Dot.className = 'tl-step-dot complete'; }
+          if (step2Dot) { step2Dot.className = 'tl-step-dot active'; }
+          if (stepLine) { stepLine.className = 'tl-progress-step-line complete'; }
+        }
+
+        // Rotate messages
+        let msgIdx = 0;
+        const scheduleNext = () => {
+          const delay = 5000 + Math.random() * 3000;
+          this._tlProgressMsgTimer = setTimeout(() => {
+            msgIdx = (msgIdx + 1) % phaseMessages.length;
+            if (phaseText) phaseText.textContent = phaseMessages[msgIdx];
+            scheduleNext();
+          }, delay);
+        };
+        scheduleNext();
+
+        // Animate dots
+        let dotIdx = 0;
+        this._tlProgressDotTimer = setInterval(() => {
+          dotIdx = (dotIdx + 1) % 3;
+          if (phaseDots) phaseDots.textContent = '.'.repeat(dotIdx + 1);
+        }, 500);
+      },
+
+      stopTimelineProgressRotation() {
+        if (this._tlProgressMsgTimer) {
+          clearTimeout(this._tlProgressMsgTimer);
+          this._tlProgressMsgTimer = null;
+        }
+        if (this._tlProgressDotTimer) {
+          clearInterval(this._tlProgressDotTimer);
+          this._tlProgressDotTimer = null;
+        }
+      },
+
+      // --- Custom AI Filters ---
+      async submitTimelineCustomFilter() {
+        const input = document.getElementById('tl-ai-filter-input');
+        if (!input) return;
+        const prompt = input.value.trim();
+        if (!prompt) return;
+        input.value = '';
+
+        const color = TIMELINE_CUSTOM_FILTER_COLORS[this.state.timelineCustomColorIdx++ % TIMELINE_CUSTOM_FILTER_COLORS.length];
+        const cf = { name: prompt.length > 28 ? prompt.substring(0, 26) + '...' : prompt, prompt, color, meetingIds: [], meetingExcerpts: {}, generating: true };
+        this.state.timelineCustomFilters.push(cf);
+        this.renderTimelineFiltersPanel();
+
+        try {
+          // Build a prompt to search across all meeting data
+          const meetingsContext = JSON.stringify(this.state.timelineMeetings, null, 2);
+          const searchPrompt = `Given the following meeting data, find all meetings that are relevant to this search query: "${prompt}"
+
+<meetings>
+${meetingsContext}
+</meetings>
+
+Return a JSON code block with this format:
+\`\`\`json
+{
+  "matches": [
+    {
+      "meetingId": "m1",
+      "topic": "Topic Name",
+      "excerpt": "Relevant excerpt text",
+      "file": "filename.pdf",
+      "citations": [{"label": "p. 3", "page": 3}]
+    }
+  ]
+}
+\`\`\`
+
+Return ONLY the JSON block. Include all relevant matches.`;
+
+          this.state.currentResponse = '';
+          this.state.currentThinking = '';
+          const response = await this.streamResponse(searchPrompt, false);
+
+          const result = parseTimelineJSON(response);
+          if (result && result.matches) {
+            result.matches.forEach(match => {
+              if (!cf.meetingIds.includes(match.meetingId)) cf.meetingIds.push(match.meetingId);
+              if (!cf.meetingExcerpts[match.meetingId]) cf.meetingExcerpts[match.meetingId] = [];
+              cf.meetingExcerpts[match.meetingId].push({
+                topic: match.topic || 'AI Match',
+                text: match.excerpt || '',
+                citations: match.citations || [],
+                file: match.file || ''
+              });
+            });
+          }
+        } catch (e) {
+          console.error('Custom filter error:', e);
+        }
+
+        cf.generating = false;
+        this.state.timelineActiveTopic = cf.name;
+        this.state.timelineTopicColors[cf.name] = cf.color;
+        this.renderTimelineFiltersPanel();
+        this.renderTimeline();
+        this.renderTimelineActiveFilterStrip();
+        this.saveTimelineViewState();
+      },
+
+      removeTimelineCustomFilter(i) {
+        const removed = this.state.timelineCustomFilters.splice(i, 1)[0];
+        if (this.state.timelineActiveTopic === removed.name) {
+          this.state.timelineActiveTopic = null;
+          this.renderTimelineActiveFilterStrip();
+        }
+        delete this.state.timelineTopicColors[removed.name];
+        this.renderTimelineFiltersPanel();
+        this.renderTimeline();
+        this.saveTimelineViewState();
+      },
+
+      isTimelineCustomFilter(name) {
+        return this.state.timelineCustomFilters.some(cf => cf.name === name);
+      },
+
+      getTimelineCustomFilter(name) {
+        return this.state.timelineCustomFilters.find(cf => cf.name === name);
+      },
+
+      // --- Chat system instruction for timeline mode ---
+      buildTimelineChatSystemInstruction() {
+        const fileList = this.getUploadedFileList();
+        const meetingsJSON = JSON.stringify(this.state.timelineMeetings || [], null, 2);
+
+        let instruction = `You are analyzing meeting minutes and notes. Here is the completed analysis:
+
+<document_summary>
+${this.state.summaryResponse || ''}
+</document_summary>
+
+<meeting_data>
+${meetingsJSON}
+</meeting_data>
+
+<uploaded_documents>
+${fileList}
+</uploaded_documents>
+
+When referencing documents, use the EXACT filenames listed above. When referencing meetings, cite the meeting title and date. When referencing specific content, cite the topic and source document.
+
+CITATION FORMAT:
+- For PDF files: (filename.pdf, page_number, paragraph_number)
+- For non-PDF files (DOCX, XLSX, CSV, TXT): cite using the §N markers shown in the document text, e.g. (filename.docx, §3)
+
+You can reference meetings by their title and date, topics by name, and specific discussions by quoting from the meeting data.`;
+
+        if (this.state.compactionSummary) {
+          instruction += `\n\nCONVERSATION CONTEXT (summary of earlier discussion):\n${this.state.compactionSummary}`;
+        }
+
+        return {
+          parts: [{ text: instruction }]
+        };
+      },
+
+      // --- Citations ---
+      openTimelineCitation(file, page) {
+        this.openPdfAtPage(file, page);
+      },
+
+      // --- View state persistence ---
+      saveTimelineViewState() {
+        if (!this.state.currentAnalysisId || !this.isProxyMode()) return;
+        clearTimeout(this._timelineViewStateTimer);
+        this._timelineViewStateTimer = setTimeout(async () => {
+          try {
+            await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                table_view_state: {
+                  timelineZoomLevel: this.state.timelineZoomLevel,
+                  timelineActiveTopic: this.state.timelineActiveTopic,
+                  timelineCustomFilters: this.state.timelineCustomFilters.filter(cf => !cf.generating)
+                }
+              })
+            });
+          } catch (e) {
+            console.warn('Failed to save timeline view state:', e);
+          }
+        }, 1000);
+      },
+
+      // --- Export ---
+      exportTimelineJSON() {
+        const data = this.state.timelineMeetings || [];
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'timeline-meetings.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      exportTimelineXLSX() {
+        const meetings = this.state.timelineMeetings || [];
+        const rows = [];
+        meetings.forEach(m => {
+          if (m.topics) {
+            Object.entries(m.topics).forEach(([topic, data]) => {
+              const citations = (data.citations || []).map(c => c.label).join('; ');
+              rows.push([m.date, m.title, m.type || '', m.file || '', topic, (data.text || '').replace(/<[^>]+>/g, '').replace(/\[DECISION\]\s*/g, '[DECISION] '), citations]);
+            });
+          }
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet([['Date', 'Meeting', 'Type', 'File', 'Topic', 'Excerpt', 'Citations'], ...rows]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Timeline');
+        // Auto-size columns
+        ws['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 18 }, { wch: 30 }, { wch: 25 }, { wch: 80 }, { wch: 25 }];
+        XLSX.writeFile(wb, 'timeline-meetings.xlsx');
+      },
+
+      // ===== End Timeline Methods =====
+
       /**
        * Set up selection events on draft editors for AI rework hint
        */
@@ -11609,6 +13382,17 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
        * Render a loaded analysis (show tabs with content)
        */
       renderLoadedAnalysis() {
+        // Timeline mode has its own rendering path
+        if (this.state.analysisMode === 'minutes-analysis') {
+          try {
+            return this.renderLoadedTimelineAnalysis();
+          } catch (e) {
+            console.error('Timeline restore failed, falling back to tab view:', e);
+            this.state.analysisMode = 'cross-plan';
+            // Fall through to standard rendering below
+          }
+        }
+
         // Update share button visibility (only show if owner)
         this.updateShareButtonVisibility();
         this.updateSessionNameDisplay();
@@ -12161,12 +13945,28 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.isRegenStreaming = false;
         this.state.currentRegenResponse = '';
 
+        // Reset timeline state
+        this.stopTimelineProgressRotation();
+        this._timelineEventsInitialized = false;
+        this.state.timelineOntology = null;
+        this.state.timelineMeetings = null;
+        this.state.timelineTopicColors = {};
+        this.state.timelineActiveTopic = null;
+        this.state.timelineSelectedMeeting = null;
+        this.state.timelineZoomLevel = 1;
+        this.state.timelineFiltersOpen = false;
+        this.state.timelineChatExpanded = false;
+        this.state.timelineCustomFilters = [];
+        this.state.timelineCustomColorIdx = 0;
+        this.state.timelineHasInteracted = false;
+
         // Clear uploaded files
         this.state.uploadedFiles = [];
 
-        // Hide output tabs and split view
+        // Hide output tabs, split view, and timeline workspace
         const outputTabs = document.getElementById('output-tabs');
         const splitView = document.getElementById('split-view');
+        const timelineWs = document.getElementById('timeline-workspace');
         if (outputTabs) {
           outputTabs.classList.remove('active');
           outputTabs.style.marginRight = '';
@@ -12174,6 +13974,9 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         if (splitView) {
           splitView.classList.remove('active');
           splitView.classList.remove('expanded');
+        }
+        if (timelineWs) {
+          timelineWs.classList.remove('active');
         }
 
         // Show messages container (initial state)

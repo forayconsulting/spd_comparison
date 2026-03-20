@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPD MATRIX — Minutes Analysis Timeline Prototype</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       DESIGN SYSTEM (from index.html)
+       ═══════════════════════════════════════════════════════════════ */
+    :root {
+      --brand-navy: #1e3a5f;
+      --brand-navy-light: #2d4a6f;
+      --brand-navy-dark: #152a47;
+      --bg-primary: #ffffff;
+      --bg-secondary: #f7f9fc;
+      --bg-tertiary: #eef2f7;
+      --surface-glass: rgba(255, 255, 255, 0.88);
+      --surface-elevated: rgba(30, 58, 95, 0.04);
+      --gradient-primary: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
+      --gradient-accent: linear-gradient(135deg, #2d4a6f 0%, #3d5a7f 100%);
+      --gradient-success: linear-gradient(135deg, #0d6e6e 0%, #1a8a8a 100%);
+      --gradient-border: linear-gradient(135deg, rgba(30, 58, 95, 0.1), rgba(30, 58, 95, 0.15));
+      --text-primary: #1a2b3c;
+      --text-secondary: #5a6b7c;
+      --text-muted: #8a9bac;
+      --accent-primary: #1e3a5f;
+      --accent-hover: #2d4a6f;
+      --accent-success: #0d6e6e;
+      --accent-dark: #152a47;
+      --accent-gray: #5a6b7c;
+      --accent-light: #8a9bac;
+      --border-subtle: rgba(30, 58, 95, 0.08);
+      --border-medium: rgba(30, 58, 95, 0.15);
+      --shadow-sm: 0 2px 8px rgba(30, 58, 95, 0.08);
+      --shadow-md: 0 4px 16px rgba(30, 58, 95, 0.12);
+      --shadow-lg: 0 8px 32px rgba(30, 58, 95, 0.16);
+      --shadow-glow: 0 0 40px rgba(30, 58, 95, 0.15);
+      --error: #d32f2f;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      height: 100vh;
+      overflow: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at 0% 0%, rgba(30,58,95,0.03) 0%, transparent 50%),
+                  radial-gradient(circle at 100% 100%, rgba(30,58,95,0.02) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app { display: flex; flex-direction: column; height: 100vh; position: relative; z-index: 1; }
+
+    /* ── Header ── */
+    .chat-header {
+      padding: 16px 32px;
+      background: var(--gradient-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-md);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .chat-header::before { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background: var(--gradient-border); }
+    .chat-header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px; font-weight: 700; color: white;
+      letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .header-buttons { display: flex; gap: 8px; }
+    .header-btn {
+      display: flex; align-items: center; justify-content: center;
+      height: 40px; padding: 0 16px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 10px; color: white; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600;
+      transition: all 0.2s;
+    }
+    .header-btn:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Output header bar ── */
+    .output-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 32px;
+      border-bottom: 2px solid var(--border-medium);
+      background: var(--bg-primary);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 50;
+    }
+    .output-title-group { display: flex; align-items: baseline; gap: 16px; }
+    .output-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px; font-weight: 700; color: var(--text-primary);
+    }
+    .output-stats { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); }
+    .output-stats span { color: var(--text-secondary); font-weight: 600; }
+    .output-right { display: flex; align-items: center; gap: 12px; }
+    .export-button {
+      padding: 10px 20px; background: var(--gradient-primary); color: white; border: none;
+      border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s;
+    }
+    .export-button:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+    /* ── Collapsible topic filters ── */
+    .filters-toggle {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px;
+      border: 1px solid var(--border-medium); background: var(--bg-primary);
+      color: var(--text-secondary); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .filters-toggle:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .filters-toggle.has-active {
+      border-color: var(--active-filter-color, var(--accent-primary));
+      color: var(--active-filter-color, var(--accent-primary));
+      background: color-mix(in srgb, var(--active-filter-color, var(--accent-primary)) 6%, white);
+    }
+    .filters-toggle svg { transition: transform 0.2s; }
+    .filters-toggle.open svg { transform: rotate(180deg); }
+    .filter-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 9px;
+      background: var(--accent-primary); color: white;
+      font-size: 10px; font-weight: 700; padding: 0 5px;
+    }
+
+    .filters-panel {
+      display: none;
+      position: absolute; top: calc(100% + 6px); left: 0;
+      min-width: 340px; max-width: 480px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      z-index: 500;
+      animation: panelIn 0.15s ease;
+      overflow: hidden;
+    }
+    .filters-panel.open { display: block; }
+    @keyframes panelIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: translateY(0); } }
+
+    .filters-panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-secondary);
+    }
+    .filters-panel-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .filters-panel-body { padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .topic-filter {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px;
+      border: 1px solid var(--border-medium); background: var(--bg-primary);
+      color: var(--text-secondary); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .topic-filter:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .topic-filter.active {
+      border-color: var(--topic-color, var(--accent-primary));
+      background: color-mix(in srgb, var(--topic-color, var(--accent-primary)) 10%, white);
+      color: var(--topic-color, var(--accent-primary));
+      font-weight: 600;
+    }
+    .filter-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--topic-color); opacity: 0.4; transition: opacity 0.2s; }
+    .topic-filter.active .filter-dot { opacity: 1; }
+    .filter-count { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* AI filter section within panel */
+    .ai-filter-section {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .ai-filter-section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted);
+      margin-bottom: 8px; font-family: 'Space Grotesk', sans-serif;
+    }
+    .ai-filter-row { display: flex; gap: 8px; }
+    .ai-filter-input {
+      flex: 1; padding: 8px 12px;
+      border: 1px solid var(--border-medium); border-radius: 8px;
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--text-primary); background: var(--bg-secondary); outline: none;
+    }
+    .ai-filter-input:focus { border-color: var(--accent-primary); }
+    .ai-filter-input::placeholder { color: var(--text-muted); }
+    .ai-filter-submit {
+      padding: 8px 16px; border-radius: 8px; border: none;
+      background: var(--gradient-primary); color: white;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; transition: all 0.2s;
+    }
+    .ai-filter-submit:hover { box-shadow: var(--shadow-sm); }
+
+    .topic-filter.custom { border-style: dashed; }
+    .filter-ai-badge { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; }
+    .topic-filter.generating { opacity: 0.6; pointer-events: none; }
+    .filter-remove { display: none; font-size: 14px; line-height: 1; opacity: 0.5; cursor: pointer; margin-left: 2px; }
+    .topic-filter.custom:hover .filter-remove { display: inline; }
+    .filter-remove:hover { opacity: 1; }
+
+    /* Active filter indicator strip (shown when a topic is active) */
+    .active-filter-strip {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 32px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    .active-filter-strip.visible { display: flex; }
+    .active-filter-strip-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .active-filter-strip-label { font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; }
+    .active-filter-strip-count { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .active-filter-strip-clear {
+      margin-left: auto; padding: 4px 12px;
+      border: 1px solid var(--border-medium); border-radius: 6px;
+      background: none; color: var(--text-muted); font-size: 11px;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .active-filter-strip-clear:hover { border-color: var(--error); color: var(--error); }
+
+    /* Topic thread evolution (inline in active filter strip) */
+    .thread-evolution {
+      display: flex; gap: 6px; overflow-x: auto; flex: 1; padding: 2px 0;
+    }
+    .thread-evolution::-webkit-scrollbar { height: 3px; }
+    .thread-evolution::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 2px; }
+    .evolution-step {
+      flex-shrink: 0; padding: 6px 10px;
+      background: var(--bg-primary); border: 1px solid var(--border-subtle);
+      border-radius: 6px; font-size: 10px; color: var(--text-secondary);
+      line-height: 1.3; max-width: 180px; cursor: pointer; transition: all 0.2s;
+    }
+    .evolution-step:hover { border-color: var(--accent-primary); box-shadow: var(--shadow-sm); }
+    .evolution-step.has-decision { border-left: 3px solid var(--accent-success); }
+    .evolution-date { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
+    .evolution-arrow { flex-shrink: 0; color: var(--border-medium); font-size: 12px; display: flex; align-items: center; }
+
+    /* ── Content row (timeline + chat side-by-side) ── */
+    .content-row { display: flex; flex: 1; overflow: hidden; }
+    .main-content { display: flex; flex: 1; overflow: hidden; flex-direction: column; }
+    .main-content .split-view-timeline { flex: 1; }
+
+    /* ── Timeline viewport ── */
+    .timeline-viewport { flex: 1; overflow: auto; position: relative; cursor: grab; }
+    .timeline-viewport:active { cursor: grabbing; }
+    .timeline-canvas { position: relative; min-height: 100%; padding: 20px 48px 20px; display: flex; align-items: center; }
+
+    /* ── Timeline axis ── */
+    .timeline-track { position: relative; }
+    .timeline-axis {
+      position: absolute; top: 50%; left: 0; right: 0;
+      height: 2px; background: var(--border-medium); transform: translateY(-50%);
+    }
+    .timeline-axis::before, .timeline-axis::after {
+      content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+      width: 8px; height: 8px; border-radius: 50%; background: var(--border-medium);
+    }
+    .timeline-axis::before { left: -4px; }
+    .timeline-axis::after { right: -4px; }
+
+    .month-marker {
+      position: absolute; transform: translateX(-50%);
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text-muted); font-family: 'Space Grotesk', sans-serif; white-space: nowrap;
+    }
+    .month-marker.above { bottom: calc(50% + 14px); }
+    .month-tick { position: absolute; left: 50%; width: 1px; height: 10px; background: var(--border-medium); }
+    .month-marker.above .month-tick { bottom: -12px; }
+
+    /* ── Meeting nodes ── */
+    .meeting-node {
+      position: absolute; transform: translateX(-50%);
+      cursor: pointer; transition: all 0.3s ease; z-index: 2;
+    }
+    .meeting-node.above { bottom: calc(50% + 6px); }
+    .meeting-node.below { top: calc(50% + 6px); }
+    .node-connector { width: 1px; background: var(--border-medium); margin: 0 auto; transition: all 0.3s; }
+    .node-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--bg-primary); border: 2px solid var(--border-medium);
+      margin: 0 auto; position: relative; z-index: 3; transition: all 0.3s;
+    }
+    .meeting-node:hover .node-dot {
+      border-color: var(--accent-primary); background: var(--accent-primary);
+      box-shadow: 0 0 12px rgba(30,58,95,0.3); transform: scale(1.2);
+    }
+    .meeting-node.highlighted .node-dot {
+      border-color: var(--topic-color, var(--accent-primary));
+      background: var(--topic-color, var(--accent-primary));
+      box-shadow: 0 0 16px color-mix(in srgb, var(--topic-color, var(--accent-primary)) 40%, transparent);
+      transform: scale(1.3);
+    }
+    .meeting-node.highlighted .node-connector { background: color-mix(in srgb, var(--topic-color) 30%, transparent); width: 2px; }
+    .meeting-node.dimmed { opacity: 0.2; }
+    .meeting-node.selected .node-dot {
+      border-color: var(--accent-primary); background: var(--accent-primary);
+      box-shadow: 0 0 20px rgba(30,58,95,0.35), 0 0 40px rgba(30,58,95,0.15);
+      transform: scale(1.5);
+    }
+
+    .node-card {
+      background: var(--bg-primary); border: 1px solid var(--border-subtle);
+      border-radius: 10px; padding: 10px 14px; box-shadow: var(--shadow-sm);
+      width: 160px; text-align: center; transition: all 0.3s;
+    }
+    .meeting-node:hover .node-card { border-color: var(--accent-primary); box-shadow: var(--shadow-md); }
+    .meeting-node.highlighted .node-card {
+      border-color: var(--topic-color); box-shadow: 0 2px 12px color-mix(in srgb, var(--topic-color) 15%, transparent);
+    }
+    .meeting-node.selected .node-card { border-color: var(--accent-primary); box-shadow: var(--shadow-lg); background: rgba(30,58,95,0.03); }
+    .node-title { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.35; margin-bottom: 4px; }
+    .node-date { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .node-type { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+    .node-blips { display: flex; gap: 3px; justify-content: center; margin: 4px auto; flex-wrap: wrap; max-width: 80px; }
+    .topic-blip { width: 6px; height: 6px; border-radius: 50%; transition: all 0.3s; }
+    .topic-blip.dimmed { opacity: 0.15; }
+    .topic-blip.lit { transform: scale(1.6); box-shadow: 0 0 6px currentColor; }
+
+    .thread-line {
+      position: absolute; height: 3px; border-radius: 1.5px; top: 50%;
+      transform: translateY(-50%); z-index: 1; opacity: 0; transition: opacity 0.4s;
+    }
+    .thread-line.visible { opacity: 0.35; }
+
+    /* ── Onboarding hint ── */
+    .onboarding-hint {
+      text-align: center;
+      padding: 10px 32px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      opacity: 1; transition: opacity 0.5s;
+    }
+    .onboarding-hint.hidden { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+    .onboarding-hint-text {
+      font-size: 14px; color: var(--text-muted);
+      font-family: 'Inter', sans-serif; font-weight: 400;
+    }
+    .onboarding-hint-sub {
+      font-size: 12px; color: var(--accent-light); margin-top: 2px;
+    }
+
+    /* ── Detail panel (right sidebar) ── */
+    .detail-panel {
+      width: 0; overflow: hidden;
+      border-left: 1px solid var(--border-medium);
+      background: var(--bg-primary);
+      transition: width 0.3s ease; flex-shrink: 0;
+      display: flex; flex-direction: column;
+    }
+    .detail-panel.open { width: 420px; }
+    .detail-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 24px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;
+    }
+    .detail-title { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; }
+    .detail-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .detail-close {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 20px; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; line-height: 1;
+    }
+    .detail-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
+    .detail-body { flex: 1; overflow-y: auto; padding: 24px; }
+    .detail-body::-webkit-scrollbar { width: 6px; }
+    .detail-body::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+
+    .detail-section { margin-bottom: 24px; }
+    .detail-section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .detail-topics-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .detail-topic-chip {
+      font-size: 11px; padding: 4px 10px; border-radius: 14px;
+      border: 1px solid; cursor: pointer; transition: all 0.2s; font-weight: 500;
+    }
+    .detail-topic-chip:hover { opacity: 0.75; }
+
+    .excerpt-card {
+      background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+      border-radius: 8px; padding: 16px; margin-bottom: 12px;
+      border-left: 3px solid var(--border-subtle); transition: all 0.3s;
+    }
+    .excerpt-card.active-topic {
+      border-left-color: var(--topic-color, var(--accent-primary));
+      background: color-mix(in srgb, var(--topic-color) 4%, var(--bg-secondary));
+    }
+    .excerpt-topic-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .excerpt-text { font-size: 13px; line-height: 1.7; color: var(--text-secondary); }
+    .excerpt-text mark { background: rgba(30,58,95,0.12); color: var(--text-primary); padding: 1px 4px; border-radius: 3px; }
+    .excerpt-text .decision-tag {
+      display: inline-block; background: var(--gradient-success); color: white;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 2px 8px; border-radius: 4px; margin-right: 6px; vertical-align: middle;
+    }
+
+    .citation-link {
+      cursor: pointer; text-decoration: none; color: var(--accent-primary);
+      background: rgba(30,58,95,0.06); padding: 1px 6px; border-radius: 3px;
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      border-bottom: 1px dashed var(--accent-primary); transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .citation-link:hover { background: rgba(30,58,95,0.15); }
+    .excerpt-citations {
+      margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-subtle);
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }
+    .citations-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 2px; }
+
+    /* ── Chat side panel (matches real app split-view) ── */
+    .chat-sidebar {
+      width: 48px; /* collapsed */
+      flex-shrink: 0;
+      display: flex; flex-direction: row;
+      transition: width 0.3s ease;
+      border-left: 1px solid var(--border-medium);
+    }
+    .chat-sidebar.expanded { width: 400px; }
+
+    .chat-panel {
+      flex: 1; display: flex; flex-direction: column;
+      background: var(--bg-primary); overflow: hidden;
+      width: 100%;
+    }
+
+    .chat-messages-container {
+      flex: 1; overflow-y: auto; padding: 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .chat-messages-container::-webkit-scrollbar { width: 8px; }
+    .chat-messages-container::-webkit-scrollbar-thumb { background: var(--surface-elevated); border-radius: 4px; }
+
+    .chat-message { animation: slideInUp 0.3s ease; }
+    .chat-message.user { align-self: flex-end; max-width: 80%; }
+    .chat-message.assistant { align-self: flex-start; max-width: 90%; }
+    .chat-message-header {
+      font-size: 11px; font-weight: 700; color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 6px;
+    }
+    .chat-message-content {
+      background: var(--surface-glass); backdrop-filter: blur(12px);
+      padding: 16px 20px; border-radius: 12px;
+      border: 1px solid var(--border-medium); box-shadow: var(--shadow-sm);
+    }
+    .chat-message.user .chat-message-content {
+      background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.15);
+    }
+    .chat-message-content p { margin: 0; font-size: 14px; line-height: 1.6; }
+    @keyframes slideInUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+    .chat-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-medium);
+      background: var(--bg-secondary);
+      display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0;
+    }
+    .chat-input-area textarea {
+      flex: 1; min-height: 44px; max-height: 150px;
+      padding: 12px 16px; border: 1px solid var(--border-medium);
+      border-radius: 10px; background: var(--bg-primary);
+      color: var(--text-primary); font-family: 'Inter', sans-serif;
+      font-size: 14px; line-height: 1.5; resize: none; outline: none; transition: all 0.2s;
+    }
+    .chat-input-area textarea:focus { border-color: var(--text-primary); box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+    .chat-input-area textarea::placeholder { color: var(--text-muted); }
+    .chat-send-btn {
+      padding: 12px 24px; background: var(--gradient-primary); color: white;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: 'Space Grotesk', sans-serif; white-space: nowrap;
+      transition: all 0.3s;
+    }
+    .chat-send-btn:hover { box-shadow: var(--shadow-md); }
+
+    /* Chat collapsed/expanded states */
+    .chat-panel-main { display: flex; flex-direction: column; flex: 1; }
+    .chat-sidebar:not(.expanded) .chat-panel-main { display: none; }
+
+    .chat-panel-collapsed-ui {
+      display: flex; width: 100%; height: 100%;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 16px 0; background: var(--bg-tertiary);
+    }
+    .chat-sidebar.expanded .chat-panel-collapsed-ui { display: none; }
+
+    .expand-chat-button {
+      writing-mode: vertical-rl; text-orientation: mixed;
+      padding: 16px 10px; background: var(--text-primary); color: white;
+      border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+      letter-spacing: 1px; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .expand-chat-button:hover { background: var(--text-secondary); transform: scale(1.05); }
+
+    .collapse-button {
+      position: absolute; top: 12px; left: 8px;
+      width: 32px; height: 32px;
+      background: var(--surface-glass); backdrop-filter: blur(10px);
+      border: 1px solid var(--border-medium); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px; color: var(--text-primary);
+      transition: all 0.2s; z-index: 1000;
+    }
+    .collapse-button:hover { background: var(--text-primary); color: white; transform: scale(1.1); border-color: var(--text-primary); }
+    .chat-sidebar:not(.expanded) .collapse-button { display: none; }
+
+    /* Chat sidebar border replaces the fixed positioning */
+
+    /* ── Zoom controls ── */
+    .zoom-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: 1px solid var(--border-medium); background: var(--bg-primary);
+      color: var(--text-secondary); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .zoom-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .zoom-level { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: center; }
+    .timeline-controls { display: flex; align-items: center; gap: 6px; }
+
+    /* ── Animations ── */
+    @keyframes blipPulse { 0%,100% { box-shadow: 0 0 4px currentColor; } 50% { box-shadow: 0 0 10px currentColor, 0 0 16px currentColor; } }
+    .topic-blip.lit { animation: blipPulse 2.5s ease-in-out infinite; }
+    @keyframes nodeIn { from { opacity:0; transform: translateX(-50%) translateY(8px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+    .meeting-node { animation: nodeIn 0.35s ease-out backwards; }
+    @keyframes dotPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); opacity: 0.7; } }
+
+    @media (max-width: 1200px) {
+      .detail-panel.open { width: 340px; }
+      .node-card { width: 140px; padding: 8px 10px; }
+      .node-title { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="chat-header">
+    <h1>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      SPD MATRIX
+    </h1>
+    <div class="header-buttons">
+      <button class="header-btn">New Analysis</button>
+      <button class="header-btn">History</button>
+      <button class="header-btn" style="width:40px; padding:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Output header with collapsible filters -->
+  <div class="output-header">
+    <div class="output-title-group">
+      <h2 class="output-title">Meeting Notes Timeline</h2>
+      <div class="output-stats" id="outputStats"></div>
+    </div>
+    <div class="output-right">
+      <!-- Collapsible filters dropdown -->
+      <div style="position:relative;">
+        <button class="filters-toggle" id="filtersToggle" onclick="toggleFiltersPanel()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Topics
+          <span class="filter-badge" id="filterBadge" style="display:none"></span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="filters-panel" id="filtersPanel"></div>
+      </div>
+
+      <div class="timeline-controls">
+        <button class="zoom-btn" onclick="zoom(-1)">&minus;</button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button class="zoom-btn" onclick="zoom(1)">+</button>
+      </div>
+      <button class="export-button">Export &#9662;</button>
+    </div>
+  </div>
+
+  <!-- Onboarding hint (above main content, dismisses on first interaction) -->
+  <div class="onboarding-hint" id="onboardingHint">
+    <div class="onboarding-hint-text">Click a meeting to explore, or filter by topic</div>
+    <div class="onboarding-hint-sub">Use the Topics dropdown above to trace threads across meetings</div>
+  </div>
+
+  <!-- Active filter strip (shown when a topic is selected) -->
+  <div class="active-filter-strip" id="activeFilterStrip"></div>
+
+  <!-- Main row: timeline + detail + chat -->
+  <div class="content-row">
+    <div class="main-content" id="mainContent">
+      <div class="split-view-timeline" style="display:flex; flex:1; overflow:hidden;">
+        <div class="timeline-viewport" id="timelineViewport">
+          <div class="timeline-canvas" id="timelineCanvas"></div>
+        </div>
+        <div class="detail-panel" id="detailPanel">
+          <div class="detail-header">
+            <div>
+              <div class="detail-title" id="detailTitle"></div>
+              <div class="detail-meta" id="detailMeta"></div>
+            </div>
+            <button class="detail-close" onclick="closeDetail()">&times;</button>
+          </div>
+          <div class="detail-body" id="detailBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat side panel -->
+    <div class="chat-sidebar" id="chatSidebar">
+      <div class="chat-panel" style="position:relative;">
+        <button class="collapse-button" onclick="toggleChat()" title="Collapse chat">&blacktriangleright;</button>
+        <div class="chat-panel-main">
+          <div class="chat-messages-container" id="chatMessages">
+            <div class="chat-message assistant">
+              <div class="chat-message-header">Assistant</div>
+              <div class="chat-message-content">
+                <p>I've analyzed 14 meeting records spanning January 2025 through March 2026. You can ask me about any topic, decision, or action item discussed across these meetings.</p>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <textarea id="chatInput" placeholder="Ask about the analysis..." rows="1"></textarea>
+            <button class="chat-send-btn" onclick="handleChat()">Send</button>
+          </div>
+        </div>
+        <div class="chat-panel-collapsed-ui">
+          <button class="expand-chat-button" onclick="toggleChat()">Chat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════════════════
+
+const TOPIC_COLORS = {
+  'Merger Structure':'#1e3a5f','Benefit Harmonization':'#b45309','Vesting Rules':'#0d6e6e',
+  'Claims & Appeals':'#b91c1c','Fiduciary Transfer':'#6d28d9','Asset Consolidation':'#be185d',
+  'Actuarial Assumptions':'#0e7490','Regulatory Compliance':'#c2410c',
+  'Communication Strategy':'#7c3aed','Operational Cutover':'#0891b2',
+};
+
+const MEETINGS = [
+  { id:'m1', title:'Merger Feasibility Discussion', date:'2025-01-15', type:'Board Meeting', file:'Board_Minutes_2025-01-15.pdf',
+    topics: {
+      'Merger Structure': { text:'Board reviewed preliminary feasibility analysis for consolidating five plan units. Consensus that a single trust structure is preferred over maintaining separate trusts. Legal counsel noted IRS determination letter implications.', citations:[{label:'p. 3, \u00b62',page:3},{label:'p. 5, \u00b61',page:5}] },
+      'Regulatory Compliance': { text:'PBGC notification requirements discussed. 4010 filing obligations may apply during transition. DOL advisory opinion may be needed for the asset transfer methodology.', citations:[{label:'p. 7, \u00b63',page:7}] },
+    }},
+  { id:'m2', title:'Actuarial Baseline Review', date:'2025-02-12', type:'Committee Meeting', file:'Committee_Minutes_2025-02-12.pdf',
+    topics: {
+      'Actuarial Assumptions': { text:'Milliman presented baseline valuations for all five plans. Discount rates range from 6.75% (San Diego) to 7.25% (Sacramento). Mortality tables inconsistent \u2014 three plans on RP-2014, two on Pri-2012. Recommended standardizing on Pri-2012 with MP-2024 projection.', citations:[{label:'p. 2, \u00b61',page:2},{label:'p. 4, \u00b63',page:4}] },
+      'Benefit Harmonization': { text:'Initial benefit comparison revealed significant disparities in early retirement subsidies. San Francisco offers unreduced benefits at 55 with 30 years; others require age 62. Committee flagged this as the most politically sensitive harmonization issue.', citations:[{label:'p. 8, \u00b62',page:8}] },
+      'Vesting Rules': { text:'Current vesting schedules vary: San Diego and Vegas use 5-year cliff, Sacramento uses 3-year cliff, Plan 4 uses 6-year graded, San Francisco uses 5-year graded. IRS anti-cutback rules limit options for participants already partially vested.', citations:[{label:'p. 10, \u00b61',page:10},{label:'p. 11, \u00b64',page:11}] },
+    }},
+  { id:'m3', title:'Legal Framework Workshop', date:'2025-03-05', type:'Working Session', file:'Working_Session_2025-03-05.pdf',
+    topics: {
+      'Merger Structure': { text:'Outside counsel presented three structural options: (A) merge all into San Diego as surviving plan, (B) create new plan and merge all five into it, (C) phased merger over 24 months. Option B recommended to avoid "winner/loser" perception.', citations:[{label:'p. 5, \u00b62',page:5}] },
+      'Claims & Appeals': { text:'Discovered that San Diego has mandatory arbitration clause with class action waiver \u2014 unique among all five plans. Legal team flagged potential ERISA preemption issues. Recommended removing arbitration requirement in merged plan to reduce litigation risk.', citations:[{label:'p. 15, \u00b67',page:15}] },
+      'Fiduciary Transfer': { text:'Discussed fiduciary liability during transition period. Named fiduciaries differ across plans. Recommended appointing a transition committee with fiduciary status to bridge the gap. D&O insurance coverage needs review.', citations:[{label:'p. 19, \u00b62',page:19}] },
+    }},
+  { id:'m4', title:'Participant Communication Planning', date:'2025-04-08', type:'Committee Meeting', file:'Committee_Minutes_2025-04-08.pdf',
+    topics: {
+      'Communication Strategy': { text:'Hired Segal Group for participant communication. Agreed on three-phase approach: (1) announcement with FAQ, (2) side-by-side benefit comparison mailers, (3) enrollment packets.', citations:[{label:'p. 3, \u00b61',page:3}] },
+      'Benefit Harmonization': { text:'Detailed mapping of 23 benefit provisions across five plans. Identified 8 provisions with material differences requiring board decision. Created decision matrix with "most generous," "most common," and "cost-neutral" options for each.', citations:[{label:'p. 6, \u00b62',page:6}] },
+    }},
+  { id:'m5', title:'Investment Strategy Alignment', date:'2025-05-14', type:'Investment Committee', file:'Investment_Committee_2025-05-14.pdf',
+    topics: {
+      'Asset Consolidation': { text:'Combined assets total $2.3B across five plans. Three different investment consultants currently engaged. Recommended single OCIO model post-merger. RFP process to begin Q3 2025.', citations:[{label:'p. 2, \u00b61',page:2}] },
+      'Actuarial Assumptions': { text:'Investment return assumption discussion: higher equity allocation could support current 7.0% blended rate, but consultants recommend 6.50% for merged plan. Board concerned about contribution impact \u2014 50bp reduction increases required contributions by ~$18M annually.', citations:[{label:'p. 8, \u00b63',page:8}] },
+    }},
+  { id:'m6', title:'Board Decision \u2014 Benefit Design', date:'2025-06-19', type:'Board Meeting', file:'Board_Minutes_2025-06-19.pdf',
+    topics: {
+      'Benefit Harmonization': { text:'<span class="decision-tag">BOARD DECISION</span> Adopted "best of" approach for core benefits with 3-year transition for early retirement subsidy. SF provision grandfathered for current participants only. Estimated annual cost increase: $4.2M.', citations:[{label:'p. 4, \u00b62',page:4}] },
+      'Vesting Rules': { text:'<span class="decision-tag">BOARD DECISION</span> Standardized 5-year cliff vesting for merged plan. Participants with existing service credit under more favorable schedules will be grandfathered. Complies with ERISA 203 anti-cutback rules.', citations:[{label:'p. 6, \u00b63',page:6}] },
+      'Merger Structure': { text:'<span class="decision-tag">BOARD DECISION</span> Proceeding with Option B \u2014 new merged plan. Target effective date: January 1, 2026. Approved $1.2M budget for merger implementation.', citations:[{label:'p. 2, \u00b61',page:2}] },
+    }},
+  { id:'m7', title:'Claims Procedure Harmonization', date:'2025-07-10', type:'Working Session', file:'Working_Session_2025-07-10.pdf',
+    topics: {
+      'Claims & Appeals': { text:'Time limits for filing claims range from 60 days (Plan 4) to 365 days (SF). Working group recommended 180-day claim filing, 60-day appeal, 45-day decision \u2014 aligning with DOL regulation 2560.503-1.', citations:[{label:'p. 3, \u00b62',page:3},{label:'p. 7, \u00b63',page:7}] },
+      'Regulatory Compliance': { text:'Merged plan must comply with updated DOL claims procedure regulations (2018 amendments). SD and Vegas non-compliant with "culturally and linguistically appropriate" requirement.', citations:[{label:'p. 10, \u00b62',page:10}] },
+    }},
+  { id:'m8', title:'Asset Transfer Mechanics', date:'2025-08-06', type:'Committee Meeting', file:'Committee_Minutes_2025-08-06.pdf',
+    topics: {
+      'Asset Consolidation': { text:'Three plans at Northern Trust, one at BNY Mellon, one at State Street. In-kind transfer preferred. Estimated transition costs: $340K trading + $85K legal/custodial.', citations:[{label:'p. 4, \u00b61',page:4}] },
+      'Fiduciary Transfer': { text:'Current aggregate fiduciary coverage $15M across five policies. Recommended single $25M policy. Premium: $180K annually (vs. combined $210K).', citations:[{label:'p. 9, \u00b63',page:9}] },
+      'Operational Cutover': { text:'Fidelity presented technical migration plan. Data mapping for five plan IDs into unified structure. Parallel testing Oct\u2013Nov 2025. Go-live: Jan 1, 2026.', citations:[{label:'p. 12, \u00b61',page:12}] },
+    }},
+  { id:'m9', title:'Participant Town Halls \u2014 Debrief', date:'2025-09-17', type:'Committee Meeting', file:'Committee_Minutes_2025-09-17.pdf',
+    topics: {
+      'Communication Strategy': { text:'Town halls completed in all five regions. 1,847 participants attended (23%). Top concerns: benefit reduction, re-enrollment, beneficiary designations.', citations:[{label:'p. 2, \u00b61',page:2}] },
+      'Benefit Harmonization': { text:'SF participants raised concerns about early retirement grandfathering. Union reps requested formal written commitment. Board authorized side letter to unions.', citations:[{label:'p. 6, \u00b62',page:6}] },
+      'Claims & Appeals': { text:'Agreed claims filed before Jan 1 processed under old rules; after Jan 1 under merged plan procedures. 90-day grace period for straddling claims.', citations:[{label:'p. 8, \u00b64',page:8}] },
+    }},
+  { id:'m10', title:'Regulatory Filings Status', date:'2025-10-08', type:'Working Session', file:'Working_Session_2025-10-08.pdf',
+    topics: {
+      'Regulatory Compliance': { text:'IRS determination letter filed Sep 30. Expected 6\u201312 months. PBGC Form 10 filed for three plans. State notifications completed.', citations:[{label:'p. 2, \u00b61',page:2}] },
+      'Merger Structure': { text:'Plan document first draft completed by Groom Law Group. 187 pages. 12 provisions need further board input.', citations:[{label:'p. 7, \u00b63',page:7}] },
+      'Operational Cutover': { text:'Recordkeeper testing Phase 1 complete for SD and Vegas. Phase 2 begins Oct 15. Payroll interface testing with 14 employers in November.', citations:[{label:'p. 9, \u00b62',page:9}] },
+    }},
+  { id:'m11', title:'Actuarial Certification Review', date:'2025-11-05', type:'Committee Meeting', file:'Committee_Minutes_2025-11-05.pdf',
+    topics: {
+      'Actuarial Assumptions': { text:'Merged plan funded status: 87% PBGC basis, 94% plan basis. Discount rate: 6.75%. 2026 contributions: $42M (vs. $38M combined \u2014 increase from conservative mortality).', citations:[{label:'p. 3, \u00b61',page:3}] },
+      'Asset Consolidation': { text:'OCIO finalists: NEPC, Mercer, Callan. Recommended NEPC. Fee: 8 bps ($1.84M annually).', citations:[{label:'p. 8, \u00b63',page:8}] },
+      'Fiduciary Transfer': { text:'Transition committee finalized. Five members. AIG fiduciary policy bound for $25M. Effective Dec 15, 2025.', citations:[{label:'p. 11, \u00b61',page:11}] },
+    }},
+  { id:'m12', title:'Final Board Approvals', date:'2025-12-04', type:'Board Meeting', file:'Board_Minutes_2025-12-04.pdf',
+    topics: {
+      'Merger Structure': { text:'<span class="decision-tag">BOARD DECISION</span> Approved final plan document. Effective Jan 1, 2026. All five predecessor plans terminate Dec 31, 2025. Merger agreements executed.', citations:[{label:'p. 2, \u00b61',page:2}] },
+      'Vesting Rules': { text:'All service under predecessor plans counts toward merged plan vesting. No break-in-service resets. Previously 100% vested participants remain 100% vested.', citations:[{label:'p. 5, \u00b62',page:5}] },
+      'Operational Cutover': { text:'Go/no-go: GREEN. All recordkeeper tests passed. 12/14 payroll interfaces validated. Cutover scheduled Dec 28\u201331.', citations:[{label:'p. 8, \u00b61',page:8}] },
+      'Communication Strategy': { text:'Final participant package approved: welcome letter, new SPD summary, benefit comparison, portal instructions. Mailing Dec 15.', citations:[{label:'p. 11, \u00b62',page:11}] },
+    }},
+  { id:'m13', title:'Post-Merger Day 1 Debrief', date:'2026-01-08', type:'Committee Meeting', file:'Committee_Minutes_2026-01-08.pdf',
+    topics: {
+      'Operational Cutover': { text:'Transition completed successfully. Jan payments on time for 7,823 retirees. 23 discrepancies corrected in 48 hours. Portal: 2,100 registrations in first week.', citations:[{label:'p. 2, \u00b61',page:2}] },
+      'Claims & Appeals': { text:'14 new claims filed Jan 2\u20137. Processing under 180/60/45 framework. No issues reported.', citations:[{label:'p. 6, \u00b63',page:6}] },
+      'Communication Strategy': { text:'Call center: 340 calls in first week (3x normal). Top issues: portal login (45%), benefit verification (30%), beneficiary confirmation (25%).', citations:[{label:'p. 8, \u00b61',page:8}] },
+    }},
+  { id:'m14', title:'Q1 2026 Operations Review', date:'2026-03-12', type:'Committee Meeting', file:'Committee_Minutes_2026-03-12.pdf',
+    topics: {
+      'Actuarial Assumptions': { text:'Q1 returns: +2.3%. Funded status: 88.5% PBGC. NEPC recommends maintaining allocation through 2026. No contribution adjustments needed.', citations:[{label:'p. 3, \u00b62',page:3}] },
+      'Claims & Appeals': { text:'Q1: 47 claims filed, 38 approved, 6 pending, 3 denied. Avg processing: 22 days (target 45). Two appeals filed.', citations:[{label:'p. 5, \u00b61',page:5}] },
+      'Regulatory Compliance': { text:'IRS letter pending (expected Q3 2026). DOL audit notification for predecessor SD plan (2024 plan year). No current compliance concerns for merged plan.', citations:[{label:'p. 9, \u00b62',page:9}] },
+    }},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+
+const state = {
+  activeTopic: null,
+  selectedMeeting: null,
+  zoomLevel: 1,
+  filtersOpen: false,
+  chatExpanded: false,
+  customFilters: [],
+  hasInteracted: false,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════════════
+
+function renderStats() {
+  const topics = new Set();
+  let cites = 0;
+  MEETINGS.forEach(m => Object.entries(m.topics).forEach(([t, d]) => { topics.add(t); cites += d.citations.length; }));
+  document.getElementById('outputStats').innerHTML = `
+    <div><span>${MEETINGS.length}</span> meetings</div>
+    <div><span>${topics.size}</span> topics</div>
+    <div><span>${cites}</span> citations</div>
+    <div>${fmtShort(MEETINGS[0].date)} \u2013 ${fmtShort(MEETINGS[MEETINGS.length-1].date)}</div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILTERS PANEL (collapsible dropdown)
+// ═══════════════════════════════════════════════════════════════
+
+function toggleFiltersPanel() {
+  state.filtersOpen = !state.filtersOpen;
+  renderFiltersPanel();
+}
+
+function renderFiltersPanel() {
+  const btn = document.getElementById('filtersToggle');
+  const panel = document.getElementById('filtersPanel');
+  const badge = document.getElementById('filterBadge');
+
+  btn.classList.toggle('open', state.filtersOpen);
+  panel.classList.toggle('open', state.filtersOpen);
+
+  // Show badge when filter is active
+  if (state.activeTopic) {
+    badge.style.display = 'inline-flex';
+    badge.textContent = '1';
+    btn.classList.add('has-active');
+    btn.style.setProperty('--active-filter-color', TOPIC_COLORS[state.activeTopic]);
+  } else {
+    badge.style.display = 'none';
+    btn.classList.remove('has-active');
+  }
+
+  if (!state.filtersOpen) return;
+
+  const counts = {};
+  MEETINGS.forEach(m => Object.keys(m.topics).forEach(t => counts[t] = (counts[t]||0)+1));
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+
+  const builtIn = sorted.map(([topic, count]) => `
+    <button class="topic-filter ${state.activeTopic===topic?'active':''}"
+            style="--topic-color:${TOPIC_COLORS[topic]}"
+            onclick="toggleTopic('${topic}')">
+      <span class="filter-dot"></span>
+      ${topic}
+      <span class="filter-count">${count}</span>
+    </button>
+  `).join('');
+
+  const custom = state.customFilters.map((cf, i) => `
+    <button class="topic-filter custom ${state.activeTopic===cf.name?'active':''} ${cf.generating?'generating':''}"
+            style="--topic-color:${cf.color}"
+            onclick="${cf.generating?'':`toggleTopic('${cf.name}')`}">
+      <span class="filter-dot"></span>
+      ${cf.generating?'Searching...':cf.name}
+      ${cf.generating?'':`<span class="filter-count">${cf.meetingIds.length}</span>`}
+      <span class="filter-ai-badge">AI</span>
+      ${cf.generating?'':`<span class="filter-remove" onclick="event.stopPropagation();removeCustomFilter(${i})">&times;</span>`}
+    </button>
+  `).join('');
+
+  panel.innerHTML = `
+    <div class="filters-panel-header">
+      <span class="filters-panel-title">Filter by topic</span>
+      ${state.activeTopic ? `<button style="background:none;border:none;color:var(--error);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;" onclick="clearFilter()">Clear filter</button>` : ''}
+    </div>
+    <div class="filters-panel-body">${builtIn}${custom}</div>
+    <div class="ai-filter-section">
+      <div class="ai-filter-section-label">Custom AI search</div>
+      <div class="ai-filter-row">
+        <input class="ai-filter-input" id="aiFilterInput" placeholder='e.g. "San Diego treated differently"'
+               onkeydown="if(event.key==='Enter')submitCustomFilter()">
+        <button class="ai-filter-submit" onclick="submitCustomFilter()">Search</button>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIVE FILTER STRIP (horizontal evolution)
+// ═══════════════════════════════════════════════════════════════
+
+function renderActiveFilterStrip() {
+  const strip = document.getElementById('activeFilterStrip');
+  if (!state.activeTopic) { strip.classList.remove('visible'); return; }
+
+  const topic = state.activeTopic;
+  const color = TOPIC_COLORS[topic];
+  const cf = getCustomFilter(topic);
+
+  const appearances = cf
+    ? MEETINGS.filter(m => cf.meetingIds.includes(m.id))
+    : MEETINGS.filter(m => m.topics[topic]);
+
+  const steps = appearances.map((m, i) => {
+    let preview, hasDecision;
+    if (cf && cf.meetingExcerpts[m.id]) {
+      preview = cf.meetingExcerpts[m.id][0].text.substring(0,80) + '...';
+      hasDecision = false;
+    } else if (m.topics[topic]) {
+      const raw = m.topics[topic].text.replace(/<[^>]+>/g,'');
+      preview = raw.substring(0,80) + (raw.length>80?'...':'');
+      hasDecision = m.topics[topic].text.includes('decision-tag');
+    } else { preview = '(AI match)'; hasDecision = false; }
+    return `
+      ${i>0?'<span class="evolution-arrow">\u2192</span>':''}
+      <div class="evolution-step ${hasDecision?'has-decision':''}" onclick="selectMeeting('${m.id}')">
+        <div class="evolution-date">${fmtShort(m.date)}</div>
+        ${preview}
+      </div>`;
+  }).join('');
+
+  const label = cf ? `"${cf.prompt}"` : topic;
+  strip.innerHTML = `
+    <span class="active-filter-strip-dot" style="background:${color}"></span>
+    <span class="active-filter-strip-label" style="color:${color}">${label}</span>
+    <span class="active-filter-strip-count">${appearances.length} mentions</span>
+    <div class="thread-evolution">${steps}</div>
+    <button class="active-filter-strip-clear" onclick="clearFilter()">Clear</button>
+  `;
+  strip.classList.add('visible');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TIMELINE
+// ═══════════════════════════════════════════════════════════════
+
+function renderTimeline() {
+  const canvas = document.getElementById('timelineCanvas');
+  const dates = MEETINGS.map(m => new Date(m.date+'T12:00:00'));
+  const minDate = new Date(dates[0]); minDate.setDate(1);
+  const maxDate = new Date(dates[dates.length-1]); maxDate.setMonth(maxDate.getMonth()+1,0);
+  const range = maxDate - minDate;
+  const totalWidth = Math.max(1400, MEETINGS.length*160) * state.zoomLevel;
+  // Use most of the viewport height for the timeline track
+  const vpEl = document.getElementById('timelineViewport');
+  const trackHeight = Math.max(500, vpEl ? vpEl.clientHeight - 40 : 600);
+
+  const months = [];
+  const c = new Date(minDate);
+  while(c<=maxDate) { months.push({label:c.toLocaleDateString('en-US',{month:'short',year:'2-digit'}),pct:((c-minDate)/range)*100}); c.setMonth(c.getMonth()+1); }
+
+  const nodes = MEETINGS.map((m,i) => {
+    const d = new Date(m.date+'T12:00:00');
+    // Scale stem heights to fill vertical space — taller stems for taller viewports
+    const baseHeight = Math.max(60, Math.floor(trackHeight * 0.12));
+    const variation = Math.max(25, Math.floor(trackHeight * 0.06));
+    return {...m, pct:((d-minDate)/range)*100, above:i%2===0, stemHeight: baseHeight + (i%3)*variation};
+  });
+
+  const cf = getCustomFilter(state.activeTopic);
+  let threadHTML = '';
+  if (state.activeTopic) {
+    const tn = cf ? nodes.filter(n=>cf.meetingIds.includes(n.id)) : nodes.filter(n=>n.topics[state.activeTopic]);
+    const color = TOPIC_COLORS[state.activeTopic];
+    for(let i=0;i<tn.length-1;i++) threadHTML += `<div class="thread-line visible" style="left:${tn[i].pct}%;width:${tn[i+1].pct-tn[i].pct}%;background:${color};box-shadow:0 0 8px ${color};"></div>`;
+  }
+
+  canvas.innerHTML = `
+    <div class="timeline-track" style="width:${totalWidth}px;height:${trackHeight}px;margin:0 auto;">
+      <div class="timeline-axis" style="top:50%;">${threadHTML}</div>
+      ${months.map(m=>`<div class="month-marker above" style="left:${m.pct}%;">${m.label}<div class="month-tick"></div></div>`).join('')}
+      ${nodes.map((n,i)=>renderNode(n,i)).join('')}
+    </div>`;
+}
+
+function renderNode(node, index) {
+  const cf = getCustomFilter(state.activeTopic);
+  const isHL = state.activeTopic && (cf ? cf.meetingIds.includes(node.id) : !!node.topics[state.activeTopic]);
+  const isDim = state.activeTopic && !isHL;
+  const isSel = state.selectedMeeting === node.id;
+
+  const cls = ['meeting-node', node.above?'above':'below', isHL?'highlighted':'', isDim?'dimmed':'', isSel?'selected':''].filter(Boolean).join(' ');
+  const tc = state.activeTopic ? TOPIC_COLORS[state.activeTopic] : 'var(--accent-primary)';
+
+  const blips = Object.keys(node.topics).map(t => {
+    const lit = state.activeTopic===t && !cf;
+    const dim = state.activeTopic && !lit && !cf;
+    return `<span class="topic-blip ${lit?'lit':''} ${dim?'dimmed':''}" style="color:${TOPIC_COLORS[t]};background:${TOPIC_COLORS[t]}"></span>`;
+  }).join('');
+
+  const card = `<div class="node-card"><div class="node-title">${node.title}</div><div class="node-date">${fmtShort(node.date)}</div><div class="node-type">${node.type}</div></div>`;
+  const style = `left:${node.pct}%;--topic-color:${tc};animation-delay:${index*0.04}s;`;
+
+  if (node.above) {
+    return `<div class="${cls}" style="${style}" onclick="selectMeeting('${node.id}')">${card}<div class="node-blips">${blips}</div><div class="node-connector" style="height:${node.stemHeight}px"></div><div class="node-dot"></div></div>`;
+  } else {
+    return `<div class="${cls}" style="${style}" onclick="selectMeeting('${node.id}')"><div class="node-dot"></div><div class="node-connector" style="height:${node.stemHeight}px"></div><div class="node-blips">${blips}</div>${card}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DETAIL PANEL
+// ═══════════════════════════════════════════════════════════════
+
+function showDetail(meetingId) {
+  const m = MEETINGS.find(x=>x.id===meetingId);
+  if(!m) return;
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailTitle').textContent = m.title;
+  document.getElementById('detailMeta').textContent = `${fmtLong(m.date)}  \u00b7  ${m.type}`;
+
+  const chips = Object.keys(m.topics).map(t =>
+    `<span class="detail-topic-chip" style="color:${TOPIC_COLORS[t]};border-color:${TOPIC_COLORS[t]};background:color-mix(in srgb,${TOPIC_COLORS[t]} 8%,white);" onclick="toggleTopic('${t}')">${t}</span>`
+  ).join('');
+
+  const excerpts = Object.entries(m.topics).map(([topic,data]) => {
+    const isActive = state.activeTopic===topic && !isCustomFilter(state.activeTopic);
+    const color = TOPIC_COLORS[topic];
+    const citLinks = data.citations.map(c=>
+      `<a class="citation-link" onclick="openCitation('${m.file}',${c.page})" title="${m.file}, ${c.label}">${m.file.replace('.pdf','')}, ${c.label}</a>`
+    ).join('');
+    return `<div class="excerpt-card ${isActive?'active-topic':''}" style="--topic-color:${color}">
+      <div class="excerpt-topic-label" style="color:${color}">${topic}</div>
+      <div class="excerpt-text">${data.text}</div>
+      <div class="excerpt-citations"><span class="citations-label">Sources</span>${citLinks}</div>
+    </div>`;
+  }).join('');
+
+  let customHTML = '';
+  const cf = getCustomFilter(state.activeTopic);
+  if (cf && cf.meetingExcerpts[m.id]) {
+    const cfEx = cf.meetingExcerpts[m.id].map(ex => {
+      const kws = cf.prompt.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+      let txt = ex.text;
+      kws.forEach(kw => { txt = txt.replace(new RegExp(`(${escRe(kw)})`,'gi'),'<mark>$1</mark>'); });
+      const cl = ex.citations.map(c=>`<a class="citation-link" onclick="openCitation('${ex.file}',${c.page})">${ex.file.replace('.pdf','')}, ${c.label}</a>`).join('');
+      return `<div class="excerpt-card active-topic" style="--topic-color:${cf.color}">
+        <div class="excerpt-topic-label" style="color:${cf.color}">${ex.topic} (AI match)</div>
+        <div class="excerpt-text">${txt}</div>
+        ${cl?`<div class="excerpt-citations"><span class="citations-label">Sources</span>${cl}</div>`:''}
+      </div>`;
+    }).join('');
+    customHTML = `<div class="detail-section"><div class="detail-section-label" style="color:${cf.color}">AI Filter: "${cf.prompt}"</div>${cfEx}</div>`;
+  }
+
+  document.getElementById('detailBody').innerHTML = `
+    ${customHTML}
+    <div class="detail-section"><div class="detail-section-label">Topics Discussed</div><div class="detail-topics-list">${chips}</div></div>
+    <div class="detail-section"><div class="detail-section-label">Meeting Notes</div>${excerpts}</div>`;
+}
+
+function openCitation(file,page) { alert(`Would open: ${file} at page ${page}\n\n(In production, opens PDF.js viewer)`); }
+
+function closeDetail() { state.selectedMeeting=null; document.getElementById('detailPanel').classList.remove('open'); renderTimeline(); }
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM AI FILTERS
+// ═══════════════════════════════════════════════════════════════
+
+const CUSTOM_COLORS = ['#d946ef','#059669','#dc2626','#2563eb','#ca8a04','#9333ea','#e11d48','#0d9488'];
+let customColorIdx = 0;
+
+function submitCustomFilter() {
+  const input = document.getElementById('aiFilterInput');
+  if(!input) return;
+  const prompt = input.value.trim();
+  if(!prompt) return;
+
+  const color = CUSTOM_COLORS[customColorIdx++ % CUSTOM_COLORS.length];
+  const cf = { name:prompt.length>28?prompt.substring(0,26)+'...':prompt, prompt, color, meetingIds:[], meetingExcerpts:{}, generating:true };
+  state.customFilters.push(cf);
+  renderFiltersPanel();
+
+  setTimeout(()=>{
+    const kws = prompt.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+    MEETINGS.forEach(m=>{
+      for(const [topic,data] of Object.entries(m.topics)){
+        const txt = data.text.toLowerCase();
+        if(kws.some(kw=>txt.includes(kw))){
+          if(!cf.meetingIds.includes(m.id)) cf.meetingIds.push(m.id);
+          if(!cf.meetingExcerpts[m.id]) cf.meetingExcerpts[m.id]=[];
+          const sentences = data.text.replace(/<[^>]+>/g,'').split(/\.\s+/);
+          const matched = sentences.filter(s=>kws.some(kw=>s.toLowerCase().includes(kw)));
+          if(matched.length) cf.meetingExcerpts[m.id].push({ topic, text:matched.slice(0,2).join('. ')+'.', citations:data.citations.slice(0,1), file:m.file });
+        }
+      }
+    });
+    cf.generating = false;
+    state.activeTopic = cf.name;
+    TOPIC_COLORS[cf.name] = cf.color;
+    renderFiltersPanel(); renderTimeline(); renderActiveFilterStrip();
+  }, 1500);
+}
+
+function removeCustomFilter(i) {
+  const removed = state.customFilters.splice(i,1)[0];
+  if(state.activeTopic===removed.name){ state.activeTopic=null; renderActiveFilterStrip(); }
+  delete TOPIC_COLORS[removed.name];
+  renderFiltersPanel(); renderTimeline();
+}
+
+function isCustomFilter(name) { return state.customFilters.some(cf=>cf.name===name); }
+function getCustomFilter(name) { return state.customFilters.find(cf=>cf.name===name); }
+
+// ═══════════════════════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function toggleTopic(topic) {
+  state.activeTopic = state.activeTopic===topic ? null : topic;
+  dismissOnboarding();
+  renderFiltersPanel(); renderTimeline(); renderActiveFilterStrip();
+  if(state.selectedMeeting) showDetail(state.selectedMeeting);
+}
+
+function clearFilter() {
+  state.activeTopic = null;
+  renderFiltersPanel(); renderTimeline(); renderActiveFilterStrip();
+  if(state.selectedMeeting) showDetail(state.selectedMeeting);
+}
+
+function selectMeeting(id) {
+  state.selectedMeeting = state.selectedMeeting===id ? null : id;
+  dismissOnboarding();
+  renderTimeline();
+  if(state.selectedMeeting) showDetail(id); else closeDetail();
+}
+
+function zoom(dir) {
+  state.zoomLevel = Math.max(0.5, Math.min(3, state.zoomLevel + dir*0.25));
+  document.getElementById('zoomLevel').textContent = Math.round(state.zoomLevel*100)+'%';
+  renderTimeline();
+}
+
+function dismissOnboarding() {
+  if(!state.hasInteracted) {
+    state.hasInteracted = true;
+    document.getElementById('onboardingHint').classList.add('hidden');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHAT (side panel, matches real app)
+// ═══════════════════════════════════════════════════════════════
+
+function toggleChat() {
+  state.chatExpanded = !state.chatExpanded;
+  document.getElementById('chatSidebar').classList.toggle('expanded', state.chatExpanded);
+  // Re-render timeline to recalculate track height for new viewport size
+  setTimeout(() => renderTimeline(), 310);
+}
+
+function handleChat() {
+  const input = document.getElementById('chatInput');
+  const q = input.value.trim();
+  if(!q) return;
+
+  // Add user message
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML += `<div class="chat-message user"><div class="chat-message-header">You</div><div class="chat-message-content"><p>${escHTML(q)}</p></div></div>`;
+
+  // Mock response
+  let reply = "I found relevant information across the meeting notes. Try filtering by a specific topic for a focused view.";
+  const ql = q.toLowerCase();
+  let matched = null;
+  Object.keys(TOPIC_COLORS).forEach(t => {
+    const words = t.toLowerCase().split(/\s+/);
+    if(words.some(w=>ql.includes(w))) matched = t;
+  });
+  if(matched) {
+    const count = MEETINGS.filter(m=>m.topics[matched]).length;
+    reply = `"${matched}" appears in ${count} meetings. I've highlighted the thread on the timeline. Click any lit-up meeting to see the details and source citations.`;
+    state.activeTopic = matched;
+    renderFiltersPanel(); renderTimeline(); renderActiveFilterStrip();
+  }
+
+  setTimeout(()=>{
+    msgs.innerHTML += `<div class="chat-message assistant"><div class="chat-message-header">Assistant</div><div class="chat-message-content"><p>${reply}</p></div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 600);
+
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════════════════
+
+function setupEvents() {
+  document.getElementById('chatInput').addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleChat();} });
+
+  document.addEventListener('keydown', e => {
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+    if(e.key==='Escape'){ if(state.selectedMeeting) closeDetail(); else if(state.activeTopic) clearFilter(); else if(state.filtersOpen) toggleFiltersPanel(); }
+    if(e.key==='+'||e.key==='=') zoom(1);
+    if(e.key==='-') zoom(-1);
+  });
+
+  // Close filters panel on outside click
+  document.addEventListener('click', e => {
+    if(state.filtersOpen && !e.target.closest('#filtersToggle') && !e.target.closest('#filtersPanel')) {
+      state.filtersOpen = false;
+      renderFiltersPanel();
+    }
+  });
+
+  // Pan
+  const vp = document.getElementById('timelineViewport');
+  let dragging=false, sx, sl;
+  vp.addEventListener('mousedown', e => { if(e.target.closest('.meeting-node'))return; dragging=true; sx=e.pageX; sl=vp.scrollLeft; vp.style.cursor='grabbing'; });
+  window.addEventListener('mouseup', ()=>{ dragging=false; vp.style.cursor=''; });
+  window.addEventListener('mousemove', e => { if(!dragging)return; e.preventDefault(); vp.scrollLeft=sl-(e.pageX-sx); });
+  vp.addEventListener('wheel', e => { if(e.ctrlKey||e.metaKey){e.preventDefault(); zoom(e.deltaY<0?1:-1);} }, {passive:false});
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+
+function fmtLong(d) { return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}); }
+function fmtShort(d) { return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function escHTML(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+renderStats();
+renderFiltersPanel();
+renderTimeline();
+renderActiveFilterStrip();
+setupEvents();
+</script>
+</body>
+</html>
