@@ -343,6 +343,34 @@ gitGraph TB:
 - PDF uses `html2pdf.js` with page numbers in the footer on every page
 - No new libraries or backend changes; uses existing CDN-loaded export libraries
 
+**March 23, 2026 — Database Migration Fix (Production Outage)**
+- All users were getting "Failed to load analysis. It may have been deleted." when clicking any saved session from History
+- Root cause: commit `9cece55` (Multi-Turn Chat with Compaction, March 19) added `is_compaction` to the `SELECT` query in `GET /api/history/analyses/:id` and `system` to the expected role constraint, but the corresponding database migrations were never applied
+- The endpoint returned 500 for every session load because PostgreSQL rejected the query: `ERROR: column "is_compaction" does not exist`
+- Applied two migrations: `ALTER TABLE chat_messages ADD COLUMN is_compaction BOOLEAN DEFAULT false` and updated `chat_messages_role_check` constraint to include `'system'`
+
+## Database Migrations
+
+This project uses Railway PostgreSQL with no automated migration system. Schema changes must be applied manually when deploying code that references new columns or constraints.
+
+**Current schema** (all migrations applied through March 23, 2026):
+
+| Table | Column | Type | Added In |
+|-------|--------|------|----------|
+| `analyses` | `analysis_mode` | `VARCHAR(30) DEFAULT 'cross-plan'` | Analysis Mode Selector (Mar 5) |
+| `analyses` | `table_view_state` | `JSONB` | Interactive Table Controls (Feb 5) |
+| `analyses` | `draft_state` | `JSONB` | Draft Workspace (Feb 5) |
+| `chat_messages` | `is_compaction` | `BOOLEAN DEFAULT false` | Multi-Turn Chat (Mar 19) |
+| `notes` | `author_id` | `UUID REFERENCES users(id)` | Session Sharing (Dec 22) |
+| `notes` | `parent_note_id` | `UUID REFERENCES notes(id)` | Session Sharing (Dec 22) |
+| `notes` | `note_type` | `VARCHAR(20) DEFAULT 'observational'` | Draft Workspace (Feb 5) |
+| `users` | `is_admin` | `BOOLEAN DEFAULT false` | Vertex AI Support (Mar 18) |
+
+**Constraint updates:**
+- `chat_messages_role_check`: must include `'user'`, `'assistant'`, `'system'`
+
+When adding new columns in code, always apply the migration to the Railway database before or at the time of deployment.
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.

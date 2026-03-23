@@ -847,6 +847,17 @@ When an analysis is deleted, all associated R2 objects are deleted automatically
 - Download endpoint verifies user owns analysis
 - Cloudflare Access enforces authentication before API access
 
+## Database Migrations
+
+**CRITICAL:** This project has no automated migration system. When code changes reference new database columns, constraints, or tables, the corresponding SQL must be applied manually to Railway PostgreSQL before or at the time of deployment. Failure to do so causes 500 errors on all affected endpoints.
+
+**Connection:** Use `railway variables` to get the current `DATABASE_PUBLIC_URL`, then connect with `psql`. Or use `railway connect postgres` for an interactive shell.
+
+**Checklist for code that touches DB queries:**
+1. If you add a column to a `SELECT`, `INSERT`, or `WHERE` clause — run `ALTER TABLE ... ADD COLUMN` on Railway
+2. If you change a `CHECK` constraint — drop and recreate it on Railway
+3. Document the migration in the README's "Database Migrations" table
+
 ## Git Workflow
 
 - Never commit `config.js` (contains API key)
