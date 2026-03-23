@@ -349,6 +349,12 @@ gitGraph TB:
 - The endpoint returned 500 for every session load because PostgreSQL rejected the query: `ERROR: column "is_compaction" does not exist`
 - Applied two migrations: `ALTER TABLE chat_messages ADD COLUMN is_compaction BOOLEAN DEFAULT false` and updated `chat_messages_role_check` constraint to include `'system'`
 
+**March 23, 2026 — Fix Chat Message Persistence**
+- Chat messages sent immediately after a new analysis completed were silently lost due to a race condition: `saveAnalysis()` ran async (setting `currentAnalysisId` on completion), but chat was enabled immediately, so `saveChatMessages()` bailed on the null ID check
+- Fixed by storing the `saveAnalysis()` promise and awaiting it in `saveChatMessages()` and `saveChatCompactionState()` before persisting — applies to all three analysis modes (cross-plan, timeline, invoice)
+- Also moved chat message saving out of the owner-only PATCH block so non-owners on shared sessions can persist their chat conversations
+- Added response status logging to `saveChatMessages()` so future save failures surface in the browser console instead of failing silently
+
 ## Database Migrations
 
 This project uses Railway PostgreSQL with no automated migration system. Schema changes must be applied manually when deploying code that references new columns or constraints.

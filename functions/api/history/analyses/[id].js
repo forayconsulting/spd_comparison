@@ -182,10 +182,10 @@ export async function onRequestPatch(context) {
       return errorResponse('Analysis not found', 404);
     }
 
-    // Owner-only operations: title, file_metadata, new_messages, table_view_state, draft_state
-    if (title || file_metadata || new_messages || table_view_state || draft_state !== undefined) {
+    // Owner-only operations: title, file_metadata, table_view_state, draft_state
+    if (title || file_metadata || table_view_state || draft_state !== undefined) {
       if (!access.isOwner) {
-        return errorResponse('Only the owner can update title, file metadata, chat messages, table view state, or draft state', 403);
+        return errorResponse('Only the owner can update title, file metadata, table view state, or draft state', 403);
       }
 
       // Update title if provided
@@ -231,32 +231,33 @@ export async function onRequestPatch(context) {
         `;
       }
 
-      // Insert new chat messages if provided
-      if (new_messages && Array.isArray(new_messages)) {
-        for (const msg of new_messages) {
-          if (msg.role && msg.content) {
-            await sql`
-              INSERT INTO chat_messages (analysis_id, role, content, is_compaction, created_at)
-              VALUES (
-                ${analysisId},
-                ${msg.role},
-                ${msg.content},
-                ${msg.is_compaction || false},
-                ${msg.timestamp || new Date().toISOString()}
-              )
-            `;
-          }
-        }
+      // Return success if we only had owner operations
+      if (!new_messages && !add_note && !update_note && !delete_note && !add_reply) {
+        return jsonResponse({ success: true });
+      }
+    }
 
-        // Update analysis updated_at if we added messages
-        if (!title) {
+    // Insert new chat messages if provided (any user with access can add)
+    if (new_messages && Array.isArray(new_messages)) {
+      for (const msg of new_messages) {
+        if (msg.role && msg.content) {
           await sql`
-            UPDATE analyses SET updated_at = NOW() WHERE id = ${analysisId}
+            INSERT INTO chat_messages (analysis_id, role, content, is_compaction, created_at)
+            VALUES (
+              ${analysisId},
+              ${msg.role},
+              ${msg.content},
+              ${msg.is_compaction || false},
+              ${msg.timestamp || new Date().toISOString()}
+            )
           `;
         }
       }
 
-      // Return success if we only had owner operations
+      await sql`
+        UPDATE analyses SET updated_at = NOW() WHERE id = ${analysisId}
+      `;
+
       if (!add_note && !update_note && !delete_note && !add_reply) {
         return jsonResponse({ success: true });
       }

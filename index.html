@@ -7896,7 +7896,8 @@ CRITICAL RULES:
         this.state.isComparisonRequest = false;
 
         // Save analysis to database (async, non-blocking)
-        this.saveAnalysis();
+        // Store promise so chat can wait for analysis ID
+        this._saveAnalysisPromise = this.saveAnalysis();
 
         // Show new analysis button in header
         const newBtn = document.getElementById('new-analysis-header-btn');
@@ -9354,7 +9355,14 @@ ${conversationText}`;
       },
 
       async saveChatCompactionState() {
-        if (!this.isProxyMode() || !this.state.currentAnalysisId) return;
+        if (!this.isProxyMode()) return;
+
+        // Wait for analysis to be saved if it's still in progress
+        if (this._saveAnalysisPromise) {
+          await this._saveAnalysisPromise;
+        }
+
+        if (!this.state.currentAnalysisId) return;
 
         try {
           await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
@@ -11963,7 +11971,8 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
         this.state.isComparisonRequest = false;
 
         // Save analysis (async, non-blocking)
-        this.saveAnalysis();
+        // Store promise so chat can wait for analysis ID
+        this._saveAnalysisPromise = this.saveAnalysis();
 
         // Show new analysis button
         const newBtn = document.getElementById('new-analysis-header-btn');
@@ -12295,7 +12304,8 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
         if (this.state.filesPanelExpanded) this.toggleFilesPanel();
 
         this.state.isComparisonRequest = false;
-        this.saveAnalysis();
+        // Store promise so chat can wait for analysis ID
+        this._saveAnalysisPromise = this.saveAnalysis();
 
         const newBtn = document.getElementById('new-analysis-header-btn');
         if (newBtn) newBtn.style.display = '';
@@ -14944,18 +14954,28 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
        * Save chat messages after each response
        */
       async saveChatMessages() {
-        if (!this.isProxyMode() || !this.state.currentAnalysisId) return;
+        if (!this.isProxyMode()) return;
+
+        // Wait for analysis to be saved if it's still in progress
+        if (this._saveAnalysisPromise) {
+          await this._saveAnalysisPromise;
+        }
+
+        if (!this.state.currentAnalysisId) return;
 
         try {
           // Send the last 2 messages (user question + assistant response), skipping compaction markers
           const nonMarkerMessages = this.state.chatMessages.filter(m => !m.isCompactionMarker);
           const lastTwo = nonMarkerMessages.slice(-2);
 
-          await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
+          const res = await fetch(`/api/history/analyses/${this.state.currentAnalysisId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ new_messages: lastTwo })
           });
+          if (!res.ok) {
+            console.error('Failed to save chat messages:', res.status, await res.text());
+          }
         } catch (error) {
           console.error('Failed to save chat messages:', error);
         }
