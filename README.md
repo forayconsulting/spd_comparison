@@ -6,8 +6,9 @@
 
 **Key Features:**
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
-- **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking (single plan + amendments), or Minutes Analysis — each mode appends context-specific addenda to prompts
-- **Timeline visualization (Minutes Analysis):** Meeting notes are analyzed via a 2-phase AI workflow producing structured JSON, then rendered as an interactive horizontal timeline with topic filtering, thread tracing, detail panels with citations, custom AI search, and an integrated chat sidebar
+- **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking, Minutes Analysis, or Invoice Analysis — each mode appends context-specific addenda to prompts
+- **Timeline visualization (Minutes Analysis):** Meeting notes are analyzed via a 2-phase AI workflow producing structured JSON, then rendered as an interactive horizontal timeline with topic filtering, thread tracing, detail panels with citations, custom AI search, and an integrated chat sidebar — exportable as topic-centric DOCX/PDF reports with a Decision Register and per-topic chronological analysis
+- **Invoice analysis:** Invoices and billing statements analyzed via batched 2-phase AI extraction with Chart.js visualization, vendor/category breakdowns, and an integrated billing-analyst chat
 - **Interactive tables:** Sort columns, filter by value, drag-reorder rows via visible handles, and ask AI to group related provisions
 - **Multi-turn chat with compaction:** Ask follow-up questions with full conversation history; long sessions auto-summarize to stay within context limits
 - **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
@@ -319,6 +320,28 @@ gitGraph TB:
 - Export as JSON or XLSX (flattened to Date/Meeting/Type/File/Topic/Excerpt/Citations rows)
 - Cross-plan and amendment-tracking modes completely untouched — all changes gated behind `analysisMode === 'minutes-analysis'`
 - No backend changes: same DB schema, same API endpoints
+
+**March 21, 2026 — Invoice Analysis Mode**
+- New `invoice-analysis` mode for invoices, billing statements, fee schedules, and cost reports
+- 2-phase AI workflow: Phase 1 extracts vendor/category/period ontology, Phase 2 extracts cost data in batches of 3 periods with file filtering (only uploads files matching each batch's date range)
+- Chart.js stacked bar visualization with vendor grouping and category color coding
+- Stat cards for total spend, vendor count, category breakdown, and date range
+- Integrated billing-analyst chat sidebar with full invoice context
+- Session persistence: stores JSON in `comparison_response` column, restores workspace on reload
+
+**March 21, 2026 — SSE Keepalive Proxy**
+- Gemini proxy (`functions/api/gemini/[model].js`) now sends SSE keepalive comments (`: keepalive\n\n`) every 15 seconds
+- Prevents Cloudflare's ~100-second idle timeout (HTTP 524) during long Gemini thinking pauses
+- Returns the Response to the client immediately and pumps upstream data in the background via TransformStream
+- Benefits all analysis modes, not just invoice analysis
+
+**March 23, 2026 — Timeline DOCX & PDF Export**
+- Meeting minutes timeline now exports as a topic-centric "Decision Archeology" report in Word (.docx) or PDF
+- Document organized by topic (not by meeting) so readers can trace how each topic evolved across meetings
+- Four sections: Executive Summary, Decision Register (all `[DECISION]`-tagged items in one table), Topic Analysis (per-topic chronological excerpts with colored left borders and decision badges), Meeting Index (appendix)
+- DOCX uses `HTMLToDOCX` with Times New Roman body, Arial headings, 1-inch margins, and repeating header/footer
+- PDF uses `html2pdf.js` with page numbers in the footer on every page
+- No new libraries or backend changes; uses existing CDN-loaded export libraries
 
 ## License
 
