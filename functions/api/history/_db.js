@@ -142,17 +142,31 @@ export async function checkAnalysisAccess(sql, userId, userEmail, analysisId) {
  * @returns {string|null}
  */
 export function getUserEmail(request) {
+  // Primary: Cloudflare Access injects this header
   const email = request.headers.get('Cf-Access-Authenticated-User-Email');
+  if (email) return email;
 
-  // In local dev (no Cloudflare Access), use a fallback email for testing
-  if (!email) {
-    const url = new URL(request.url);
-    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-      return 'local-dev@test.com';
+  // Fallback: parse email from CF_Authorization JWT cookie
+  // (header may not be injected for Pages Functions on some domain configurations)
+  const cookie = request.headers.get('Cookie') || '';
+  const match = cookie.match(/CF_Authorization=([^;]+)/);
+  if (match) {
+    try {
+      const payload = match[1].split('.')[1];
+      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      if (decoded.email) return decoded.email;
+    } catch (e) {
+      // Invalid JWT, fall through
     }
   }
 
-  return email;
+  // Local dev fallback
+  const url = new URL(request.url);
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    return 'local-dev@test.com';
+  }
+
+  return null;
 }
 
 /**

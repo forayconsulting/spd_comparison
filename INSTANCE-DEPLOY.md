@@ -2,6 +2,24 @@
 
 This file is a Claude Code runbook for deploying a new SPD Matrix instance at `{SLUG}.syncrodocsystems.com`. Claude Code should follow these instructions step-by-step, automating CLI commands and guiding the user through manual dashboard steps.
 
+## Critical: Cloudflare Pages Gotchas
+
+Two platform behaviors that differ from documentation. **Ignoring these will break the deployment.**
+
+### 1. Bindings MUST be in `wrangler.toml` (dashboard bindings don't work)
+
+Cloudflare Pages dashboard accepts Hyperdrive/R2 binding configurations, but **Pages Functions cannot access them at runtime** (`env.DB` will be `undefined`). Bindings must be defined in `wrangler.toml`.
+
+**Impact on multi-tenant:** Since all instances share the same codebase, deploying to a non-production instance requires temporarily swapping the Hyperdrive ID and R2 bucket name in `wrangler.toml`, deploying, then reverting. See Phase 3 for the exact process.
+
+**Risk:** If `wrangler.toml` is not reverted after a non-production deploy and production is deployed next, production will point at the wrong database. The deploy steps below include explicit revert-and-verify safeguards.
+
+### 2. `Cf-Access-Authenticated-User-Email` header not injected for `syncrodocsystems.com` subdomains
+
+Cloudflare Access authenticates users and sets a `CF_Authorization` JWT cookie, but does not reliably inject the `Cf-Access-Authenticated-User-Email` header into requests reaching Pages Functions on `syncrodocsystems.com` subdomains. The codebase includes a JWT cookie parser fallback in `getUserEmail()` (`functions/api/history/_db.js`) that extracts the email from the cookie payload. No action needed during deployment — this is handled in code.
+
+---
+
 ## Prerequisites
 
 Before starting, verify the following tools are authenticated:
@@ -67,6 +85,12 @@ psql "{DATABASE_URL}" -c "\dt"
 
 Expected tables: `users`, `analyses`, `chat_messages`, `notes`, `shared_analyses`, `share_tokens`, `app_settings`.
 
+Insert the admin user record immediately (don't wait for first login):
+
+```bash
+psql "{DATABASE_URL}" -c "INSERT INTO users (email, is_admin) VALUES ('{ADMIN_EMAIL}', true);"
+```
+
 ### Step 1B: Cloudflare R2 Bucket (Automated)
 
 ```bash
@@ -76,7 +100,7 @@ wrangler r2 bucket create spd-matrix-{SLUG}-documents
 ### Step 1C: Cloudflare Pages Project (Automated)
 
 ```bash
-wrangler pages project create spd-matrix-{SLUG}
+wrangler pages project create spd-matrix-{SLUG} --production-branch=main
 ```
 
 ---
@@ -89,77 +113,53 @@ Create a Hyperdrive configuration pointing to the Railway database:
 wrangler hyperdrive create spd-matrix-{SLUG}-db --connection-string="{DATABASE_URL}"
 ```
 
-Note the returned Hyperdrive **ID** — the user will need it for the Pages binding step.
-
-Tell the user the Hyperdrive ID and ask them to save it for the next step.
+**Save the returned Hyperdrive ID** — this is needed for the deploy step. Store it as `HYPERDRIVE_ID`.
 
 ---
 
-## Phase 3: Configure and Deploy Pages (depends on Steps 1B, 1C, 2)
+## Phase 3: Deploy with Binding Swap (depends on Steps 1B, 1C, 2)
 
-### Step 3A: Dashboard Bindings (Manual)
-
-Guide the user through configuring bindings. These MUST be set in the dashboard — they override `wrangler.toml` and are per-project.
+### Step 3A: Environment Variables (Manual)
 
 > **Action needed in Cloudflare Dashboard:**
 >
-> Go to **Workers & Pages** > `spd-matrix-{SLUG}` > **Settings** > **Bindings**:
+> Go to **Workers & Pages** > `spd-matrix-{SLUG}` > **Settings** > **Environment variables** (Production):
 >
-> 1. Add **Hyperdrive** binding:
->    - Variable name: `DB` (must be exactly `DB`)
->    - Select config: `spd-matrix-{SLUG}-db`
->
-> 2. Add **R2 Bucket** binding:
->    - Variable name: `DOCUMENTS` (must be exactly `DOCUMENTS`)
->    - Select bucket: `spd-matrix-{SLUG}-documents`
->
-> Then go to **Settings** > **Environment variables** (Production):
->
-> 3. Add `GEMINI_API_KEY` = your Gemini consumer API key
->    (This serves as a fallback until Vertex AI is configured via the admin panel)
+> Add `GEMINI_API_KEY` = your Gemini consumer API key
+> (This serves as a fallback until Vertex AI is configured via the admin panel)
 >
 > Confirm when done.
 
-### Step 3B: Deploy (Automated)
+### Step 3B: Swap Bindings and Deploy (Automated)
 
-Deploy twice — the second deploy picks up the dashboard-configured bindings:
+**This is the critical multi-tenant step.** The `wrangler.toml` contains production binding IDs. We must temporarily swap them to the new instance's IDs, deploy, then revert.
 
-```bash
-wrangler pages deploy . --project-name=spd-matrix-{SLUG}
-```
+1. **Read current `wrangler.toml`** and note the production values:
+   - Hyperdrive ID: `158d316aa903469cb2034df36a03b32a`
+   - R2 bucket: `spd-matrix-documents`
 
-Wait for the first deploy to complete, then deploy again:
+2. **Swap to instance-specific values:**
+   - Replace the Hyperdrive `id` with `{HYPERDRIVE_ID}`
+   - Replace the R2 `bucket_name` with `spd-matrix-{SLUG}-documents`
 
-```bash
-wrangler pages deploy . --project-name=spd-matrix-{SLUG}
-```
+3. **Deploy:**
+   ```bash
+   wrangler pages deploy . --project-name=spd-matrix-{SLUG} --commit-dirty=true
+   ```
 
-After the second deploy, verify it's live:
+4. **IMMEDIATELY revert `wrangler.toml`** back to production values:
+   - Hyperdrive `id` → `158d316aa903469cb2034df36a03b32a`
+   - R2 `bucket_name` → `spd-matrix-documents`
 
-```bash
-wrangler pages deployment list --project-name=spd-matrix-{SLUG}
-```
+5. **Verify revert** by reading `wrangler.toml` and confirming production IDs are restored.
+
+**NEVER commit `wrangler.toml` while it has non-production IDs.**
 
 ---
 
 ## Phase 4: DNS (depends on Step 1C)
 
-### Step 4A: CNAME Record (Manual)
-
-> **Action needed in Cloudflare Dashboard:**
->
-> Go to **DNS** for `syncrodocsystems.com` and add a CNAME record:
->
-> | Field | Value |
-> |-------|-------|
-> | Type | CNAME |
-> | Name | `{SLUG}` |
-> | Target | `spd-matrix-{SLUG}.pages.dev` |
-> | Proxy | ON (orange cloud) |
->
-> Confirm when done.
-
-### Step 4B: Custom Domain (Manual)
+### Step 4A: Custom Domain (Manual — auto-creates CNAME)
 
 > **Action needed in Cloudflare Dashboard:**
 >
@@ -167,7 +167,12 @@ wrangler pages deployment list --project-name=spd-matrix-{SLUG}
 >
 > Add custom domain: `{SLUG}.syncrodocsystems.com`
 >
+> Cloudflare will automatically create the required CNAME record.
+> Click **Activate domain** when prompted.
+>
 > Confirm when done.
+
+Note: The custom domain may show "Initializing" status briefly. This is normal — it typically activates within minutes.
 
 ---
 
@@ -181,20 +186,21 @@ Guide the user through creating the Access application:
 >
 > 1. Type: **Self-hosted**
 > 2. Application name: `SPD MATRIX {SLUG}` (uppercase slug for display)
-> 3. Application domain: `{SLUG}.syncrodocsystems.com`
+> 3. Click **+ Add public hostname** and enter: `{SLUG}.syncrodocsystems.com`
 > 4. Session duration: **24 hours**
 >
-> **Policies** tab:
-> 5. Create an **Allow** policy
+> **Policies** section (same page):
+> 5. Click **+ Create new policy**
 > 6. Policy name: `{SLUG} Users`
-> 7. Selector: **Emails**
-> 8. Add these emails:
+> 7. Action: **Allow**
+> 8. Selector: **Emails**
+> 9. Add these emails:
 >    {list ACCESS_EMAILS, one per line}
 >
-> **Authentication** tab:
-> 9. Enable login methods: **Google**, **Azure AD**, **One-time PIN**
+> **Authentication** tab (later in wizard):
+> 10. Enable login methods: **Google**, **Azure AD**, **One-time PIN**
 >
-> 10. Save
+> 11. Click through remaining steps (Experience settings, Advanced settings — defaults are fine) and **Save**
 >
 > Confirm when done.
 
@@ -248,7 +254,7 @@ Guide the user through creating a new GCP project with Vertex AI:
 
 ## Phase 7: Admin Setup and Vertex AI Configuration (depends on Steps 3B, 5, 6)
 
-### Step 7A: First Login and Admin Grant
+### Step 7A: First Login and Admin Verification
 
 Ask the user to:
 
@@ -256,17 +262,11 @@ Ask the user to:
 >
 > 1. Open `{SLUG}.syncrodocsystems.com` in your browser
 > 2. Log in through Cloudflare Access with `{ADMIN_EMAIL}`
-> 3. The app should load — this creates your user record in the database
+> 3. The app should load with admin status already active (green dot on settings gear)
 >
 > Confirm when you've logged in.
 
-Once confirmed, grant admin:
-
-```bash
-psql "{DATABASE_URL}" -c "UPDATE users SET is_admin = true WHERE email = '{ADMIN_EMAIL}';"
-```
-
-Verify:
+The admin user was pre-inserted in Step 1A. If admin is not detected, verify:
 
 ```bash
 psql "{DATABASE_URL}" -c "SELECT email, is_admin FROM users WHERE email = '{ADMIN_EMAIL}';"
@@ -276,14 +276,13 @@ psql "{DATABASE_URL}" -c "SELECT email, is_admin FROM users WHERE email = '{ADMI
 
 > **Action needed in the app at `{SLUG}.syncrodocsystems.com`:**
 >
-> 1. Refresh the page (admin status should now be detected — green dot on settings gear)
-> 2. Click the **settings gear** icon
-> 3. In the admin section, switch to **Vertex AI** mode
-> 4. Upload the **JSON key file** you downloaded from GCP
+> 1. Click the **settings gear** icon (should show green admin dot)
+> 2. In the admin section, switch to **Vertex AI** mode
+> 3. Upload the **JSON key file** you downloaded from GCP
 >    - This auto-fills: Service Account Email, Private Key, Project ID
-> 5. Set **Region** to `us-central1` (or your preferred region)
-> 6. Click **Test Connection** — verify it succeeds
-> 7. Click **Save**
+> 4. Set **Region** to `us-central1` (or your preferred region)
+> 5. Click **Test Connection** — verify it succeeds
+> 6. Click **Save**
 >
 > Confirm when Vertex AI is working.
 
@@ -328,17 +327,44 @@ After successful verification:
    |------|--------------|-----------|--------|
    | `{SLUG}` | `spd-matrix-{SLUG}` | `{SLUG}.syncrodocsystems.com` | {purpose} |
 
-2. Tell the user the instance is live and provide a summary of what was created.
+2. Record the instance's Hyperdrive ID and R2 bucket name for future deploys:
+
+   | Instance | Hyperdrive ID | R2 Bucket |
+   |----------|--------------|-----------|
+   | Production (`wpf`) | `158d316aa903469cb2034df36a03b32a` | `spd-matrix-documents` |
+   | `{SLUG}` | `{HYPERDRIVE_ID}` | `spd-matrix-{SLUG}-documents` |
+
+3. Delete any temporary debug endpoints (e.g., `functions/api/debug.js`).
+
+4. Tell the user the instance is live and provide a summary of what was created.
+
+---
+
+## Deploying Code Updates to Non-Production Instances
+
+When deploying code changes to existing non-production instances, use the same binding swap process from Phase 3B:
+
+1. Swap `wrangler.toml` Hyperdrive ID and R2 bucket to the instance's values
+2. Deploy: `wrangler pages deploy . --project-name=spd-matrix-{SLUG} --commit-dirty=true`
+3. **Immediately revert** `wrangler.toml` to production values
+4. Verify revert
+
+For production deploys, no swap is needed — `wrangler.toml` already has production values:
+```bash
+wrangler pages deploy . --project-name=spd-matrix
+```
 
 ---
 
 ## Troubleshooting
 
-### API calls return 500
-- Check that Hyperdrive binding variable is exactly `DB` (not `HYPERDRIVE` or anything else)
-- Check that R2 binding variable is exactly `DOCUMENTS`
-- Verify Railway has public networking enabled
+### API calls return 500 or "No saved analyses"
+- **Most likely:** Binding mismatch. Verify the deployed `wrangler.toml` had the correct Hyperdrive ID and R2 bucket for this instance. Redeploy with the correct values if needed.
+- Check that Railway has public networking enabled
 - Check `wrangler pages deployment tail --project-name=spd-matrix-{SLUG}` for error details
+
+### Admin panel not showing despite is_admin=true
+- This is the JWT cookie fallback issue. Verify `getUserEmail()` in `functions/api/history/_db.js` includes the `CF_Authorization` cookie parser. If it only checks the `Cf-Access-Authenticated-User-Email` header, it won't work for `syncrodocsystems.com` subdomains.
 
 ### Vertex AI returns 403
 - Verify the service account has the `Vertex AI User` role
@@ -348,20 +374,23 @@ After successful verification:
 
 ### DNS not resolving
 - Cloudflare proxied CNAMEs should resolve near-instantly
-- Verify the CNAME record exists: check Cloudflare DNS dashboard
-- Verify the custom domain was added to the Pages project
+- Verify the custom domain was added to the Pages project (it auto-creates the CNAME)
 
 ### User can't log in
 - Verify their email is in the Cloudflare Access allowlist
 - Check Zero Trust > Access > Applications > the correct application
+- Ensure the public hostname was added to the Access application
 - Ensure login methods (Google/Azure AD/OTP) are enabled
+
+### Instance shows data from another instance
+- **CRITICAL:** The `wrangler.toml` was deployed with the wrong Hyperdrive ID. Immediately redeploy with the correct binding values for this instance.
 
 ---
 
 ## Maintaining the Instance
 
 - **Adding users:** Zero Trust > Access > Applications > `SPD MATRIX {SLUG}` > Policies > edit email list
-- **Code updates:** `wrangler pages deploy . --project-name=spd-matrix-{SLUG}` (same code, isolated infra)
+- **Code updates:** Use the binding swap process described above
 - **Schema migrations:** Apply same SQL to this instance's Railway database manually
-- **Resetting data:** `psql "{DATABASE_URL}" -c "TRUNCATE users, analyses, chat_messages, notes, shared_analyses, share_tokens, app_settings CASCADE;"` then re-run admin setup
+- **Resetting data:** `psql "{DATABASE_URL}" -c "TRUNCATE users, analyses, chat_messages, notes, shared_analyses, share_tokens, app_settings CASCADE;"` then re-insert admin user
 - **Logs:** `wrangler pages deployment tail --project-name=spd-matrix-{SLUG}`

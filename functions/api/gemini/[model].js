@@ -11,8 +11,12 @@ import { createSqlClient, getAppSettings } from '../history/_db.js';
 import { mintAccessToken } from './_vertex.js';
 
 export async function onRequestPost(context) {
-  const { params, env, request } = context;
-  const model = params.model;
+  const { env, request } = context;
+  // Extract model from URL path instead of params.model because
+  // Cloudflare Pages Functions strips dots from [param] route segments
+  // (e.g., "gemini-3.1-pro-preview" becomes "gemini-3-pro-preview")
+  const url = new URL(request.url);
+  const model = url.pathname.split('/api/gemini/')[1];
 
   if (!model) {
     return new Response('Model not specified', { status: 400 });

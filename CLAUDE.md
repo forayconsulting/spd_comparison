@@ -1133,7 +1133,9 @@ SPD Matrix supports per-client isolation via separate Cloudflare Pages deploymen
 **Deploying a New Instance:**
 See `INSTANCE-DEPLOY.md` for the Claude Code runbook that automates CLI steps and guides through manual dashboard steps for any new instance.
 
-**Key Principle:** Dashboard-configured bindings override `wrangler.toml`. Deploy with `wrangler pages deploy . --project-name=<project>` and configure Hyperdrive/R2/env vars in the Cloudflare Pages dashboard per-project. No code changes or branches needed.
+**Key Principle:** Dashboard-configured bindings do NOT work for Pages Functions — bindings MUST be in `wrangler.toml`. For multi-tenant deploys, temporarily swap the Hyperdrive ID and R2 bucket name in `wrangler.toml` to the target instance's values, deploy, then immediately revert. See `INSTANCE-DEPLOY.md` Phase 3B for details.
+
+**User Identity:** Cloudflare Access does not reliably inject the `Cf-Access-Authenticated-User-Email` header for `syncrodocsystems.com` subdomains. The `getUserEmail()` function in `functions/api/history/_db.js` includes a JWT cookie parser fallback that extracts the email from the `CF_Authorization` cookie.
 
 ### Updating the Deployment
 
