@@ -1102,6 +1102,39 @@ The email allowlist policy works with any identity provider - users authenticate
 - Options: 15 minutes to 1 month
 - Longer sessions reduce login frequency for trusted users
 
+### Multi-Tenant Deployment Model
+
+SPD Matrix supports per-client isolation via separate Cloudflare Pages deployments of the same codebase. Each client gets their own subdomain, database, R2 bucket, and Cloudflare Access policy.
+
+**Marketing Site & Login Routing:**
+- Marketing site: `syncrodocsystems.com` (separate repo: `forayconsulting/syncrodocsystems_landing_page`, lives at `/Desktop/syncrodoc_systems_homepage`)
+- Login button opens a workspace slug form: user enters slug (e.g., `wpf`) and is redirected to `{slug}.syncrodocsystems.com`
+- The marketing site never validates slugs or reveals which workspaces exist. Authentication is handled entirely by Cloudflare Access at the destination.
+
+**Per-Instance Infrastructure:**
+
+| Component | Per-Instance? | Configuration |
+|-----------|--------------|---------------|
+| Cloudflare Pages project | Yes | Different project name, same codebase |
+| Railway PostgreSQL | Yes | Separate database, same `schema.sql` |
+| Cloudflare Hyperdrive | Yes | New config per database, binding set in Pages dashboard |
+| Cloudflare R2 bucket | Yes | Separate bucket per instance |
+| Cloudflare Access policy | Yes | Per-subdomain hostname, client-specific email allowlist |
+| DNS (CNAME) | Yes | `{slug}.syncrodocsystems.com` → `{pages-project}.pages.dev` |
+| Codebase | No | Same code deployed everywhere |
+| Gemini API / Vertex AI | Shared | Same API key or Vertex AI project (configurable per-instance via admin panel) |
+
+**Active Instances:**
+
+| Slug | Pages Project | Domain(s) | Client |
+|------|--------------|-----------|--------|
+| `wpf` | `spd-matrix` | `wpf.syncrodocsystems.com`, `spd-matrix.foray-consulting.com` | Western Pension Fund (Foray) |
+
+**Deploying a New Instance:**
+See `INSTANCE-DEPLOY.md` for the Claude Code runbook that automates CLI steps and guides through manual dashboard steps for any new instance.
+
+**Key Principle:** Dashboard-configured bindings override `wrangler.toml`. Deploy with `wrangler pages deploy . --project-name=<project>` and configure Hyperdrive/R2/env vars in the Cloudflare Pages dashboard per-project. No code changes or branches needed.
+
 ### Updating the Deployment
 
 When making changes:
