@@ -133,7 +133,7 @@ export async function onRequestPost(context) {
       } catch (e) {
         // Write error as SSE event so client can handle it
         try {
-          const errorEvent = `data: {"error": {"code": 502, "message": ${JSON.stringify(e.message)}}}\n\n`;
+          const errorEvent = `data: {"error": {"code": 502, "message": "Upstream connection failed"}}\n\n`;
           await writer.write(encoder.encode(errorEvent));
         } catch { /* writer already closed */ }
       } finally {
@@ -152,7 +152,7 @@ export async function onRequestPost(context) {
       }
     });
   } catch (e) {
-    return new Response('Proxy error: ' + e.message, { status: 502 });
+    return new Response('Proxy error', { status: 502 });
   }
 }
 

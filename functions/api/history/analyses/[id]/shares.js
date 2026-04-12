@@ -94,7 +94,7 @@ export async function onRequestGet(context) {
     });
   } catch (error) {
     console.error('Error listing shares:', error);
-    return errorResponse('Failed to list shares: ' + error.message);
+    return errorResponse('Failed to list shares');
   } finally {
     await sql.end();
   }
@@ -241,7 +241,7 @@ export async function onRequestPost(context) {
 
   } catch (error) {
     console.error('Error creating share:', error);
-    return errorResponse('Failed to create share: ' + error.message);
+    return errorResponse('Failed to create share');
   } finally {
     await sql.end();
   }
@@ -319,7 +319,7 @@ export async function onRequestDelete(context) {
     return jsonResponse({ success: true });
   } catch (error) {
     console.error('Error deleting share:', error);
-    return errorResponse('Failed to delete share: ' + error.message);
+    return errorResponse('Failed to delete share');
   } finally {
     await sql.end();
   }

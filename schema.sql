@@ -148,6 +148,13 @@ ALTER TABLE notes ADD COLUMN IF NOT EXISTS note_type VARCHAR(20) NOT NULL DEFAUL
 ALTER TABLE analyses ADD COLUMN IF NOT EXISTS draft_state JSONB;
 
 -- ============================================
+-- Analysis Mode (added 2026-03-20)
+-- ============================================
+
+-- Tracks which analysis mode was used (cross-plan, amendment-tracking, minutes-analysis, invoice-analysis)
+ALTER TABLE analyses ADD COLUMN IF NOT EXISTS analysis_mode VARCHAR(50) DEFAULT 'cross-plan';
+
+-- ============================================
 -- Admin & Vertex AI Settings (added 2026-03-16)
 -- ============================================
 

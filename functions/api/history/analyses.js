@@ -73,7 +73,7 @@ export async function onRequestGet(context) {
     });
   } catch (error) {
     console.error('Error listing analyses:', error);
-    return errorResponse('Failed to list analyses: ' + error.message);
+    return errorResponse('Failed to list analyses');
   } finally {
     await sql.end();
   }
@@ -148,7 +148,7 @@ export async function onRequestPost(context) {
     return jsonResponse(result[0], 201);
   } catch (error) {
     console.error('Error creating analysis:', error);
-    return errorResponse('Failed to create analysis: ' + error.message);
+    return errorResponse('Failed to create analysis');
   } finally {
     await sql.end();
   }

@@ -34,7 +34,7 @@ export async function onRequestPost(context) {
     } catch (e) {
       return jsonResponse({
         success: false,
-        error: 'Token minting failed: ' + e.message,
+        error: 'Token minting failed',
         stage: 'authentication'
       }, 400);
     }
@@ -68,7 +68,7 @@ export async function onRequestPost(context) {
       message: `Connected to Vertex AI (${location}, project: ${projectId})`
     });
   } catch (e) {
-    return errorResponse('Test failed: ' + e.message);
+    return errorResponse('Test failed');
   }
 }
 

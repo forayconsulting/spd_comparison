@@ -15,7 +15,12 @@ node_modules/
 # Ignore development/internal directories
 legacy/
 requirements/
-tests/
+tests/QA/
+tests/e2e/
+tests/test-gemini.html
+tests/citation-qa.js
+tests/learnings.md
+tests/procedure_elements.md
 test-results/
 
 # Ignore development documentation

@@ -84,7 +84,7 @@ async function handleUpload(context) {
     const r2Object = await env.DOCUMENTS.put(r2Key, file.stream(), {
       httpMetadata: {
         contentType: file.type,
-        contentDisposition: `${isPdf ? 'inline' : 'attachment'}; filename="${file.name}"`
+        contentDisposition: `${isPdf ? 'inline' : 'attachment'}; filename="${safeFilename}"`
       },
       customMetadata: {
         originalFilename: file.name,
@@ -101,7 +101,7 @@ async function handleUpload(context) {
 
   } catch (error) {
     console.error('Upload error:', error);
-    return errorResponse('Upload failed: ' + error.message);
+    return errorResponse('Upload failed');
   } finally {
     await sql.end();
   }
@@ -193,7 +193,7 @@ async function handleDownload(context) {
 
   } catch (error) {
     console.error('Download error:', error);
-    return errorResponse('Download failed: ' + error.message);
+    return errorResponse('Download failed');
   } finally {
     await sql.end();
   }

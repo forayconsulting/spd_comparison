@@ -355,6 +355,15 @@ gitGraph TB:
 - Also moved chat message saving out of the owner-only PATCH block so non-owners on shared sessions can persist their chat conversations
 - Added response status logging to `saveChatMessages()` so future save failures surface in the browser console instead of failing silently
 
+**April 11, 2026 — Security Hardening & Test Scaffolding**
+- **SRI hashes on all CDN scripts:** Added `integrity` and `crossorigin` attributes to all 10 CDN-loaded resources in `index.html` and `viewer.html`, preventing supply-chain attacks via compromised CDNs
+- **CDN version pinning:** Pinned `marked` to `@15.0.12` and `prismjs` to `@1.30.0` (previously unpinned `@latest`)
+- **Error message sanitization:** Removed raw `error.message` from all client-facing error responses across all 9 backend function files; internal details (table names, query structure) no longer leak to clients. Server-side `console.error()` logging preserved for debugging
+- **Content-disposition header injection fix:** Upload endpoint now uses sanitized filename in the HTTP header instead of raw user-supplied `file.name`
+- **Chat message role validation:** Added server-side allowlist check (`user`, `assistant`, `system`) before database insert, preventing invalid roles from hitting the DB constraint and triggering 500 errors
+- **SSE proxy error sanitization:** Replaced raw exception messages in SSE error events with generic "Upstream connection failed" message
+- **Test suite scaffolding:** Added Vitest with 37 unit tests covering auth boundaries (`getUserEmail` JWT parsing, localhost fallback), admin gates, response helpers, file upload validation (MIME allowlist, filename sanitization), chat role validation, share token validation (expiry, revocation, max uses), note type validation, and admin settings key allowlist. Run via `npm test`
+
 ## Database Migrations
 
 This project uses Railway PostgreSQL with no automated migration system. Schema changes must be applied manually when deploying code that references new columns or constraints.

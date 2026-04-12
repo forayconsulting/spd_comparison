@@ -33,7 +33,7 @@ export async function onRequestGet(context) {
     }
     return jsonResponse({ settings, is_admin: true });
   } catch (e) {
-    return errorResponse('Failed to load settings: ' + e.message);
+    return errorResponse('Failed to load settings');
   }
 }
 
@@ -72,7 +72,7 @@ export async function onRequestPost(context) {
 
     return jsonResponse({ success: true });
   } catch (e) {
-    return errorResponse('Failed to save settings: ' + e.message);
+    return errorResponse('Failed to save settings');
   }
 }
 

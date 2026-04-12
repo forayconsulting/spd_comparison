@@ -192,7 +192,7 @@ export async function onRequestPost(context) {
     }, 201);
   } catch (error) {
     console.error('Error duplicating analysis:', error);
-    return errorResponse('Failed to duplicate analysis: ' + error.message);
+    return errorResponse('Failed to duplicate analysis');
   } finally {
     await sql.end();
   }

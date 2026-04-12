@@ -131,7 +131,7 @@ export async function onRequestGet(context) {
     });
   } catch (error) {
     console.error('Error loading analysis:', error);
-    return errorResponse('Failed to load analysis: ' + error.message);
+    return errorResponse('Failed to load analysis');
   } finally {
     await sql.end();
   }
@@ -239,8 +239,9 @@ export async function onRequestPatch(context) {
 
     // Insert new chat messages if provided (any user with access can add)
     if (new_messages && Array.isArray(new_messages)) {
+      const VALID_ROLES = ['user', 'assistant', 'system'];
       for (const msg of new_messages) {
-        if (msg.role && msg.content) {
+        if (msg.role && msg.content && VALID_ROLES.includes(msg.role)) {
           await sql`
             INSERT INTO chat_messages (analysis_id, role, content, is_compaction, created_at)
             VALUES (
@@ -421,7 +422,7 @@ export async function onRequestPatch(context) {
     return jsonResponse({ success: true });
   } catch (error) {
     console.error('Error updating analysis:', error);
-    return errorResponse('Failed to update analysis: ' + error.message);
+    return errorResponse('Failed to update analysis');
   } finally {
     await sql.end();
   }
@@ -495,7 +496,7 @@ export async function onRequestDelete(context) {
     return jsonResponse({ success: true, deleted: analysisId });
   } catch (error) {
     console.error('Error deleting analysis:', error);
-    return errorResponse('Failed to delete analysis: ' + error.message);
+    return errorResponse('Failed to delete analysis');
   } finally {
     await sql.end();
   }

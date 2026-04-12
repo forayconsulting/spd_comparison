@@ -65,7 +65,7 @@ export async function onRequestGet(context) {
 
   } catch (error) {
     console.error('Error validating token:', error);
-    return errorResponse('Failed to validate token: ' + error.message);
+    return errorResponse('Failed to validate token');
   } finally {
     await sql.end();
   }
@@ -167,7 +167,7 @@ export async function onRequestPost(context) {
 
   } catch (error) {
     console.error('Error claiming share:', error);
-    return errorResponse('Failed to claim share: ' + error.message);
+    return errorResponse('Failed to claim share');
   } finally {
     await sql.end();
   }
