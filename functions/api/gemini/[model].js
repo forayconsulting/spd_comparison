@@ -109,9 +109,16 @@ export async function onRequestPost(context) {
         });
 
         if (!geminiResponse.ok) {
-          // Forward error response as an SSE error event
+          // Forward error response as an SSE error event with upstream context
           const errorText = await geminiResponse.text();
-          const errorEvent = `data: {"error": {"code": ${geminiResponse.status}, "message": ${JSON.stringify(errorText)}}}\n\n`;
+          // Extract a human-readable message from the upstream error
+          let displayMessage = errorText;
+          try {
+            const parsed = JSON.parse(errorText);
+            if (parsed?.error?.message) displayMessage = parsed.error.message;
+          } catch { /* use raw text */ }
+          const errorEvent = `data: {"error": {"code": ${geminiResponse.status}, "message": ${JSON.stringify(displayMessage)}, "upstream": ${JSON.stringify(geminiUrl)}}}\n\n`;
+          console.error(`Upstream error ${geminiResponse.status} from ${geminiUrl}: ${displayMessage}`);
           await writer.write(encoder.encode(errorEvent));
           clearInterval(keepaliveTimer);
           await writer.close();

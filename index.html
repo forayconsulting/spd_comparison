@@ -7290,7 +7290,65 @@ CRITICAL RULES:
         alert('Regular chat mode is not implemented. Please use the Compare Documents button.');
       },
 
+      /**
+       * Pre-flight check: verify the configured model is accessible before
+       * uploading files and starting multi-phase analysis. Catches model-not-found,
+       * auth failures, and quota issues immediately with a clear error message.
+       */
+      async validateModelAccess() {
+        const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
+        console.log(`🔍 Pre-flight: validating model access for ${model}...`);
+
+        const requestBody = {
+          contents: [{ role: 'user', parts: [{ text: 'Say "ok"' }] }],
+          generationConfig: { maxOutputTokens: 10 }
+        };
+
+        const response = await fetch(this.getApiUrl(model), {
+          method: 'POST',
+          headers: this.getApiHeaders(),
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          let message = `Model "${model}" is not accessible (HTTP ${response.status})`;
+          try {
+            const parsed = JSON.parse(errorText);
+            if (parsed?.error?.message) message = parsed.error.message;
+          } catch { /* use default message */ }
+          throw new Error(message);
+        }
+
+        // For proxy mode (SSE stream), check for error events in response
+        const text = await response.text();
+        const errorMatch = text.match(/data: (\{.*"error".*\})/);
+        if (errorMatch) {
+          try {
+            const errData = JSON.parse(errorMatch[1]);
+            if (errData.error) {
+              const upstream = errData.error.upstream ? ` (${errData.error.upstream})` : '';
+              throw new Error(`Model "${model}" returned an error: ${errData.error.message}${upstream}`);
+            }
+          } catch (e) {
+            if (e.message.startsWith('Model')) throw e;
+          }
+        }
+
+        console.log(`✅ Pre-flight: model ${model} is accessible`);
+      },
+
       async runThreePhaseComparison() {
+        // Pre-flight: verify model access before uploading files
+        try {
+          await this.validateModelAccess();
+        } catch (error) {
+          this.handleError(error);
+          this.state.isStreaming = false;
+          this.updateSendButton(false);
+          return;
+        }
+
         // Minutes analysis takes a completely different path
         if (this.state.analysisMode === 'minutes-analysis') {
           return this.runTimelineAnalysis();
@@ -7551,6 +7609,7 @@ CRITICAL RULES:
 
         let buffer = '';
         let chunkCount = 0;
+        this.state.streamError = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -7579,6 +7638,13 @@ CRITICAL RULES:
           }
         }
 
+        // Surface API errors that arrived as SSE events (e.g. from proxy)
+        if (this.state.streamError) {
+          const err = this.state.streamError;
+          this.state.streamError = null;
+          throw new Error(`API error (${err.code}): ${err.message}`);
+        }
+
         const responseLength = this.state.currentResponse.length;
         console.log(`✅ API Response Complete: Phase ${this.state.currentPhase}/3 - ${chunkCount} chunks, ${responseLength} chars`);
 
@@ -7596,6 +7662,8 @@ CRITICAL RULES:
         }
         if (chunk.error) {
           console.error('❌ Stream chunk error:', JSON.stringify(chunk.error));
+          // Propagate API errors so callers can surface them to the user
+          this.state.streamError = chunk.error;
         }
         if (!candidate || !candidate.content || !candidate.content.parts) {
           // Log the raw chunk if it has no content (helps diagnose empty responses)
@@ -9192,6 +9260,7 @@ ${this.getTableRowReference()}`;
 
         let buffer = '';
         let chunkCount = 0;
+        this.state.streamError = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -9218,6 +9287,13 @@ ${this.getTableRowReference()}`;
               }
             }
           }
+        }
+
+        // Surface API errors that arrived as SSE events (e.g. from proxy)
+        if (this.state.streamError) {
+          const err = this.state.streamError;
+          this.state.streamError = null;
+          throw new Error(`API error (${err.code}): ${err.message}`);
         }
 
         console.log(`✅ Chat API Response Complete: ${chunkCount} chunks, ${this.state.currentChatResponse.length} chars`);
@@ -9299,9 +9375,13 @@ ${conversationText}`;
                 if (line.startsWith('data: ')) {
                   try {
                     const chunk = JSON.parse(line.slice(6));
+                    if (chunk.error) {
+                      throw new Error(`API error (${chunk.error.code}): ${chunk.error.message}`);
+                    }
                     const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (text) compactionResult += text;
                   } catch (e) {
+                    if (e.message?.startsWith('API error')) throw e;
                     // ignore parse errors
                   }
                 }
@@ -10032,6 +10112,12 @@ ${conversationText}`;
       },
 
       handleChatStreamChunk(chunk) {
+        // Surface API errors that arrive as SSE events from the proxy
+        if (chunk.error) {
+          console.error('❌ Chat stream chunk error:', JSON.stringify(chunk.error));
+          this.state.streamError = chunk.error;
+        }
+
         const candidate = chunk.candidates?.[0];
         if (!candidate || !candidate.content || !candidate.content.parts) return;
 
@@ -10718,6 +10804,9 @@ Return the draft as a well-formatted markdown document.`;
             if (line.startsWith('data: ')) {
               try {
                 const chunk = JSON.parse(line.slice(6));
+                if (chunk.error) {
+                  throw new Error(`API error (${chunk.error.code}): ${chunk.error.message}`);
+                }
                 const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (text) {
                   fullResponse += text;
@@ -10730,6 +10819,7 @@ Return the draft as a well-formatted markdown document.`;
                   }
                 }
               } catch (e) {
+                if (e.message?.startsWith('API error')) throw e;
                 // Skip malformed JSON
               }
             }
@@ -11483,6 +11573,9 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
             if (line.startsWith('data: ')) {
               try {
                 const chunk = JSON.parse(line.slice(6));
+                if (chunk.error) {
+                  throw new Error(`API error (${chunk.error.code}): ${chunk.error.message}`);
+                }
                 const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (text) {
                   fullResponse += text;
@@ -11499,6 +11592,7 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
                 const fr = chunk.candidates?.[0]?.finishReason;
                 if (fr) finishReason = fr;
               } catch (e) {
+                if (e.message?.startsWith('API error')) throw e;
                 // Skip malformed JSON
               }
             }
@@ -11580,6 +11674,9 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
             if (line.startsWith('data: ')) {
               try {
                 const chunk = JSON.parse(line.slice(6));
+                if (chunk.error) {
+                  throw new Error(`API error (${chunk.error.code}): ${chunk.error.message}`);
+                }
                 const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (text) {
                   fullResponse += text;
@@ -11590,6 +11687,7 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
                   }
                 }
               } catch (e) {
+                if (e.message?.startsWith('API error')) throw e;
                 // Skip malformed JSON
               }
             }
@@ -14076,9 +14174,13 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             if (line.startsWith('data: ')) {
               try {
                 const chunk = JSON.parse(line.slice(6));
+                if (chunk.error) {
+                  throw new Error(`API error (${chunk.error.code}): ${chunk.error.message}`);
+                }
                 const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (text) fullResponse += text;
               } catch (e) {
+                if (e.message?.startsWith('API error')) throw e;
                 // Skip
               }
             }

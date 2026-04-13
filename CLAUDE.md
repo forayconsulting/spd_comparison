@@ -138,6 +138,13 @@ When `analysisMode === 'minutes-analysis'`, the app takes an entirely different 
 │   ├── output_schema.json          # JSON schema for three outputs
 │   └── procedure_elements.md       # Standard procedure element list
 ├── tests/
+│   ├── unit/                       # Vitest unit tests (npm test)
+│   │   ├── api-error-handling.test.js  # API error propagation, SSE parsing, JSON recovery
+│   │   ├── api-validation.test.js      # Admin settings, token validation, email checks
+│   │   ├── db-helpers.test.js          # Database helper function tests
+│   │   └── file-upload.test.js         # File upload validation tests
+│   ├── e2e/                        # Playwright E2E tests (npm run test:e2e)
+│   │   └── feedback-fixes.spec.cjs # UI feedback regression tests
 │   ├── test-gemini.html            # CORS/API testing tool
 │   └── QA/                         # QA test outputs (3 production runs)
 │       ├── 1/, 2/, 3/              # Individual run outputs
@@ -253,15 +260,22 @@ The application previously used a single API call with a complex 437-line system
 - Error handling: If first request fails, reverts to Compare button with retry instructions
 - State detection: `isInitialState()` checks `messages.length === 0`
 
+### Pre-flight Model Validation
+
+Before starting any multi-phase analysis, `validateModelAccess()` makes a minimal API call (`Say "ok"`, maxOutputTokens: 10) to verify the configured model is accessible. This catches model-not-found, auth failures, and quota issues immediately (<2 seconds) instead of after uploading files across multiple phases. The pre-flight check runs at the top of `runThreePhaseComparison()`, protecting all analysis modes (cross-plan, amendment-tracking, minutes-analysis, invoice-analysis).
+
 ### Streaming Implementation
 
 **Gemini SSE Format:**
 ```javascript
-// Simpler than Claude - just parse JSON chunks
+// Parse JSON chunks, detect API errors from proxy
 const lines = event.split(/\r?\n/);
 for (const line of lines) {
   if (line.startsWith('data: ')) {
     const chunk = JSON.parse(line.slice(6));
+    if (chunk.error) {
+      throw new Error(`API error (${chunk.error.code}): ${chunk.error.message}`);
+    }
     const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
     if (text) {
       // Append to response
@@ -269,6 +283,14 @@ for (const line of lines) {
   }
 }
 ```
+
+**API Error Propagation:**
+The Cloudflare proxy returns `200 OK` immediately via `TransformStream` (to support keepalives), so upstream API errors arrive as SSE data events, not HTTP status codes. All 7 stream-parsing locations detect `chunk.error` and propagate the real API error message:
+- `handleStreamChunk()` / `streamResponse()`: Sets `this.state.streamError`, checked after stream loop
+- `handleChatStreamChunk()` / `streamChatResponseMultiTurn()`: Same state-based pattern
+- `runCompaction()`, `streamDraftResponse()`, `streamRegenSectionResponse()`, `streamRegenResponse()`, `streamDraftReworkResponse()`: Inline `chunk.error` check with re-throw
+
+The proxy (`functions/api/gemini/[model].js`) includes the upstream URL and a parsed error message in error events, aiding diagnosis of Vertex AI vs Consumer API routing issues.
 
 **Internal Reasoning:**
 - Gemini 3.1 Pro has configurable internal reasoning via `thinkingConfig.thinkingLevel` parameter
@@ -1148,7 +1170,22 @@ When making changes:
 
 **Important:** This is a Cloudflare Pages project. Using `wrangler deploy` will fail with an error. Always use `wrangler pages deploy`.
 
-## Testing Tools
+## Testing
+
+**Unit Tests (Vitest):**
+```bash
+npm test          # Run all unit tests
+npm run test:watch  # Watch mode
+```
+- `tests/unit/api-error-handling.test.js` — 150 tests covering API error propagation, SSE stream parsing, JSON extraction/recovery, request body construction, prompt templates, retry logic, proxy error format, pre-flight validation
+- `tests/unit/api-validation.test.js` — Admin settings allowlist, share token validation, email validation, note type validation
+- `tests/unit/db-helpers.test.js` — Database helper function tests
+- `tests/unit/file-upload.test.js` — File upload validation tests
+
+**E2E Tests (Playwright):**
+```bash
+npm run test:e2e  # Requires local dev server on port 8788
+```
 
 **test-gemini.html:**
 - Standalone CORS and API compatibility testing tool
@@ -1158,7 +1195,7 @@ When making changes:
   3. Inline base64 PDF upload
   4. Streaming with SSE
 - Use this to validate API access before deploying changes
-- All tests passed ✅ confirming direct browser integration works
+- All tests passed confirming direct browser integration works
 
 ## QA Testing
 
