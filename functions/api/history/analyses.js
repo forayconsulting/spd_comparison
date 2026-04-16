@@ -30,13 +30,15 @@ export async function onRequestGet(context) {
   try {
     const user = await getOrCreateUser(sql, email);
 
-    // Get owned analyses
+    // Get owned analyses (include workspace name if applicable)
     const ownedAnalyses = await sql`
-      SELECT id, title, created_at, file_metadata, analysis_mode
-      FROM analyses
-      WHERE user_id = ${user.id}
-      ORDER BY created_at DESC
-      LIMIT ${MAX_ANALYSES}
+      SELECT a.id, a.title, a.created_at, a.file_metadata, a.analysis_mode,
+             a.workspace_id, w.name as workspace_name
+      FROM analyses a
+      LEFT JOIN workspaces w ON a.workspace_id = w.id
+      WHERE a.user_id = ${user.id}
+      ORDER BY a.created_at DESC
+      LIMIT ${MAX_ANALYSES + 20}
     `;
 
     // Get shared analyses (shared with this user by email or user_id)
@@ -53,7 +55,13 @@ export async function onRequestGet(context) {
 
     // Format results
     const owned = ownedAnalyses.map(a => ({
-      ...a,
+      id: a.id,
+      title: a.title,
+      created_at: a.created_at,
+      file_metadata: a.file_metadata,
+      analysis_mode: a.analysis_mode,
+      workspace_id: a.workspace_id || null,
+      workspace_name: a.workspace_name || null,
       is_owner: true
     }));
 
@@ -110,13 +118,13 @@ export async function onRequestPost(context) {
   try {
     const user = await getOrCreateUser(sql, email);
 
-    // Enforce 20-analysis limit: delete oldest if at limit
-    // This deletes any analyses beyond the 19 most recent (making room for the new one)
+    // Enforce 20-analysis limit for personal analyses only (workspace analyses are exempt)
+    // This deletes any personal analyses beyond the 19 most recent (making room for the new one)
     await sql`
       DELETE FROM analyses
       WHERE id IN (
         SELECT id FROM analyses
-        WHERE user_id = ${user.id}
+        WHERE user_id = ${user.id} AND workspace_id IS NULL
         ORDER BY created_at DESC
         OFFSET ${MAX_ANALYSES - 1}
       )

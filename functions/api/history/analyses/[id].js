@@ -107,6 +107,18 @@ export async function onRequestGet(context) {
       replies: repliesMap[note.id] || []
     }));
 
+    // Get workspace name if this is a workspace analysis
+    let workspaceName = null;
+    let collectionName = null;
+    if (analysis.workspace_id) {
+      const [ws] = await sql`SELECT name FROM workspaces WHERE id = ${analysis.workspace_id}`;
+      if (ws) workspaceName = ws.name;
+      if (analysis.collection_id) {
+        const [coll] = await sql`SELECT name FROM workspace_collections WHERE id = ${analysis.collection_id}`;
+        if (coll) collectionName = coll.name;
+      }
+    }
+
     return jsonResponse({
       id: analysis.id,
       title: analysis.title,
@@ -119,7 +131,13 @@ export async function onRequestGet(context) {
       table_view_state: analysis.table_view_state || null,
       draft_state: analysis.draft_state || null,
       analysis_mode: analysis.analysis_mode || 'cross-plan',
+      workspace_id: analysis.workspace_id || null,
+      workspace_name: workspaceName,
+      collection_id: analysis.collection_id || null,
+      collection_name: collectionName,
       is_owner: access.isOwner,
+      is_workspace_member: access.isWorkspaceMember || false,
+      workspace_role: access.workspaceRole || null,
       owner_email: access.ownerEmail,
       chat_messages: chatMessages.map(m => ({
         role: m.role,
@@ -163,10 +181,10 @@ export async function onRequestPatch(context) {
     return errorResponse('Invalid JSON body', 400);
   }
 
-  const { title, file_metadata, new_messages, add_note, update_note, delete_note, add_reply, table_view_state, draft_state } = body;
+  const { title, file_metadata, new_messages, add_note, update_note, delete_note, add_reply, table_view_state, draft_state, summary_response, comparison_response, language_response } = body;
 
   // Need at least one field to update
-  if (!title && !file_metadata && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note && !add_reply && !table_view_state && draft_state === undefined) {
+  if (!title && !file_metadata && (!new_messages || !Array.isArray(new_messages)) && !add_note && !update_note && !delete_note && !add_reply && !table_view_state && draft_state === undefined && summary_response === undefined && comparison_response === undefined && language_response === undefined) {
     return errorResponse('At least one update field is required', 400);
   }
 
@@ -182,10 +200,28 @@ export async function onRequestPatch(context) {
       return errorResponse('Analysis not found', 404);
     }
 
-    // Owner-only operations: title, file_metadata, table_view_state, draft_state
+    // Update phase responses if provided (owner or workspace member)
+    if (summary_response !== undefined || comparison_response !== undefined || language_response !== undefined) {
+      const canEdit = access.isOwner || access.isWorkspaceMember;
+      if (!canEdit) {
+        return errorResponse('Only the owner or workspace members can update analysis responses', 403);
+      }
+      if (summary_response !== undefined) {
+        await sql`UPDATE analyses SET summary_response = ${summary_response}, updated_at = NOW() WHERE id = ${analysisId}`;
+      }
+      if (comparison_response !== undefined) {
+        await sql`UPDATE analyses SET comparison_response = ${comparison_response}, updated_at = NOW() WHERE id = ${analysisId}`;
+      }
+      if (language_response !== undefined) {
+        await sql`UPDATE analyses SET language_response = ${language_response}, updated_at = NOW() WHERE id = ${analysisId}`;
+      }
+    }
+
+    // Owner-only operations (or workspace member): title, file_metadata, table_view_state, draft_state
     if (title || file_metadata || table_view_state || draft_state !== undefined) {
-      if (!access.isOwner) {
-        return errorResponse('Only the owner can update title, file metadata, table view state, or draft state', 403);
+      const canEdit = access.isOwner || access.isWorkspaceMember;
+      if (!canEdit) {
+        return errorResponse('Only the owner or workspace members can update title, file metadata, table view state, or draft state', 403);
       }
 
       // Update title if provided
@@ -450,20 +486,25 @@ export async function onRequestDelete(context) {
   try {
     const user = await getOrCreateUser(sql, email);
 
-    // First, get the analysis to retrieve file_metadata for R2 cleanup
-    const analyses = await sql`
-      SELECT id, file_metadata FROM analyses
-      WHERE id = ${analysisId} AND user_id = ${user.id}
-    `;
-
-    if (analyses.length === 0) {
+    // Check access
+    const access = await checkAnalysisAccess(sql, user.id, email, analysisId);
+    if (!access.canAccess) {
       return errorResponse('Analysis not found', 404);
     }
 
-    const analysis = analyses[0];
+    const analysis = access.analysis;
 
-    // Delete R2 objects if they exist
-    if (env.DOCUMENTS && analysis.file_metadata) {
+    // Permission check: owner, or workspace admin for workspace analyses
+    const canDelete = access.isOwner ||
+      (access.isWorkspaceMember && access.workspaceRole === 'admin');
+    if (!canDelete) {
+      return errorResponse('Only the owner or workspace admin can delete this analysis', 403);
+    }
+
+    // Delete R2 objects if they exist — but ONLY for personal analyses
+    // Workspace analyses reference shared workspace documents that should not be deleted
+    const isWorkspaceAnalysis = !!analysis.workspace_id;
+    if (!isWorkspaceAnalysis && env.DOCUMENTS && analysis.file_metadata) {
       let fileMetadata = analysis.file_metadata;
       if (typeof fileMetadata === 'string') {
         try {
@@ -489,8 +530,7 @@ export async function onRequestDelete(context) {
 
     // Delete analysis (CASCADE will handle chat_messages and notes)
     await sql`
-      DELETE FROM analyses
-      WHERE id = ${analysisId} AND user_id = ${user.id}
+      DELETE FROM analyses WHERE id = ${analysisId}
     `;
 
     return jsonResponse({ success: true, deleted: analysisId });

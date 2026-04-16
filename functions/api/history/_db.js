@@ -73,12 +73,58 @@ export function requireAdmin(user) {
 }
 
 /**
- * Check if a user can access an analysis (owner or shared)
+ * Check workspace membership and role
+ * @param {Function} sql - postgres SQL client
+ * @param {string} userId - User's UUID
+ * @param {string} workspaceId - Workspace UUID
+ * @returns {Promise<{isMember: boolean, role: string|null}>}
+ */
+export async function checkWorkspaceMembership(sql, userId, workspaceId) {
+  const result = await sql`
+    SELECT role FROM workspace_members
+    WHERE workspace_id = ${workspaceId} AND user_id = ${userId}
+  `;
+  if (result.length === 0) return { isMember: false, role: null };
+  return { isMember: true, role: result[0].role };
+}
+
+/**
+ * Return a 403 Response if user is not a workspace admin
+ * @param {{isMember: boolean, role: string|null}} membership
+ * @returns {Response|null}
+ */
+export function requireWorkspaceAdmin(membership) {
+  if (!membership.isMember || membership.role !== 'admin') {
+    return new Response(
+      JSON.stringify({ error: 'Workspace admin access required' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  return null;
+}
+
+/**
+ * Return a 403 Response if user is not a workspace member
+ * @param {{isMember: boolean, role: string|null}} membership
+ * @returns {Response|null}
+ */
+export function requireWorkspaceMember(membership) {
+  if (!membership.isMember) {
+    return new Response(
+      JSON.stringify({ error: 'Workspace membership required' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  return null;
+}
+
+/**
+ * Check if a user can access an analysis (owner, shared, or workspace member)
  * @param {Function} sql - postgres SQL client
  * @param {string} userId - User's UUID
  * @param {string} userEmail - User's email (for checking pending shares)
  * @param {string} analysisId - Analysis UUID
- * @returns {Promise<{canAccess: boolean, isOwner: boolean, analysis: object|null, ownerEmail: string|null}>}
+ * @returns {Promise<{canAccess: boolean, isOwner: boolean, isWorkspaceMember?: boolean, workspaceRole?: string, analysis: object|null, ownerEmail: string|null}>}
  */
 export async function checkAnalysisAccess(sql, userId, userEmail, analysisId) {
   // First check if user owns the analysis
@@ -125,6 +171,31 @@ export async function checkAnalysisAccess(sql, userId, userEmail, analysisId) {
       analysis: shared[0],
       ownerEmail: shared[0].owner_email
     };
+  }
+
+  // Check workspace membership (for workspace-scoped analyses)
+  const wsAnalysis = await sql`
+    SELECT a.*, u.email as owner_email
+    FROM analyses a
+    JOIN users u ON a.user_id = u.id
+    WHERE a.id = ${analysisId} AND a.workspace_id IS NOT NULL
+  `;
+
+  if (wsAnalysis.length > 0) {
+    const membership = await sql`
+      SELECT role FROM workspace_members
+      WHERE workspace_id = ${wsAnalysis[0].workspace_id} AND user_id = ${userId}
+    `;
+    if (membership.length > 0) {
+      return {
+        canAccess: true,
+        isOwner: false,
+        isWorkspaceMember: true,
+        workspaceRole: membership[0].role,
+        analysis: wsAnalysis[0],
+        ownerEmail: wsAnalysis[0].owner_email
+      };
+    }
   }
 
   return {

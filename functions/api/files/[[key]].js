@@ -127,14 +127,15 @@ async function handleDownload(context) {
   }
 
   // Reconstruct the R2 key from path segments
-  // params.key is an array of path segments: ['userId', 'analysisId', 'filename']
+  // Personal files: ['userId', 'analysisId', 'filename']
+  // Workspace files: ['workspaces', workspaceId, collectionId, 'filename']
   const keyParts = params.key;
   if (!keyParts || keyParts.length < 3) {
     return errorResponse('Invalid file path', 400);
   }
 
   const r2Key = keyParts.join('/');
-  const [keyUserId, analysisId] = keyParts;
+  const isWorkspaceFile = keyParts[0] === 'workspaces';
 
   const sql = createSqlClient(env);
 
@@ -144,24 +145,68 @@ async function handleDownload(context) {
     // Security: Check if user can access this file
     let hasAccess = false;
 
-    // Check if user owns the file (userId in key matches)
-    if (keyUserId === user.id) {
-      const owned = await sql`
-        SELECT id FROM analyses WHERE id = ${analysisId} AND user_id = ${user.id}
-      `;
-      hasAccess = owned.length > 0;
-    }
-
-    // If not owner, check if user has shared access
-    if (!hasAccess) {
-      const shared = await sql`
-        SELECT 1 FROM analyses a
-        JOIN shared_analyses sa ON sa.analysis_id = a.id
-        WHERE a.id = ${analysisId}
-        AND (sa.shared_with_id = ${user.id} OR LOWER(sa.shared_with_email) = LOWER(${email}))
+    if (isWorkspaceFile) {
+      // Workspace file: check workspace membership
+      const workspaceId = keyParts[1];
+      const membership = await sql`
+        SELECT 1 FROM workspace_members
+        WHERE workspace_id = ${workspaceId} AND user_id = ${user.id}
         LIMIT 1
       `;
-      hasAccess = shared.length > 0;
+      hasAccess = membership.length > 0;
+
+      // Also check if user has access via a shared analysis that references this R2 key
+      if (!hasAccess) {
+        const analysisAccess = await sql`
+          SELECT 1 FROM analyses a
+          WHERE a.file_metadata::text LIKE ${'%' + r2Key + '%'}
+          AND (
+            a.user_id = ${user.id}
+            OR EXISTS (
+              SELECT 1 FROM shared_analyses sa
+              WHERE sa.analysis_id = a.id
+              AND (sa.shared_with_id = ${user.id} OR LOWER(sa.shared_with_email) = LOWER(${email}))
+            )
+          )
+          LIMIT 1
+        `;
+        hasAccess = analysisAccess.length > 0;
+      }
+    } else {
+      // Personal file: existing access check
+      const [keyUserId, analysisId] = keyParts;
+
+      // Check if user owns the file (userId in key matches)
+      if (keyUserId === user.id) {
+        const owned = await sql`
+          SELECT id FROM analyses WHERE id = ${analysisId} AND user_id = ${user.id}
+        `;
+        hasAccess = owned.length > 0;
+      }
+
+      // If not owner, check if user has shared access
+      if (!hasAccess) {
+        const shared = await sql`
+          SELECT 1 FROM analyses a
+          JOIN shared_analyses sa ON sa.analysis_id = a.id
+          WHERE a.id = ${analysisId}
+          AND (sa.shared_with_id = ${user.id} OR LOWER(sa.shared_with_email) = LOWER(${email}))
+          LIMIT 1
+        `;
+        hasAccess = shared.length > 0;
+      }
+
+      // Check workspace membership for workspace analyses
+      if (!hasAccess) {
+        const wsAccess = await sql`
+          SELECT 1 FROM analyses a
+          JOIN workspace_members wm ON wm.workspace_id = a.workspace_id
+          WHERE a.file_metadata::text LIKE ${'%' + r2Key + '%'}
+          AND wm.user_id = ${user.id}
+          LIMIT 1
+        `;
+        hasAccess = wsAccess.length > 0;
+      }
     }
 
     if (!hasAccess) {

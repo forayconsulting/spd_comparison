@@ -391,6 +391,6 @@ wrangler pages deploy . --project-name=spd-matrix
 
 - **Adding users:** Zero Trust > Access > Applications > `SPD MATRIX {SLUG}` > Policies > edit email list
 - **Code updates:** Use the binding swap process described above
-- **Schema migrations:** Apply same SQL to this instance's Railway database manually
+- **Schema migrations:** Every change to `schema.sql` must be applied manually to this instance's Railway database **before or alongside** the code deploy that references it. All new statements in `schema.sql` are idempotent (`CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, etc.), so safest is to run the whole file: `psql "{DATABASE_URL}" -f schema.sql`. Missing this step causes silent 500s on affected endpoints — the UI renders empty state ("No saved analyses yet", missing notes, etc.) while the data sits in the DB unreachable. See README's "Database Migrations" section for the current schema snapshot.
 - **Resetting data:** `psql "{DATABASE_URL}" -c "TRUNCATE users, analyses, chat_messages, notes, shared_analyses, share_tokens, app_settings CASCADE;"` then re-insert admin user
 - **Logs:** `wrangler pages deployment tail --project-name=spd-matrix-{SLUG}`

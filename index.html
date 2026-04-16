@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPD MATRIX</title>
+  <title>SyncroDoc</title>
 
   <!-- External Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
@@ -4869,6 +4869,416 @@
       color: #8ab4ff;
     }
 
+    /* Workspace Switcher */
+    .workspace-switcher {
+      position: relative;
+      margin-left: 16px;
+    }
+    .workspace-switcher-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .workspace-switcher-btn:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--text-secondary);
+    }
+    .workspace-switcher-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      min-width: 220px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 1000;
+      overflow: hidden;
+    }
+    .workspace-switcher-dropdown.open {
+      display: block;
+    }
+    .ws-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .ws-dropdown-item:hover {
+      background: var(--bg-secondary);
+    }
+    .ws-dropdown-item.active {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+    }
+    .ws-dropdown-item .ws-item-role {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+    .ws-dropdown-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 4px 0;
+    }
+
+    /* Workspace Dashboard */
+    .workspace-dashboard {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-primary);
+      z-index: 50;
+      overflow-y: auto;
+      padding: 24px 32px;
+    }
+    .ws-dashboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .ws-dashboard-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ws-dashboard-title h2 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--text-primary);
+    }
+    .ws-role-badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ws-role-badge.admin {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+    }
+    .ws-role-badge.member {
+      background: rgba(107, 114, 128, 0.15);
+      color: #9ca3af;
+    }
+    .ws-dashboard-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    .ws-tab-btn {
+      padding: 6px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ws-tab-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    .ws-tab-btn.active {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+    .ws-dashboard-content {
+      min-height: 200px;
+    }
+
+    /* Collection Cards */
+    .ws-collections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .ws-collection-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ws-collection-card:hover {
+      border-color: var(--text-secondary);
+      transform: translateY(-1px);
+    }
+    .ws-collection-card.expanded {
+      grid-column: 1 / -1;
+      cursor: default;
+    }
+    .ws-collection-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .ws-collection-card-header h3 {
+      margin: 0;
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+    .ws-mode-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: rgba(107, 114, 128, 0.15);
+      color: #9ca3af;
+    }
+    .ws-collection-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .ws-collection-expanded {
+      margin-top: 16px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 16px;
+    }
+    .ws-doc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+    }
+    .ws-doc-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-primary);
+      transition: background 0.15s;
+    }
+    .ws-doc-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .ws-doc-item .ws-doc-size {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    .ws-doc-item .ws-doc-delete {
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .ws-doc-item .ws-doc-delete:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .ws-actions-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ws-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+    .ws-btn-primary {
+      background: var(--text-primary);
+      color: var(--bg-primary);
+      border-color: var(--text-primary);
+    }
+    .ws-btn-primary:hover {
+      opacity: 0.9;
+    }
+    .ws-btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+    }
+    .ws-btn-secondary:hover {
+      background: var(--bg-secondary);
+    }
+    .ws-btn-danger {
+      background: transparent;
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .ws-btn-danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .ws-upload-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+    .ws-upload-zone:hover, .ws-upload-zone.drag-over {
+      border-color: var(--text-secondary);
+      background: var(--bg-secondary);
+    }
+    .ws-upload-zone input[type="file"] {
+      display: none;
+    }
+
+    /* Workspace Analysis List */
+    .ws-analysis-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ws-analysis-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ws-analysis-card:hover {
+      border-color: var(--text-secondary);
+    }
+    .ws-analysis-card .ws-analysis-title {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .ws-analysis-card .ws-analysis-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Workspace Members */
+    .ws-members-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .ws-member-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .ws-member-row:hover {
+      background: var(--bg-secondary);
+    }
+    .ws-member-email {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .ws-member-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .ws-member-actions select {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+    .ws-add-member-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .ws-add-member-form input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+
+    /* History sidebar workspace badge */
+    .history-workspace-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* New Collection Modal */
+    .ws-new-collection-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    .ws-new-collection-form input,
+    .ws-new-collection-form select,
+    .ws-new-collection-form textarea {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+    .ws-new-collection-form textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .ws-form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
     /* Resize Handle for Split View */
     .resize-handle {
       flex: 0 0 4px;
@@ -5515,8 +5925,15 @@
           <rect x="9.5" y="17" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
           <rect x="17" y="17" width="5" height="5" rx="1" fill="currentColor"/>
         </svg>
-        SPD MATRIX
+        SyncroDoc
       </h1>
+      <div id="workspace-switcher" class="workspace-switcher" style="display: none;">
+        <button id="workspace-switcher-btn" class="workspace-switcher-btn" onclick="ChatApp.toggleWorkspaceSwitcher()">
+          <span id="workspace-switcher-label">Personal</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div id="workspace-switcher-dropdown" class="workspace-switcher-dropdown"></div>
+      </div>
       <div class="header-buttons">
         <button id="new-analysis-header-btn" class="settings-button" onclick="ChatApp.startNewAnalysis()" title="New Analysis" style="display: none;">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -5570,6 +5987,24 @@
       </button>
       <div id="history-content" class="history-content">
         <!-- Populated by renderHistoryPanel() -->
+      </div>
+    </div>
+
+    <!-- Workspace Dashboard (shown when a workspace is selected) -->
+    <div id="workspace-dashboard" class="workspace-dashboard" style="display: none;">
+      <div class="ws-dashboard-header">
+        <div class="ws-dashboard-title">
+          <h2 id="ws-dashboard-name"></h2>
+          <span id="ws-dashboard-role" class="ws-role-badge"></span>
+        </div>
+        <div class="ws-dashboard-tabs">
+          <button class="ws-tab-btn active" data-ws-tab="collections" onclick="ChatApp.switchWorkspaceView('collections')">Collections</button>
+          <button class="ws-tab-btn" data-ws-tab="analyses" onclick="ChatApp.switchWorkspaceView('analyses')">Analyses</button>
+          <button class="ws-tab-btn" data-ws-tab="members" onclick="ChatApp.switchWorkspaceView('members')" id="ws-members-tab" style="display:none;">Members</button>
+        </div>
+      </div>
+      <div id="ws-dashboard-content" class="ws-dashboard-content">
+        <!-- Populated by renderWorkspaceDashboard() -->
       </div>
     </div>
 
@@ -6261,7 +6696,13 @@ ${fileList}
 
 I want you to return a detailed and comprehensive table comparing elements across all plans. Columns should represent identified plans, and rows should represent identified procedural elements within the plans. The purpose of this table is to compare procedural elements across all plan documents at a glance — including both benefit mechanics (eligibility, vesting, accruals) and administrative/legal procedures (claims processes, appeal rights, deadlines, dispute resolution, and venue).
 
-When naming columns or referencing documents, use the EXACT filenames as provided above.
+COLUMN HEADER RULES (critical for readability):
+- Use SHORT, single-line column headers — ideally 1-3 words (e.g. "San Diego", "Vegas", "Plan 4", "Original SPD", "Amendment 1", "v1", "v2").
+- Do NOT put full filenames in column headers. Long filenames bloat the header row and make the table unreadable.
+- Each distinct uploaded document gets its OWN column — including different versions of the same plan (e.g. a "v1" and a "v2" of the same SPD are two separate columns). Do NOT merge or consolidate different documents into a single column.
+- Choose a label that fits on a single line at typical column width (~160px). Prefer plan name, version label, location, or a short descriptor that distinguishes this document from the others.
+
+When referencing specific documents inside table CELLS or anywhere else, you may use the exact filenames as provided above.
 
 Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.${addendum}`;
       },
@@ -6285,9 +6726,15 @@ ${fileList}
 
 I want you to create a more detailed version of this table which fully quotes and cites the language from each and every document which represents the procedural elements being compared. The purpose of this is to facilitate quick analysis of the plan document changes and amendments over time while citing the specific language applicable in as detailed a manner as possible.
 
-IMPORTANT: Your citations MUST use the EXACT filenames listed above. Do NOT invent, abbreviate, or modify filenames.
+TABLE STRUCTURE (critical for consistency):
+- Use the EXACT SAME column structure as the comparison table above — same columns, same short single-line headers, same column order.
+- Use the EXACT SAME row labels and row order as the comparison table above.
+- Do NOT split, merge, rename, add, or reorder columns. Do NOT split, merge, rename, add, or reorder rows.
+- Column headers must stay SHORT and single-line (matching the comparison table). Do NOT put full filenames in column headers.
+- The only difference between this table and the comparison table should be the CELL CONTENTS — which here contain full quoted language plus citations.
 
-CITATION FORMAT:
+CITATIONS (inside cells only):
+- Your CITATIONS (the parenthetical references inside cells) MUST use the EXACT filenames listed above. Do NOT invent, abbreviate, or modify filenames in citations. This rule applies ONLY to citation parentheticals inside cells — NOT to column headers.
 - For PDF files: cite in the format (filename.pdf, page_number, paragraph_number)
 - For non-PDF files (DOCX, XLSX, CSV, TXT): cite using the §N markers shown in the document text, e.g. (filename.docx, §3)
 
@@ -6612,6 +7059,16 @@ CRITICAL RULES:
         // Admin state
         isAdmin: false,
         vertexAiSettings: null,  // Cached settings from /api/admin/settings
+        // Workspace state
+        workspaceList: [],                      // [{id, name, role, collection_count, ...}]
+        activeWorkspaceId: null,                // Currently selected workspace UUID
+        activeWorkspace: null,                  // Full workspace detail object
+        workspaceCollections: [],               // Collections in active workspace
+        workspaceAnalyses: [],                  // Analyses in active workspace
+        workspaceMembers: [],                   // Members of active workspace
+        isWorkspaceAdmin: false,                // Current user's role in active workspace
+        workspaceDashboardView: 'collections',  // 'collections' | 'analyses' | 'members'
+        expandedCollectionId: null,             // Currently expanded collection card
         // Inactivity timeout state
         inactivityTimer: null,
         warningTimer: null,
@@ -6625,6 +7082,7 @@ CRITICAL RULES:
         this.loadSessionApiKey();
         this.loadSplitViewPreferences();
         this.loadHistoryList();
+        this.loadWorkspaceList();
         this.initNoteEvents();
         this.initExportDropdowns();
         this.handleShareToken();
@@ -6824,6 +7282,631 @@ CRITICAL RULES:
           // 403 = not admin, ignore silently
         } catch (e) {
           // Network error, ignore
+        }
+      },
+
+      // =============================================
+      // WORKSPACE METHODS
+      // =============================================
+
+      async loadWorkspaceList() {
+        if (!this.isProxyMode()) return;
+        try {
+          const res = await fetch('/api/workspaces');
+          if (!res.ok) return;
+          const data = await res.json();
+          this.state.workspaceList = data.workspaces || [];
+          this.renderWorkspaceSwitcher();
+        } catch (e) {
+          // Silently fail — workspaces are optional
+        }
+      },
+
+      renderWorkspaceSwitcher() {
+        const switcher = document.getElementById('workspace-switcher');
+        if (!switcher) return;
+
+        if (this.state.workspaceList.length === 0) {
+          switcher.style.display = 'none';
+          return;
+        }
+
+        switcher.style.display = 'block';
+        const label = document.getElementById('workspace-switcher-label');
+        if (this.state.activeWorkspaceId) {
+          const ws = this.state.workspaceList.find(w => w.id === this.state.activeWorkspaceId);
+          label.textContent = ws ? ws.name : 'Workspace';
+        } else {
+          label.textContent = 'Personal';
+        }
+      },
+
+      toggleWorkspaceSwitcher() {
+        const dropdown = document.getElementById('workspace-switcher-dropdown');
+        const isOpen = dropdown.classList.contains('open');
+
+        if (isOpen) {
+          dropdown.classList.remove('open');
+          return;
+        }
+
+        // Populate dropdown
+        let html = `<button class="ws-dropdown-item ${!this.state.activeWorkspaceId ? 'active' : ''}" onclick="ChatApp.selectWorkspace(null)">Personal</button>`;
+        html += '<div class="ws-dropdown-divider"></div>';
+
+        for (const ws of this.state.workspaceList) {
+          const isActive = this.state.activeWorkspaceId === ws.id;
+          html += `<button class="ws-dropdown-item ${isActive ? 'active' : ''}" onclick="ChatApp.selectWorkspace('${ws.id}')">
+            ${this.escapeHtml(ws.name)}
+            <span class="ws-item-role">${ws.role}</span>
+          </button>`;
+        }
+
+        dropdown.innerHTML = html;
+        dropdown.classList.add('open');
+
+        // Close on outside click
+        const closeHandler = (e) => {
+          if (!e.target.closest('.workspace-switcher')) {
+            dropdown.classList.remove('open');
+            document.removeEventListener('click', closeHandler);
+          }
+        };
+        setTimeout(() => document.addEventListener('click', closeHandler), 0);
+      },
+
+      async selectWorkspace(workspaceId) {
+        const dropdown = document.getElementById('workspace-switcher-dropdown');
+        dropdown.classList.remove('open');
+
+        if (workspaceId === this.state.activeWorkspaceId) return;
+
+        this.state.activeWorkspaceId = workspaceId;
+        this.state.expandedCollectionId = null;
+        this.state.workspaceDashboardView = 'collections';
+
+        const dashboard = document.getElementById('workspace-dashboard');
+
+        if (!workspaceId) {
+          // Switch to personal mode
+          this.state.activeWorkspace = null;
+          this.state.isWorkspaceAdmin = false;
+          dashboard.style.display = 'none';
+          this.renderWorkspaceSwitcher();
+          return;
+        }
+
+        // Load workspace details
+        dashboard.style.display = 'block';
+        await this.loadWorkspaceDetail(workspaceId);
+        this.renderWorkspaceSwitcher();
+      },
+
+      async loadWorkspaceDetail(workspaceId) {
+        try {
+          const res = await fetch(`/api/workspaces/${workspaceId}`);
+          if (!res.ok) throw new Error('Failed to load workspace');
+          const data = await res.json();
+          this.state.activeWorkspace = data;
+          this.state.workspaceCollections = data.collections || [];
+          this.state.isWorkspaceAdmin = data.role === 'admin';
+          this.renderWorkspaceDashboard();
+        } catch (e) {
+          console.error('Error loading workspace:', e);
+        }
+      },
+
+      async loadWorkspaceAnalyses() {
+        if (!this.state.activeWorkspaceId) return;
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/analyses`);
+          if (!res.ok) return;
+          const data = await res.json();
+          this.state.workspaceAnalyses = data.analyses || [];
+        } catch (e) {
+          console.error('Error loading workspace analyses:', e);
+        }
+      },
+
+      async loadWorkspaceMembers() {
+        if (!this.state.activeWorkspaceId) return;
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/members`);
+          if (!res.ok) return;
+          const data = await res.json();
+          this.state.workspaceMembers = data.members || [];
+        } catch (e) {
+          console.error('Error loading workspace members:', e);
+        }
+      },
+
+      switchWorkspaceView(view) {
+        this.state.workspaceDashboardView = view;
+        document.querySelectorAll('.ws-tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.wsTab === view);
+        });
+        this.renderWorkspaceDashboard();
+      },
+
+      renderWorkspaceDashboard() {
+        const ws = this.state.activeWorkspace;
+        if (!ws) return;
+
+        // Update header
+        document.getElementById('ws-dashboard-name').textContent = ws.name;
+        const roleBadge = document.getElementById('ws-dashboard-role');
+        roleBadge.textContent = ws.role;
+        roleBadge.className = `ws-role-badge ${ws.role}`;
+
+        // Show/hide members tab for admins
+        const membersTab = document.getElementById('ws-members-tab');
+        if (membersTab) membersTab.style.display = this.state.isWorkspaceAdmin ? '' : 'none';
+
+        const content = document.getElementById('ws-dashboard-content');
+        const view = this.state.workspaceDashboardView;
+
+        if (view === 'collections') {
+          this.renderWorkspaceCollections(content);
+        } else if (view === 'analyses') {
+          this.renderWorkspaceAnalysesView(content);
+        } else if (view === 'members') {
+          this.renderWorkspaceMembersView(content);
+        }
+      },
+
+      renderWorkspaceCollections(container) {
+        const collections = this.state.workspaceCollections;
+        let html = '';
+
+        if (this.state.isWorkspaceAdmin) {
+          html += `<button class="ws-btn ws-btn-secondary" onclick="ChatApp.showNewCollectionForm()" style="margin-bottom: 16px;">+ New Collection</button>`;
+          html += `<div id="ws-new-collection-form-container"></div>`;
+        }
+
+        if (collections.length === 0) {
+          html += '<p style="color: var(--text-secondary); font-size: 14px;">No collections yet. Create one to get started.</p>';
+          container.innerHTML = html;
+          return;
+        }
+
+        const modeLabels = {
+          'cross-plan': 'Cross-Plan',
+          'amendment-tracking': 'Amendment Tracking',
+          'minutes-analysis': 'Meeting Minutes',
+          'invoice-analysis': 'Invoice Analysis'
+        };
+
+        html += '<div class="ws-collections-grid">';
+        for (const coll of collections) {
+          const isExpanded = this.state.expandedCollectionId === coll.id;
+          html += `<div class="ws-collection-card ${isExpanded ? 'expanded' : ''}" ${!isExpanded ? `onclick="ChatApp.expandCollection('${coll.id}')"` : ''}>
+            <div class="ws-collection-card-header">
+              <h3>${this.escapeHtml(coll.name)}</h3>
+              <span class="ws-mode-badge">${modeLabels[coll.analysis_mode] || coll.analysis_mode}</span>
+            </div>
+            <div class="ws-collection-meta">
+              <span>${coll.document_count || 0} document${coll.document_count !== 1 ? 's' : ''}</span>
+              ${coll.last_document_at ? `<span>Updated ${new Date(coll.last_document_at).toLocaleDateString()}</span>` : ''}
+            </div>
+            ${isExpanded ? `<div class="ws-collection-expanded" id="ws-collection-detail-${coll.id}">Loading...</div>` : ''}
+          </div>`;
+        }
+        html += '</div>';
+
+        container.innerHTML = html;
+
+        if (this.state.expandedCollectionId) {
+          this.loadCollectionDetail(this.state.expandedCollectionId);
+        }
+      },
+
+      showNewCollectionForm() {
+        const container = document.getElementById('ws-new-collection-form-container');
+        if (!container) return;
+        container.innerHTML = `
+          <div class="ws-new-collection-form">
+            <input type="text" id="ws-new-coll-name" placeholder="Collection name" />
+            <textarea id="ws-new-coll-desc" placeholder="Description (optional)"></textarea>
+            <select id="ws-new-coll-mode">
+              <option value="cross-plan">Cross-Plan Comparison</option>
+              <option value="amendment-tracking">Amendment Tracking</option>
+              <option value="minutes-analysis">Meeting Minutes</option>
+              <option value="invoice-analysis">Invoice Analysis</option>
+            </select>
+            <div class="ws-form-actions">
+              <button class="ws-btn ws-btn-secondary" onclick="ChatApp.hideNewCollectionForm()">Cancel</button>
+              <button class="ws-btn ws-btn-primary" onclick="ChatApp.createCollection()">Create</button>
+            </div>
+          </div>
+        `;
+      },
+
+      hideNewCollectionForm() {
+        const container = document.getElementById('ws-new-collection-form-container');
+        if (container) container.innerHTML = '';
+      },
+
+      async createCollection() {
+        const name = document.getElementById('ws-new-coll-name')?.value?.trim();
+        const description = document.getElementById('ws-new-coll-desc')?.value?.trim();
+        const analysis_mode = document.getElementById('ws-new-coll-mode')?.value;
+
+        if (!name) return alert('Collection name is required');
+
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/collections`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, analysis_mode })
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to create collection');
+          }
+          const coll = await res.json();
+          this.state.workspaceCollections.unshift({ ...coll, document_count: 0 });
+          this.hideNewCollectionForm();
+          this.renderWorkspaceDashboard();
+        } catch (e) {
+          alert(e.message);
+        }
+      },
+
+      async expandCollection(collectionId) {
+        this.state.expandedCollectionId = collectionId;
+        this.renderWorkspaceDashboard();
+      },
+
+      async loadCollectionDetail(collectionId) {
+        const detailEl = document.getElementById(`ws-collection-detail-${collectionId}`);
+        if (!detailEl) return;
+
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/collections/${collectionId}`);
+          if (!res.ok) throw new Error('Failed to load collection');
+          const data = await res.json();
+
+          let html = '';
+
+          // Upload zone (admin only)
+          if (this.state.isWorkspaceAdmin) {
+            html += `<div class="ws-upload-zone" id="ws-upload-zone-${collectionId}"
+              onclick="document.getElementById('ws-file-input-${collectionId}').click()"
+              ondragover="event.preventDefault(); this.classList.add('drag-over')"
+              ondragleave="this.classList.remove('drag-over')"
+              ondrop="event.preventDefault(); this.classList.remove('drag-over'); ChatApp.handleWorkspaceFileDrop(event, '${collectionId}')">
+              Drop files here or click to upload
+              <input type="file" id="ws-file-input-${collectionId}" multiple accept=".pdf,.txt,.docx,.doc,.csv,.xlsx,.xls"
+                onchange="ChatApp.handleWorkspaceFileSelect(event, '${collectionId}')">
+            </div>`;
+          }
+
+          // Document list
+          if (data.documents && data.documents.length > 0) {
+            html += '<ul class="ws-doc-list">';
+            for (const doc of data.documents) {
+              const sizeStr = doc.size > 1048576 ? (doc.size / 1048576).toFixed(1) + ' MB' : (doc.size / 1024).toFixed(0) + ' KB';
+              html += `<li class="ws-doc-item">
+                <span>${this.escapeHtml(doc.original_filename)}</span>
+                <span>
+                  <span class="ws-doc-size">${sizeStr}</span>
+                  ${this.state.isWorkspaceAdmin ? `<button class="ws-doc-delete" onclick="event.stopPropagation(); ChatApp.deleteWorkspaceDocument('${collectionId}', '${doc.id}', '${this.escapeHtml(doc.original_filename)}')" title="Remove">x</button>` : ''}
+                </span>
+              </li>`;
+            }
+            html += '</ul>';
+          } else {
+            html += '<p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;">No documents yet.</p>';
+          }
+
+          // Actions row
+          html += '<div class="ws-actions-row">';
+          if (data.documents && data.documents.length > 0) {
+            html += `<button class="ws-btn ws-btn-primary" onclick="ChatApp.createWorkspaceAnalysis('${collectionId}')">New Analysis</button>`;
+          }
+          html += `<button class="ws-btn ws-btn-secondary" onclick="ChatApp.state.expandedCollectionId = null; ChatApp.renderWorkspaceDashboard()">Collapse</button>`;
+          if (this.state.isWorkspaceAdmin) {
+            html += `<button class="ws-btn ws-btn-danger" onclick="ChatApp.deleteCollection('${collectionId}')" style="margin-left: auto;">Delete Collection</button>`;
+          }
+          html += '</div>';
+
+          detailEl.innerHTML = html;
+        } catch (e) {
+          detailEl.innerHTML = `<p style="color: #ef4444;">Error loading collection: ${e.message}</p>`;
+        }
+      },
+
+      async handleWorkspaceFileSelect(event, collectionId) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        for (const file of files) {
+          await this.uploadWorkspaceDocument(collectionId, file);
+        }
+        this.loadCollectionDetail(collectionId);
+      },
+
+      async handleWorkspaceFileDrop(event, collectionId) {
+        const files = event.dataTransfer.files;
+        if (!files || files.length === 0) return;
+        for (const file of files) {
+          await this.uploadWorkspaceDocument(collectionId, file);
+        }
+        this.loadCollectionDetail(collectionId);
+      },
+
+      async uploadWorkspaceDocument(collectionId, file) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/collections/${collectionId}/documents`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Upload failed');
+          }
+
+          // Update collection document count in local state
+          const coll = this.state.workspaceCollections.find(c => c.id === collectionId);
+          if (coll) coll.document_count = (coll.document_count || 0) + 1;
+        } catch (e) {
+          alert(`Failed to upload ${file.name}: ${e.message}`);
+        }
+      },
+
+      async deleteWorkspaceDocument(collectionId, documentId, filename) {
+        if (!confirm(`Remove "${filename}" from this collection?`)) return;
+
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/collections/${collectionId}/documents`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ document_id: documentId })
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Delete failed');
+          }
+          const coll = this.state.workspaceCollections.find(c => c.id === collectionId);
+          if (coll) coll.document_count = Math.max(0, (coll.document_count || 1) - 1);
+          this.loadCollectionDetail(collectionId);
+        } catch (e) {
+          alert(e.message);
+        }
+      },
+
+      async deleteCollection(collectionId) {
+        if (!confirm('Delete this collection and all its documents? This cannot be undone.')) return;
+
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/collections/${collectionId}`, {
+            method: 'DELETE'
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Delete failed');
+          }
+          this.state.workspaceCollections = this.state.workspaceCollections.filter(c => c.id !== collectionId);
+          this.state.expandedCollectionId = null;
+          this.renderWorkspaceDashboard();
+        } catch (e) {
+          alert(e.message);
+        }
+      },
+
+      async createWorkspaceAnalysis(collectionId) {
+        const coll = this.state.workspaceCollections.find(c => c.id === collectionId);
+        const title = coll ? `${coll.name} Analysis` : 'Workspace Analysis';
+        const wsId = this.state.activeWorkspaceId;
+        const wsName = this.state.activeWorkspace?.name || 'Workspace';
+
+        try {
+          const res = await fetch(`/api/workspaces/${wsId}/analyses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ collection_id: collectionId, title })
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to create analysis');
+          }
+          const data = await res.json();
+
+          // Hide workspace dashboard
+          const dashboard = document.getElementById('workspace-dashboard');
+          dashboard.style.display = 'none';
+
+          // Set up state for a new (empty) workspace analysis
+          // Don't use loadAnalysis() because there are no phase responses yet
+          this.state.currentAnalysisId = data.id;
+          this.state.currentAnalysisTitle = title;
+          this.state.analysisMode = data.analysis_mode || coll?.analysis_mode || 'cross-plan';
+          this.state.isOwner = true;
+          this.state._loadedWorkspaceId = wsId;
+          this.state._loadedWorkspaceName = wsName;
+          this.state._loadedCollectionId = collectionId;
+          this.state._loadedCollectionName = coll?.name || 'Collection';
+          this.state._isWorkspaceMember = true;
+
+          // Parse file_metadata from the response — load files from R2
+          const analysisRes = await fetch(`/api/history/analyses/${data.id}`);
+          if (analysisRes.ok) {
+            const analysisData = await analysisRes.json();
+            let fileMetadata = analysisData.file_metadata || [];
+            if (typeof fileMetadata === 'string') {
+              try { fileMetadata = JSON.parse(fileMetadata); } catch { fileMetadata = []; }
+            }
+            this.state.uploadedFiles = fileMetadata.map((f, i) => ({
+              ...f,
+              id: 'ws_' + Date.now() + '_' + i,
+              status: f.r2Key ? 'loading' : 'metadata_only',
+              base64Data: null,
+              extractedText: null
+            }));
+          }
+
+          // Hide files section, show collection badge
+          const filesSection = document.getElementById('files-section');
+          if (filesSection) filesSection.style.display = 'none';
+          let wsBadge = document.getElementById('ws-collection-badge');
+          if (!wsBadge) {
+            wsBadge = document.createElement('div');
+            wsBadge.id = 'ws-collection-badge';
+            wsBadge.style.cssText = 'padding: 6px 16px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;';
+            filesSection.parentNode.insertBefore(wsBadge, filesSection);
+          }
+          const fileCount = this.state.uploadedFiles.length;
+          wsBadge.innerHTML = `<span class="history-workspace-badge">${this.escapeHtml(wsName)}</span> <span>${this.escapeHtml(coll?.name || 'Collection')}</span> <span style="margin-left: auto;">${fileCount} document${fileCount !== 1 ? 's' : ''}</span>`;
+          wsBadge.style.display = 'flex';
+
+          // Show the input area with Compare button
+          this.renderInputArea();
+          this.updateSessionNameDisplay();
+          const newBtn = document.getElementById('new-analysis-header-btn');
+          if (newBtn) newBtn.style.display = '';
+
+          // Load files from R2 in background
+          for (const file of this.state.uploadedFiles) {
+            if (file.r2Key) {
+              this.loadFileFromR2(file);
+            }
+          }
+        } catch (e) {
+          alert(e.message);
+        }
+      },
+
+      async renderWorkspaceAnalysesView(container) {
+        await this.loadWorkspaceAnalyses();
+        const analyses = this.state.workspaceAnalyses;
+
+        let html = '';
+        if (analyses.length === 0) {
+          html = '<p style="color: var(--text-secondary); font-size: 14px;">No analyses yet. Create one from a collection.</p>';
+        } else {
+          html = '<div class="ws-analysis-list">';
+          for (const a of analyses) {
+            const date = new Date(a.created_at).toLocaleDateString();
+            html += `<div class="ws-analysis-card" onclick="ChatApp.openWorkspaceAnalysis('${a.id}')">
+              <div class="ws-analysis-title">${this.escapeHtml(a.title || 'Untitled')}</div>
+              <div class="ws-analysis-meta">
+                <span>${a.collection_name || ''}</span>
+                <span>${a.creator_email}</span>
+                <span>${date}</span>
+              </div>
+            </div>`;
+          }
+          html += '</div>';
+        }
+
+        container.innerHTML = html;
+      },
+
+      async openWorkspaceAnalysis(analysisId) {
+        const dashboard = document.getElementById('workspace-dashboard');
+        dashboard.style.display = 'none';
+        await this.loadAnalysis(analysisId);
+      },
+
+      async renderWorkspaceMembersView(container) {
+        await this.loadWorkspaceMembers();
+        const members = this.state.workspaceMembers;
+
+        let html = '';
+
+        // Add member form (admin only)
+        if (this.state.isWorkspaceAdmin) {
+          html += `<div class="ws-add-member-form">
+            <input type="email" id="ws-add-member-email" placeholder="Email address" />
+            <select id="ws-add-member-role">
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="ws-btn ws-btn-primary" onclick="ChatApp.addWorkspaceMember()">Add</button>
+          </div>`;
+        }
+
+        html += '<div class="ws-members-list">';
+        for (const m of members) {
+          html += `<div class="ws-member-row">
+            <span class="ws-member-email">${this.escapeHtml(m.email)}</span>
+            <span class="ws-role-badge ${m.role}">${m.role}</span>
+            ${this.state.isWorkspaceAdmin && m.user_id !== this.state.currentUserEmail ? `
+            <div class="ws-member-actions">
+              <select onchange="ChatApp.changeWorkspaceMemberRole('${m.user_id}', this.value)">
+                <option value="member" ${m.role === 'member' ? 'selected' : ''}>Member</option>
+                <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>
+              <button class="ws-btn ws-btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="ChatApp.removeWorkspaceMember('${m.user_id}', '${this.escapeHtml(m.email)}')">Remove</button>
+            </div>` : ''}
+          </div>`;
+        }
+        html += '</div>';
+
+        container.innerHTML = html;
+      },
+
+      async addWorkspaceMember() {
+        const emailInput = document.getElementById('ws-add-member-email');
+        const roleSelect = document.getElementById('ws-add-member-role');
+        const memberEmail = emailInput?.value?.trim();
+        const role = roleSelect?.value || 'member';
+
+        if (!memberEmail) return alert('Email is required');
+
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/members`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: memberEmail, role })
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to add member');
+          }
+          emailInput.value = '';
+          this.renderWorkspaceMembersView(document.getElementById('ws-dashboard-content'));
+        } catch (e) {
+          alert(e.message);
+        }
+      },
+
+      async changeWorkspaceMemberRole(userId, role) {
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/members`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, role })
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to change role');
+          }
+        } catch (e) {
+          alert(e.message);
+          this.renderWorkspaceMembersView(document.getElementById('ws-dashboard-content'));
+        }
+      },
+
+      async removeWorkspaceMember(userId, memberEmail) {
+        if (!confirm(`Remove ${memberEmail} from this workspace?`)) return;
+
+        try {
+          const res = await fetch(`/api/workspaces/${this.state.activeWorkspaceId}/members`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Failed to remove member');
+          }
+          this.renderWorkspaceMembersView(document.getElementById('ws-dashboard-content'));
+        } catch (e) {
+          alert(e.message);
         }
       },
 
@@ -7049,6 +8132,8 @@ CRITICAL RULES:
         if (this.isInitialState()) {
           const hasFiles = this.state.uploadedFiles.filter(f => f.status === 'uploaded').length > 0;
           const isUploading = this.state.uploadedFiles.some(f => f.status === 'uploading');
+          // For workspace analyses, files start as 'loading' from R2 — treat them as ready
+          const isWorkspaceLoading = this.state._loadedWorkspaceId && this.state.uploadedFiles.some(f => f.status === 'loading');
 
           let helperText, helperClass, buttonDisabled;
 
@@ -7056,7 +8141,11 @@ CRITICAL RULES:
             helperText = 'Waiting for files to finish uploading...';
             helperClass = 'warning';
             buttonDisabled = true;
-          } else if (!hasFiles) {
+          } else if (isWorkspaceLoading) {
+            helperText = 'Loading workspace documents...';
+            helperClass = 'warning';
+            buttonDisabled = true;
+          } else if (!hasFiles && !isWorkspaceLoading) {
             const uploadHints = {
               'cross-plan': 'Upload plan documents above to begin comparison',
               'amendment-tracking': 'Upload plan documents above to begin comparison',
@@ -7109,6 +8198,7 @@ CRITICAL RULES:
                   class="mode-caret-button"
                   ${buttonDisabled ? 'disabled' : ''}
                   title="Select analysis mode"
+                  ${this.state._loadedWorkspaceId ? 'style="display:none"' : ''}
                 >▾</button>
                 <div class="mode-dropdown" id="mode-dropdown">
                   <div class="mode-dropdown-item${currentMode === 'cross-plan' ? ' active' : ''}" data-mode="cross-plan">
@@ -14744,17 +15834,17 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             if (!this.state.summaryResponse) return;
             const lines = this.state.summaryResponse.split('\n');
             data = [['SPD Comparison Summary'], ...lines.map(l => [l])];
-            title = 'SPD Matrix - Summary';
+            title = 'SyncroDoc - Summary';
             break;
           case 'comparison':
             if (!this.state.comparisonResponse) return;
             data = this.getExportData('comparison');
-            title = 'SPD Matrix - Comparison';
+            title = 'SyncroDoc - Comparison';
             break;
           case 'language':
             if (!this.state.languageResponse) return;
             data = this.getExportData('language');
-            title = 'SPD Matrix - Citations';
+            title = 'SyncroDoc - Citations';
             break;
           default: return;
         }
@@ -14938,6 +16028,30 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         if (!this.isProxyMode()) return;
 
         try {
+          // For workspace analyses, the analysis already exists with files in R2.
+          // Just PATCH the phase responses onto the existing record.
+          if (this.state._loadedWorkspaceId && this.state.currentAnalysisId) {
+            const analysisId = this.state.currentAnalysisId;
+            // Save phase responses via PATCH
+            await fetch(`/api/history/analyses/${analysisId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: this.state.currentAnalysisTitle,
+                summary_response: this.state.summaryResponse,
+                comparison_response: this.state.comparisonResponse,
+                language_response: this.state.languageResponse
+              })
+            });
+            this.state.isOwner = true;
+            this.updateShareButtonVisibility();
+            this.updateSessionNameDisplay();
+            // Refresh history list
+            this.loadHistoryList();
+            console.log('Workspace analysis saved:', analysisId);
+            return;
+          }
+
           // Step 1: Create analysis to get ID (with initial metadata)
           const initialMetadata = this.state.uploadedFiles
             .filter(f => f.status === 'uploaded')
@@ -15114,6 +16228,13 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           this.state.analysisMode = data.analysis_mode || 'cross-plan';
           this.state.currentAnalysisTitle = data.title || 'Untitled Analysis';
 
+          // Workspace context
+          this.state._loadedWorkspaceId = data.workspace_id || null;
+          this.state._loadedWorkspaceName = data.workspace_name || null;
+          this.state._loadedCollectionId = data.collection_id || null;
+          this.state._loadedCollectionName = data.collection_name || null;
+          this.state._isWorkspaceMember = data.is_workspace_member || false;
+
           // Parse file_metadata if it's a JSON string (from database)
           let fileMetadata = data.file_metadata || [];
           if (typeof fileMetadata === 'string') {
@@ -15199,6 +16320,12 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           this.renderFilesList();
           this.updateFilesCount();
           console.log(`Loaded ${fileObj.filename} from R2`);
+
+          // For workspace analyses in initial state, re-render input area
+          // so the Compare button enables once files are ready
+          if (this.state._loadedWorkspaceId && this.isInitialState()) {
+            this.renderInputArea();
+          }
 
         } catch (error) {
           console.error(`Error loading ${fileObj.filename} from R2:`, error);
@@ -15287,6 +16414,30 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         const inputContainer = document.querySelector('.input-container');
         if (inputContainer) {
           inputContainer.style.display = 'none';
+        }
+
+        // For workspace analyses, hide the entire files section and show collection badge
+        const filesSection = document.getElementById('files-section');
+        if (this.state._loadedWorkspaceId && filesSection) {
+          filesSection.style.display = 'none';
+          // Show a collection info badge below the header
+          let wsBadge = document.getElementById('ws-collection-badge');
+          if (!wsBadge) {
+            wsBadge = document.createElement('div');
+            wsBadge.id = 'ws-collection-badge';
+            wsBadge.style.cssText = 'padding: 6px 16px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;';
+            filesSection.parentNode.insertBefore(wsBadge, filesSection);
+          }
+          const wsName = this.state._loadedWorkspaceName || 'Workspace';
+          const collName = this.state._loadedCollectionName || 'Collection';
+          const fileCount = this.state.uploadedFiles.length;
+          wsBadge.innerHTML = `<span class="history-workspace-badge">${this.escapeHtml(wsName)}</span> <span>${this.escapeHtml(collName)}</span> <span style="margin-left: auto;">${fileCount} document${fileCount !== 1 ? 's' : ''}</span>`;
+          wsBadge.style.display = 'flex';
+        } else {
+          // Personal analysis: ensure files section visible, remove workspace badge
+          if (filesSection) filesSection.style.display = '';
+          const wsBadge = document.getElementById('ws-collection-badge');
+          if (wsBadge) wsBadge.style.display = 'none';
         }
 
         // Collapse the files panel if expanded
@@ -15556,6 +16707,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
                   <span>${fileCount} file${fileCount !== 1 ? 's' : ''}</span>
                   <span>•</span>
                   <span>${time}</span>
+                  ${item.workspace_name ? `<span class="history-workspace-badge">${this.escapeHtml(item.workspace_name)}</span>` : ''}
                 </div>
               </div>
             `;
@@ -15849,8 +17001,28 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.invoiceCategoryColors = {};
         this.state.invoiceSelectedCategory = null;
 
+        // Reset workspace analysis context
+        this.state._loadedWorkspaceId = null;
+        this.state._loadedWorkspaceName = null;
+        this.state._loadedCollectionId = null;
+        this.state._loadedCollectionName = null;
+        this.state._isWorkspaceMember = false;
+
         // Clear uploaded files
         this.state.uploadedFiles = [];
+
+        // Restore files section visibility and hide workspace badge
+        const filesSection = document.getElementById('files-section');
+        if (filesSection) filesSection.style.display = '';
+        const wsBadge = document.getElementById('ws-collection-badge');
+        if (wsBadge) wsBadge.style.display = 'none';
+
+        // If workspace is active, show dashboard instead of empty state
+        if (this.state.activeWorkspaceId) {
+          const dashboard = document.getElementById('workspace-dashboard');
+          if (dashboard) dashboard.style.display = 'block';
+          this.renderWorkspaceDashboard();
+        }
 
         // Hide output tabs, split view, timeline workspace, and invoice workspace
         const outputTabs = document.getElementById('output-tabs');

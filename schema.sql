@@ -190,3 +190,83 @@ ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS is_compaction BOOLEAN DEFAULT
 ALTER TABLE chat_messages DROP CONSTRAINT IF EXISTS chat_messages_role_check;
 ALTER TABLE chat_messages ADD CONSTRAINT chat_messages_role_check
   CHECK (role IN ('user', 'assistant', 'system'));
+
+-- ============================================
+-- Workspace Feature (added 2026-04-13)
+-- ============================================
+
+-- Workspaces - top-level organizational unit for shared document corpora
+CREATE TABLE IF NOT EXISTS workspaces (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_by UUID NOT NULL REFERENCES users(id),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_workspaces_active ON workspaces(is_active, created_at DESC);
+
+DROP TRIGGER IF EXISTS update_workspaces_updated_at ON workspaces;
+CREATE TRIGGER update_workspaces_updated_at
+    BEFORE UPDATE ON workspaces FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Workspace members - associates users with workspaces + role
+CREATE TABLE IF NOT EXISTS workspace_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL DEFAULT 'member'
+      CHECK (role IN ('admin', 'member')),
+    added_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(workspace_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_wm_user ON workspace_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_wm_workspace ON workspace_members(workspace_id);
+
+-- Workspace collections - named groupings of documents within a workspace
+CREATE TABLE IF NOT EXISTS workspace_collections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    analysis_mode VARCHAR(50) NOT NULL DEFAULT 'cross-plan',
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_wc_workspace ON workspace_collections(workspace_id);
+
+DROP TRIGGER IF EXISTS update_wc_updated_at ON workspace_collections;
+CREATE TRIGGER update_wc_updated_at
+    BEFORE UPDATE ON workspace_collections FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Workspace documents - individual files within a collection
+CREATE TABLE IF NOT EXISTS workspace_documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    collection_id UUID NOT NULL REFERENCES workspace_collections(id) ON DELETE CASCADE,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    filename VARCHAR(500) NOT NULL,
+    original_filename VARCHAR(500) NOT NULL,
+    size BIGINT NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    r2_key VARCHAR(1000) NOT NULL,
+    r2_etag VARCHAR(100),
+    uploaded_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_wd_collection ON workspace_documents(collection_id);
+CREATE INDEX IF NOT EXISTS idx_wd_workspace ON workspace_documents(workspace_id);
+
+-- Link analyses to workspaces (NULL for personal analyses)
+ALTER TABLE analyses ADD COLUMN IF NOT EXISTS workspace_id UUID REFERENCES workspaces(id) ON DELETE SET NULL;
+ALTER TABLE analyses ADD COLUMN IF NOT EXISTS collection_id UUID REFERENCES workspace_collections(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_analyses_workspace ON analyses(workspace_id) WHERE workspace_id IS NOT NULL;

@@ -1,8 +1,8 @@
-# SPD MATRIX
+# SyncroDoc
 
-![SPD MATRIX Interface](screenshot.png)
+![SyncroDoc Interface](screenshot.png)
 
-**SPD MATRIX** is a browser-based tool for comparing pension plan documents across multiple plan units. Built for post-merger standardization, it uses Google Gemini's 1M-token context window to analyze complete SPDs side-by-side, producing executive summaries, comparison matrices, and detailed language extractions with exact page citations—work that would cost thousands at a law firm, completed in minutes for a few dollars.
+**SyncroDoc** (formerly SPD MATRIX) is a browser-based tool for comparing pension plan documents across multiple plan units. Built for post-merger standardization, it uses Google Gemini's 1M-token context window to analyze complete SPDs side-by-side, producing executive summaries, comparison matrices, and detailed language extractions with exact page citations—work that would cost thousands at a law firm, completed in minutes for a few dollars.
 
 **Key Features:**
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
@@ -355,6 +355,21 @@ gitGraph TB:
 - Also moved chat message saving out of the owner-only PATCH block so non-owners on shared sessions can persist their chat conversations
 - Added response status logging to `saveChatMessages()` so future save failures surface in the browser console instead of failing silently
 
+**April 13, 2026 — Workspaces (shared document corpora)**
+- New top-level organizational unit: a **workspace** groups a named corpus of documents plus the members who can access it
+- Schema: `workspaces`, `workspace_members` (role: `admin` or `member`), `workspace_collections` (named groupings per workspace, analysis-mode-aware), `workspace_documents` (files per collection); `analyses.workspace_id` and `analyses.collection_id` link saved analyses to workspace context
+- New endpoints: `GET /api/workspaces`, `GET|PATCH|DELETE /api/workspaces/:id`, `GET /api/workspaces/:id/members`, `GET /api/workspaces/:id/analyses`, `GET|POST /api/workspaces/:id/collections`, `GET|PATCH|DELETE /api/workspaces/:id/collections/:collectionId`, `GET|POST /api/workspaces/:id/collections/:collectionId/documents`, admin-only `POST|PATCH|DELETE /api/admin/workspaces/:id`
+- New frontend: workspace switcher in header, workspace dashboard (members + analyses + collections), admin workspace creation/management; existing history endpoint extended to LEFT JOIN workspaces and surface `workspace_name` on owned analyses
+- Shared access: `checkAnalysisAccess()` now returns workspace-member access alongside owner/shared-with paths; `_db.js` gains `checkWorkspaceMembership()`, `requireWorkspaceAdmin()`, `requireWorkspaceMember()` helpers
+- Saved analyses are still personal by default (`workspace_id IS NULL`); only personal analyses are subject to the 20-analysis cap, workspace-scoped analyses are exempt
+
+**April 16, 2026 — Comparison header bloat, SyncroDoc rebrand, workspace-migration recovery**
+- **Phase 2 prompt fix:** Large bundles produced `<thead>` cells stuffed with full filenames that wrapped to many lines and consumed the viewport. Added explicit `COLUMN HEADER RULES` to `PROMPT_TEMPLATES.phase2` requiring short single-line headers (1–3 words), disallowing full filenames in headers, and requiring each distinct uploaded document (including different versions of the same plan, e.g. v1 vs v2) to get its own column — no merging
+- **Phase 3 prompt fix:** The Citations tab was diverging from the Comparison tab (different columns, long filenames as headers) because Phase 3 regenerated independently and interpreted "citations MUST use EXACT filenames" as applying to column headers. Added `TABLE STRUCTURE (critical for consistency)` block forcing Phase 3 to mirror Phase 2's columns, row labels, row order, and short headers exactly; scoped the exact-filename rule explicitly to citation parentheticals inside cells
+- **UI rebrand:** Renamed 5 user-visible strings from "SPD MATRIX" to "SyncroDoc" (`<title>`, app header, 3 Google Sheets export titles). Repo identifiers (Pages project name `spd-matrix`, Railway DBs, R2 buckets, `package.json`) intentionally left alone to avoid breaking the deploy pipeline
+- **Workspace-migration recovery (incident):** The April 13 workspace schema (lines 195–272 of `schema.sql`) was merged and deployed but never applied to either Railway database. Every instance had been silently returning 500 on `GET /api/history/analyses` because the endpoint's `LEFT JOIN workspaces w ON a.workspace_id = w.id` referenced a table and column that didn't exist; the frontend fell back to "No saved analyses yet". Applied the idempotent workspace block (wrapped in `BEGIN;…COMMIT;`) to both DBs: recovered 2 analyses on `demo`, and 59 analyses across ~10 users on production — including 8 for `lbough@westernpensionfund.org`, 4 for `msmith@westernpensionfund.org`, and 20 for `clayton@foray-consulting.com` (the admin account had hit the 20-cap). Oldest unreachable analysis had been stuck for ~3 days
+- **Root-cause documentation:** The silent-breakage pattern ("history empty / notes disappear" → check for schema drift before auth) is now captured in internal `CLAUDE.md`, including a Railway service ↔ instance mapping so future migrations can be fan-out applied correctly
+
 **April 11, 2026 — Security Hardening & Test Scaffolding**
 - **SRI hashes on all CDN scripts:** Added `integrity` and `crossorigin` attributes to all 10 CDN-loaded resources in `index.html` and `viewer.html`, preventing supply-chain attacks via compromised CDNs
 - **CDN version pinning:** Pinned `marked` to `@15.0.12` and `prismjs` to `@1.30.0` (previously unpinned `@latest`)
@@ -368,23 +383,27 @@ gitGraph TB:
 
 This project uses Railway PostgreSQL with no automated migration system. Schema changes must be applied manually when deploying code that references new columns or constraints.
 
-**Current schema** (all migrations applied through March 23, 2026):
+**Current schema** (all migrations applied through April 16, 2026):
 
 | Table | Column | Type | Added In |
 |-------|--------|------|----------|
 | `analyses` | `analysis_mode` | `VARCHAR(30) DEFAULT 'cross-plan'` | Analysis Mode Selector (Mar 5) |
 | `analyses` | `table_view_state` | `JSONB` | Interactive Table Controls (Feb 5) |
 | `analyses` | `draft_state` | `JSONB` | Draft Workspace (Feb 5) |
+| `analyses` | `workspace_id` | `UUID REFERENCES workspaces(id) ON DELETE SET NULL` | Workspaces (Apr 13) |
+| `analyses` | `collection_id` | `UUID REFERENCES workspace_collections(id) ON DELETE SET NULL` | Workspaces (Apr 13) |
 | `chat_messages` | `is_compaction` | `BOOLEAN DEFAULT false` | Multi-Turn Chat (Mar 19) |
 | `notes` | `author_id` | `UUID REFERENCES users(id)` | Session Sharing (Dec 22) |
 | `notes` | `parent_note_id` | `UUID REFERENCES notes(id)` | Session Sharing (Dec 22) |
 | `notes` | `note_type` | `VARCHAR(20) DEFAULT 'observational'` | Draft Workspace (Feb 5) |
 | `users` | `is_admin` | `BOOLEAN DEFAULT false` | Vertex AI Support (Mar 18) |
 
+**New tables (April 13, 2026):** `workspaces`, `workspace_members`, `workspace_collections`, `workspace_documents` — see `schema.sql` for full definitions.
+
 **Constraint updates:**
 - `chat_messages_role_check`: must include `'user'`, `'assistant'`, `'system'`
 
-When adding new columns in code, always apply the migration to the Railway database before or at the time of deployment.
+**Multi-tenant fan-out:** Each deployed instance has its own Railway Postgres. Every schema change must be applied to every instance's database manually before (or alongside) the code referencing it. Missing this step causes silent 500s on all affected endpoints, which surface in the UI as empty panels ("No saved analyses yet", missing notes, etc.) — the data is still in the DB, just unreachable. See `INSTANCE-DEPLOY.md` for the per-instance deploy workflow.
 
 ## License
 
