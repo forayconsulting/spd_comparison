@@ -7255,7 +7255,7 @@ COMPARISON PROCEDURE:
 
 TERMINOLOGY EQUIVALENCE — do NOT flag these as mismatches:
 - "Not Covered" = "Excluded" = "Benefit Not Available"
-- "N/A" = "Not Applicable" (especially in OON columns for EPO/PAR-Only plans)
+- "N/A" = "Not Applicable" (especially in OON columns for EPO/PAR-Only plans). However, a BLANK or EMPTY cell is NOT equivalent to "N/A" — blank cells are errors that must be flagged as Blank-OON.
 - Percentage formatting: "80%" = "80 %" = "80.00%"
 - Dollar formatting: "$35" = "$35.00"
 - "Covered" with any coinsurance percentage = covered (do not flag formatting differences)
@@ -7271,9 +7271,16 @@ STATUS CLASSIFICATION RULES:
 CRITICAL INSTRUCTIONS:
 - Report ALL lines including matches. Do NOT skip, summarize, or condense matching lines. Every benefit line from the FOB must appear in the output table.
 - Do NOT reorder benefit lines. Maintain the order they appear in the FOB document.
-- For EPO/PAR-Only plans: every OON cell in the Aggregate should explicitly say "Not Applicable". Blank OON cells are errors (Status: Blank-OON).
 - Include Plan Information fields (plan name, account prefix, dates, etc.) and Financial parameters (deductibles, coinsurance, OOP maximums) — not just benefit lines.
 - Include Exclusions section: verify each exclusion confirmation matches between FOB and Aggregate.
+
+EPO/PAR-ONLY OON AUDIT (MANDATORY when the template variant is EPO or PAR-Only):
+After completing the INN comparison above, perform a SECOND PASS on every benefit line's OON column in the Aggregate:
+1. Read the Aggregate's OON cell for each benefit line.
+2. If the OON cell is blank or empty (no text at all — not "Not Applicable", not "N/A", literally empty), create a row with Status: Blank-OON. Use the benefit name with "OON" in the Setting column.
+3. If the OON cell says "Not Applicable" or "N/A", that is CORRECT for an EPO plan — mark as Match (no separate row needed).
+4. IMPORTANT: An empty/blank cell is NOT the same as "N/A" or "Not Applicable". Blank means the value was not populated and must be corrected.
+5. A typical EPO V1 Aggregate will have dozens to hundreds of blank OON cells. This is a known, common error pattern. Do NOT skip this check.
 
 Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`,
         phase3: `\n\nIMPORTANT CONTEXT: This is a FOB Audit. For every row with Status of Mismatch, Uncertain, Missing, or Blank-OON in the comparison table above, extract the EXACT source text from both documents with precise cell-level citations.
@@ -9563,6 +9570,7 @@ CRITICAL RULES:
         // Show output tabs immediately with streaming content (no loading spinner)
         document.getElementById('messages').style.display = 'none';
         document.getElementById('output-tabs').classList.add('active');
+        if (this.state.analysisMode === 'fob-audit') this.applyFobTabLabels();
         this.showPhaseProgress(1, 'Reading document contents');
 
         try {
@@ -9600,8 +9608,13 @@ CRITICAL RULES:
           this.state.currentResponse = '';
           this.state.currentThinking = '';
 
-          const prompt2 = PROMPT_TEMPLATES.phase2(this.state.summaryResponse, fileList, analysisMode);
-          this.state.comparisonResponse = await this.streamResponse(prompt2, true); // true = upload files fresh
+          let phase2Summary = this.state.summaryResponse;
+          if (analysisMode === 'fob-audit' && this.state.fobOntology) {
+            phase2Summary += `\n\nFOB ONTOLOGY (from Phase 1): Template variant: ${this.state.fobOntology.template_variant}. FOB columns: ${JSON.stringify(this.state.fobOntology.fob_columns)}. Aggregate columns: ${JSON.stringify(this.state.fobOntology.aggregate_columns)}.`;
+          }
+          const prompt2 = PROMPT_TEMPLATES.phase2(phase2Summary, fileList, analysisMode);
+          const phase2Opts = (analysisMode === 'fob-audit') ? { maxOutputTokens: 65536 } : {};
+          this.state.comparisonResponse = await this.streamResponse(prompt2, true, phase2Opts);
 
           // Phase 2 complete - parse into interactive table and show download button
           this.state.comparisonTableData = this.parseTableData(this.state.comparisonResponse);
@@ -9623,6 +9636,11 @@ CRITICAL RULES:
           this.state.languageTableData = this.parseTableData(this.state.languageResponse);
           this.renderInteractiveTable('language');
           document.getElementById('export-language-btn').style.display = 'inline-flex';
+
+          // FOB Audit: merge Phase 3 citations into the Differences table
+          if (this.state.analysisMode === 'fob-audit') {
+            this.mergeFobCitationsIntoComparison();
+          }
 
           // Complete - hide progress indicator and enable chat
           this.finalizeThreePhaseComparison();
@@ -9938,7 +9956,11 @@ CRITICAL RULES:
         }
 
         if (outputDiv) {
-          let html = marked.parse(this.state.currentResponse);
+          let responseText = this.state.currentResponse;
+          if (this.state.isComparisonRequest && this.state.currentPhase === 1 && this.state.analysisMode === 'fob-audit') {
+            responseText = responseText.replace(/```json\s*[\s\S]*?```/g, '').trim();
+          }
+          let html = marked.parse(responseText);
           // Apply citation highlighting for language/citations tab (phase 3)
           if (this.state.isComparisonRequest && this.state.currentPhase === 3) {
             html = this.highlightCitations(html);
@@ -10158,9 +10180,11 @@ CRITICAL RULES:
 
       renderSummaryTab() {
         const output = document.getElementById('summary-output');
-        // Render the summary response as markdown
-        output.innerHTML = marked.parse(this.state.summaryResponse || '');
-        // Apply note highlights after rendering
+        let source = this.state.summaryResponse || '';
+        if (this.state.analysisMode === 'fob-audit' || this.state.analysisMode === 'minutes-analysis') {
+          source = source.replace(/```json\s*[\s\S]*?```/g, '').trim();
+        }
+        output.innerHTML = marked.parse(source);
         this.applyNoteHighlights('summary');
       },
 
@@ -11060,6 +11084,9 @@ CRITICAL RULES:
             break;
         }
 
+        if (resultType === 'summary' && (this.state.analysisMode === 'fob-audit' || this.state.analysisMode === 'minutes-analysis')) {
+          markdown = (markdown || '').replace(/```json\s*[\s\S]*?```/g, '').trim();
+        }
         let html = marked.parse(markdown || '');
         // Apply citation highlighting for language/citations panel
         if (resultType === 'language') {
@@ -12560,9 +12587,40 @@ ${conversationText}`;
         const compBtn = document.querySelector('.tab-button[data-tab="comparison"]');
         if (compBtn) compBtn.textContent = 'Differences';
         const langBtn = document.querySelector('.tab-button[data-tab="language"]');
-        if (langBtn) langBtn.textContent = 'Citations';
+        if (langBtn) langBtn.style.display = 'none';
         const draftBtn = document.querySelector('.tab-button[data-tab="draft"]');
         if (draftBtn) draftBtn.textContent = 'Corrections';
+      },
+
+      mergeFobCitationsIntoComparison() {
+        if (!this.state.comparisonTableData || !this.state.languageTableData) return;
+        const compData = this.state.comparisonTableData;
+        const langData = this.state.languageTableData;
+        if (compData._citationsMerged) return;
+
+        const langHeaders = langData.headers;
+        const statusColIdx = compData.headers.findIndex(h => h.toLowerCase().includes('status'));
+
+        // Find the last column in Phase 3 that contains citation/correction data
+        // Phase 3 output has same columns as Phase 2 but the Details column contains FOB Source, Aggregate Source, and Suggested Correction
+        const langDetailsIdx = langHeaders.findIndex(h => h.toLowerCase().includes('details'));
+
+        // Add source reference columns
+        compData.headers.push('Source References');
+
+        for (let i = 0; i < compData.rows.length; i++) {
+          const langRow = langData.rows[i];
+          const status = (compData.rows[i].cells[statusColIdx] || '').trim().toLowerCase();
+          if (status === 'match' || !langRow) {
+            compData.rows[i].cells.push('');
+          } else {
+            const langDetails = langRow.cells[langDetailsIdx] || '';
+            compData.rows[i].cells.push(langDetails);
+          }
+        }
+
+        compData._citationsMerged = true;
+        this.renderInteractiveTable('comparison');
       },
 
       toggleFobMatches() {
@@ -17953,13 +18011,14 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           this.state._savedDraftState = null;
         }
 
-        // FOB Audit: apply tab labels and parse ontology on restore
+        // FOB Audit: apply tab labels, parse ontology, merge citations on restore
         if (this.state.analysisMode === 'fob-audit') {
-          this.applyFobTabLabels();
+          requestAnimationFrame(() => this.applyFobTabLabels());
           if (this.state.summaryResponse && !this.state.fobOntology) {
             const ontology = parseTimelineJSON(this.state.summaryResponse);
             if (ontology) this.state.fobOntology = ontology;
           }
+          this.mergeFobCitationsIntoComparison();
         }
 
         // Show split view (chat sidebar)
