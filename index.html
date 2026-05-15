@@ -7226,7 +7226,7 @@ PART 2: Immediately after the overview, output a fenced JSON block:
         phase2: `\n\nIMPORTANT CONTEXT: This is a FOB Audit comparison. The documents are an Anthem FOB template (what the TPA submitted to Anthem) and an Aggregate document (what Anthem returned after processing). You must compare EVERY benefit line, financial parameter, and plan info field between the two documents.
 
 REQUIRED TABLE COLUMNS — use exactly these column headers:
-| Section | Benefit / Field | Setting | FOB Standard | FOB Deviation | Expected Value | Aggregate Value | Status | Details |
+| Section | Benefit / Field | Setting | FOB Standard | FOB Deviation | Expected Value | Aggregate Value | Status | Details | FOB Ref | Agg Ref |
 
 COLUMN DEFINITIONS:
 - **Section**: One of: Plan Info, Eligibility, Network, Financial, Benefits, Exclusions
@@ -7238,6 +7238,8 @@ COLUMN DEFINITIONS:
 - **Aggregate Value**: The actual value Anthem placed in the Aggregate document for this field.
 - **Status**: One of: Match, Mismatch, Uncertain, Missing, Blank-OON
 - **Details**: For Mismatch: describe what differs. For Uncertain: explain why. For Missing: which document is missing the entry. For Blank-OON: note that EPO OON cells should explicitly say "Not Applicable". For Match: leave blank.
+- **FOB Ref**: The cell reference in the FOB document for the compared value, e.g., "R182 C-D" or "R182 C-J" (for deviations). Use R for row and C- for column letter.
+- **Agg Ref**: The cell reference in the Aggregate document, e.g., "R165 C-D". Leave blank for Missing rows that don't exist in the Aggregate.
 
 COMPARISON PROCEDURE:
 1. For each benefit line in the FOB, read the standard value from the locked benefit columns (INN and OON).
@@ -7283,20 +7285,7 @@ After completing the INN comparison above, perform a SECOND PASS on every benefi
 5. A typical EPO V1 Aggregate will have dozens to hundreds of blank OON cells. This is a known, common error pattern. Do NOT skip this check.
 
 Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`,
-        phase3: `\n\nIMPORTANT CONTEXT: This is a FOB Audit. For every row with Status of Mismatch, Uncertain, Missing, or Blank-OON in the comparison table above, extract the EXACT source text from both documents with precise cell-level citations.
-
-Maintain the EXACT SAME row structure and order as the comparison table above. For Match rows, include only the benefit name with "Match confirmed" — no full language extraction needed for matches.
-
-For each non-match row, provide these additional details:
-- **FOB Source**: The exact quoted text from the FOB cell. Citation format: (filename.xlsx, Sheet: "Benefit Template", Row N, Col X)
-- **Aggregate Source**: The exact quoted text from the Aggregate cell. Citation format: (filename.xlsx, Sheet: "Table 1", Row N, Col X) or (filename.pdf, page N)
-- **Suggested Correction**: Draft the correction text for Column L of the Aggregate, matching the TPA's standard feedback format: "FOB states [expected value]. Aggregate shows [actual value]. Please correct to [expected value]."
-
-CITATION FORMAT:
-- For Excel files: (filename.xlsx, Sheet: "Sheet Name", Row N, Col X)
-- For PDF files: (filename.pdf, page N)
-
-Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`
+        phase3: '' // FOB audit uses 2 phases only — citations are inline in Phase 2 via FOB Ref / Agg Ref columns
       }
     };
 
@@ -9621,29 +9610,27 @@ CRITICAL RULES:
           this.renderInteractiveTable('comparison');
           document.getElementById('export-comparison-btn').style.display = 'inline-flex';
 
-          // PHASE 3: Language Comparison - tab switches when first chunk arrives
-          this.state.currentPhase = 3;
-          this.state.hasActivatedPhaseTab = false;
-          this.updatePhaseProgress(3, 'Extracting exact language');
-          this.startProgressRotation(3);
-          this.state.currentResponse = '';
-          this.state.currentThinking = '';
-
-          const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse, fileList, analysisMode);
-          this.state.languageResponse = await this.streamResponse(prompt3, true); // true = upload files fresh
-
-          // Phase 3 complete - parse into interactive table and show download button
-          this.state.languageTableData = this.parseTableData(this.state.languageResponse);
-          this.renderInteractiveTable('language');
-          document.getElementById('export-language-btn').style.display = 'inline-flex';
-
-          // FOB Audit: merge Phase 3 citations into the Differences table
+          // FOB Audit: skip Phase 3 — citations are inline in Phase 2
           if (this.state.analysisMode === 'fob-audit') {
-            this.mergeFobCitationsIntoComparison();
-          }
+            this.finalizeThreePhaseComparison();
+          } else {
+            // PHASE 3: Language Comparison - tab switches when first chunk arrives
+            this.state.currentPhase = 3;
+            this.state.hasActivatedPhaseTab = false;
+            this.updatePhaseProgress(3, 'Extracting exact language');
+            this.startProgressRotation(3);
+            this.state.currentResponse = '';
+            this.state.currentThinking = '';
 
-          // Complete - hide progress indicator and enable chat
-          this.finalizeThreePhaseComparison();
+            const prompt3 = PROMPT_TEMPLATES.phase3(this.state.summaryResponse, this.state.comparisonResponse, fileList, analysisMode);
+            this.state.languageResponse = await this.streamResponse(prompt3, true);
+
+            this.state.languageTableData = this.parseTableData(this.state.languageResponse);
+            this.renderInteractiveTable('language');
+            document.getElementById('export-language-btn').style.display = 'inline-flex';
+
+            this.finalizeThreePhaseComparison();
+          }
 
         } catch (error) {
           this.handleError(error);
@@ -12592,36 +12579,7 @@ ${conversationText}`;
         if (draftBtn) draftBtn.textContent = 'Corrections';
       },
 
-      mergeFobCitationsIntoComparison() {
-        if (!this.state.comparisonTableData || !this.state.languageTableData) return;
-        const compData = this.state.comparisonTableData;
-        const langData = this.state.languageTableData;
-        if (compData._citationsMerged) return;
-
-        const langHeaders = langData.headers;
-        const statusColIdx = compData.headers.findIndex(h => h.toLowerCase().includes('status'));
-
-        // Find the last column in Phase 3 that contains citation/correction data
-        // Phase 3 output has same columns as Phase 2 but the Details column contains FOB Source, Aggregate Source, and Suggested Correction
-        const langDetailsIdx = langHeaders.findIndex(h => h.toLowerCase().includes('details'));
-
-        // Add source reference columns
-        compData.headers.push('Source References');
-
-        for (let i = 0; i < compData.rows.length; i++) {
-          const langRow = langData.rows[i];
-          const status = (compData.rows[i].cells[statusColIdx] || '').trim().toLowerCase();
-          if (status === 'match' || !langRow) {
-            compData.rows[i].cells.push('');
-          } else {
-            const langDetails = langRow.cells[langDetailsIdx] || '';
-            compData.rows[i].cells.push(langDetails);
-          }
-        }
-
-        compData._citationsMerged = true;
-        this.renderInteractiveTable('comparison');
-      },
+      // mergeFobCitationsIntoComparison removed — citations now inline in Phase 2 via FOB Ref / Agg Ref columns
 
       toggleFobMatches() {
         this.state.fobMatchesHidden = !this.state.fobMatchesHidden;
@@ -12768,7 +12726,7 @@ ${this.getTableRowReference()}`;
           }).length;
           html += `<div style="text-align:center;padding:40px 20px;">
             <p style="font-size:15px;margin-bottom:8px;">${confirmedCount} corrections ready for export</p>
-            <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Download an Excel file with a Corrections Summary sheet and a Full Audit sheet.</p>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Download an annotated copy of the Aggregate with corrections pre-populated in Column L, plus a Corrections Summary sheet.</p>
             <button class="compare-button" onclick="ChatApp.exportFobCorrections()" style="display:inline-block;width:auto;padding:10px 28px;">Export Corrections XLSX</button>
           </div>`;
         }
@@ -12803,6 +12761,7 @@ ${this.getTableRowReference()}`;
         const expectedColIdx = headers.findIndex(h => h.toLowerCase().includes('expected'));
         const aggColIdx = headers.findIndex(h => h.toLowerCase().includes('aggregate'));
         const settingColIdx = headers.findIndex(h => h.toLowerCase().includes('setting'));
+        const aggRefColIdx = headers.findIndex(h => h.toLowerCase().includes('agg ref'));
 
         const confirmed = tableData.rows.filter(r => {
           const status = (r.cells[statusColIdx] || '').trim().toLowerCase();
@@ -12811,37 +12770,78 @@ ${this.getTableRowReference()}`;
             : (status === 'mismatch' || status === 'missing' || status === 'blank-oon');
         });
 
+        // Try to annotate the original Aggregate file
+        const aggFilename = this.state.fobOntology?.aggregate_file;
+        const corrCol = this.state.fobOntology?.aggregate_columns?.corrections || 'L';
+        const corrColIdx = corrCol.charCodeAt(0) - 65; // L = 11
+        const aggFile = this.state.uploadedFiles.find(f =>
+          (aggFilename && f.filename === aggFilename) || f.filename.toLowerCase().includes('aggregate')
+        );
+
+        let wb;
+        let annotatedOriginal = false;
+
+        if (aggFile && aggFile.base64Data && aggFile.mimeType?.includes('sheet')) {
+          try {
+            wb = XLSX.read(aggFile.base64Data, { type: 'base64' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+
+            for (const row of confirmed) {
+              const aggRef = row.cells[aggRefColIdx] || '';
+              const rowMatch = aggRef.match(/R(\d+)/i);
+              if (rowMatch) {
+                const rowNum = parseInt(rowMatch[1]);
+                const cellRef = corrCol + rowNum;
+                const correction = this.state.fobCorrectionTexts[row.id]
+                  || `Expected: ${row.cells[expectedColIdx] || ''}. Found: ${row.cells[aggColIdx] || ''}.`;
+                ws[cellRef] = { t: 's', v: correction };
+              }
+            }
+
+            // Extend sheet range to include corrections column
+            const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+            range.e.c = Math.max(range.e.c, corrColIdx);
+            ws['!ref'] = XLSX.utils.encode_range(range);
+            annotatedOriginal = true;
+          } catch (e) {
+            console.warn('Failed to annotate original Aggregate, falling back to summary export:', e);
+            wb = null;
+          }
+        }
+
+        if (!wb) {
+          wb = XLSX.utils.book_new();
+        }
+
+        // Add Corrections Summary as an additional sheet
         const summaryData = [
           ['FOB Audit Corrections Summary'],
           ['Generated by SyncroDoc', new Date().toLocaleDateString()],
           ['DISCLAIMER: This document was generated by AI and requires human review before submission to Anthem.'],
           [],
-          ['Section', 'Benefit / Field', 'Setting', 'Expected Value', 'Aggregate Value', 'Correction', 'Status']
+          ['Section', 'Benefit / Field', 'Setting', 'Expected Value', 'Aggregate Value', 'Agg Row', 'Correction', 'Status']
         ];
         for (const row of confirmed) {
+          const aggRef = row.cells[aggRefColIdx] || '';
           summaryData.push([
             row.cells[sectionColIdx] || '',
             row.cells[benefitColIdx] || '',
             row.cells[settingColIdx] || '',
             row.cells[expectedColIdx] || '',
             row.cells[aggColIdx] || '',
+            aggRef,
             this.state.fobCorrectionTexts[row.id] || '',
             row.cells[statusColIdx] || ''
           ]);
         }
+        const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'Corrections Summary');
 
-        const fullData = [headers];
-        tableData.rows.forEach(r => fullData.push(r.cells));
-
-        const wb = XLSX.utils.book_new();
-        const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
-        XLSX.utils.book_append_sheet(wb, ws1, 'Corrections Summary');
-        const ws2 = XLSX.utils.aoa_to_sheet(fullData);
-        XLSX.utils.book_append_sheet(wb, ws2, 'Full Audit');
-
-        const fobName = this.state.fobOntology?.fob_file || 'FOB';
-        const cleanName = fobName.replace(/\.xlsx$/i, '').substring(0, 40);
-        XLSX.writeFile(wb, `FOB-Audit-Corrections-${cleanName}.xlsx`);
+        const aggName = (aggFilename || 'Aggregate').replace(/\.xlsx$/i, '').substring(0, 35);
+        const filename = annotatedOriginal
+          ? `Annotated-${aggName}.xlsx`
+          : `FOB-Corrections-Summary.xlsx`;
+        XLSX.writeFile(wb, filename);
       },
 
       // ===== Draft Workspace Methods =====
@@ -18018,7 +18018,6 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             const ontology = parseTimelineJSON(this.state.summaryResponse);
             if (ontology) this.state.fobOntology = ontology;
           }
-          this.mergeFobCitationsIntoComparison();
         }
 
         // Show split view (chat sidebar)
