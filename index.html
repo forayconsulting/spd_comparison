@@ -2773,6 +2773,402 @@
       border-radius: 50%;
     }
 
+    /* Workspace Admin Modal */
+    .ws-admin-modal {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      max-width: 640px;
+      width: 100%;
+      box-shadow: var(--shadow-xl);
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .ws-admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .ws-admin-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .ws-admin-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .ws-admin-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .ws-admin-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .ws-admin-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .ws-admin-item:last-child { border-bottom: none; }
+    .ws-admin-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .ws-admin-item-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .ws-admin-item-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .ws-admin-item-stats {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+    .ws-admin-item-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .ws-admin-item-btn {
+      padding: 4px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .ws-admin-item-btn:hover { background: var(--bg-tertiary); }
+    .ws-admin-item-btn.danger { color: #e57373; border-color: rgba(244, 67, 54, 0.3); }
+    .ws-admin-item-btn.danger:hover { background: rgba(244, 67, 54, 0.1); }
+    .ws-admin-item-btn.success { color: #81c784; border-color: rgba(76, 175, 80, 0.3); }
+    .ws-admin-item-btn.success:hover { background: rgba(76, 175, 80, 0.1); }
+    .ws-admin-status-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+    .ws-admin-status-badge.active { background: rgba(76, 175, 80, 0.15); color: #81c784; }
+    .ws-admin-status-badge.inactive { background: rgba(244, 67, 54, 0.15); color: #e57373; }
+    .ws-admin-create-form {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ws-admin-create-form label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+      display: block;
+    }
+    .ws-admin-create-form input,
+    .ws-admin-create-form textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .ws-admin-create-form input:focus,
+    .ws-admin-create-form textarea:focus {
+      outline: none;
+      border-color: var(--text-secondary);
+    }
+    .ws-admin-create-btn {
+      background: white;
+      color: black;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+    .ws-admin-create-btn:hover { background: #e0e0e0; }
+    .ws-admin-form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .ws-admin-edit-form {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ws-admin-edit-form input,
+    .ws-admin-edit-form textarea {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .ws-admin-edit-form input:focus,
+    .ws-admin-edit-form textarea:focus {
+      outline: none;
+      border-color: var(--text-secondary);
+    }
+    .manage-workspaces-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 13px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .manage-workspaces-btn:hover { background: var(--bg-tertiary); }
+    .ws-admin-status-msg {
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+    .ws-admin-status-msg.error { background: rgba(244, 67, 54, 0.15); color: #e57373; }
+    .ws-admin-status-msg.success { background: rgba(76, 175, 80, 0.15); color: #81c784; }
+
+    /* Workspace Collection Picker (in Plan Docs area) */
+    .ws-picker {
+      padding: 12px 0 4px 0;
+    }
+    .ws-picker-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ws-picker-divider::before,
+    .ws-picker-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+    .ws-picker-workspace {
+      margin-bottom: 4px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .ws-picker-workspace-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      transition: background 0.15s;
+    }
+    .ws-picker-workspace-header:hover {
+      background: var(--bg-tertiary);
+    }
+    .ws-picker-workspace-header .chevron {
+      transition: transform 0.2s;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .ws-picker-workspace-header .chevron.expanded {
+      transform: rotate(90deg);
+    }
+    .ws-picker-workspace-header .ws-picker-count {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+    .ws-picker-manage-btn {
+      padding: 4px 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-left: 6px;
+      flex-shrink: 0;
+    }
+    .ws-picker-manage-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+    .ws-dashboard-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-right: 16px;
+    }
+    .ws-dashboard-back-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    .ws-picker-collections {
+      border-top: 1px solid var(--border-color);
+    }
+    .ws-picker-collection {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px 10px 28px;
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.15s;
+    }
+    .ws-picker-collection:last-child {
+      border-bottom: none;
+    }
+    .ws-picker-collection:hover {
+      background: var(--bg-secondary);
+    }
+    .ws-picker-collection-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .ws-picker-collection-name {
+      font-size: 13px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ws-picker-collection-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .ws-picker-mode-badge {
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      background: rgba(107, 114, 128, 0.15);
+      color: #9ca3af;
+    }
+    .ws-picker-use-btn {
+      padding: 5px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .ws-picker-use-btn:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--text-secondary);
+    }
+    .ws-picker-empty {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+    .ws-picker-loading {
+      padding: 10px 28px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* History Workspace Groups */
+    .history-ws-group {
+      margin-bottom: 4px;
+    }
+    .history-ws-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .history-ws-header:hover {
+      background: var(--bg-secondary);
+    }
+    .history-ws-header .chevron {
+      font-size: 10px;
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+    .history-ws-header .chevron.expanded {
+      transform: rotate(90deg);
+    }
+    .history-ws-count {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      padding: 1px 7px;
+      border-radius: 10px;
+    }
+    .history-ws-items {
+      overflow: hidden;
+      padding-left: 8px;
+    }
+
     /* Loading Indicator for Comparison (in messages area) */
     .comparison-loading-container {
       display: flex;
@@ -5279,6 +5675,93 @@
       justify-content: flex-end;
     }
 
+    /* FOB Audit: row status colors */
+    .fob-match td { background: rgba(40, 167, 69, 0.08); color: #999; }
+    .fob-mismatch td { background: rgba(220, 53, 69, 0.15); }
+    .fob-uncertain td { background: rgba(255, 193, 7, 0.12); }
+    .fob-missing td { background: rgba(255, 152, 0, 0.15); }
+    .fob-blank-oon td { background: rgba(255, 152, 0, 0.10); }
+    .fob-hidden { display: none; }
+
+    .fob-stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .fob-stat { color: var(--text-muted); }
+    .fob-stat-match { color: #28a745; }
+    .fob-stat-mismatch { color: #dc3545; font-weight: 600; }
+    .fob-stat-uncertain { color: #d4a017; }
+    .fob-stat-missing { color: #ff9800; }
+    .fob-stat-blank { color: #ff9800; }
+    .fob-toggle-matches {
+      margin-left: auto;
+      padding: 3px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .fob-toggle-matches:hover { background: var(--bg-hover); }
+
+    /* FOB Corrections tab */
+    .fob-corrections-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .fob-corrections-phase-nav {
+      display: flex;
+      gap: 4px;
+    }
+    .fob-corrections-phase-nav button {
+      padding: 6px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .fob-corrections-phase-nav button.active {
+      background: var(--accent-color, #4a9eff);
+      color: white;
+      border-color: var(--accent-color, #4a9eff);
+    }
+    .fob-review-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .fob-review-row.fob-mismatch-row { background: rgba(220, 53, 69, 0.06); }
+    .fob-review-row.fob-uncertain-row { background: rgba(255, 193, 7, 0.06); }
+    .fob-review-details { flex: 1; font-size: 13px; }
+    .fob-review-label { font-weight: 600; margin-bottom: 4px; }
+    .fob-review-meta { color: var(--text-muted); font-size: 12px; }
+    .fob-correction-text {
+      width: 100%;
+      min-height: 60px;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      resize: vertical;
+    }
+
     /* Resize Handle for Split View */
     .resize-handle {
       flex: 0 0 4px;
@@ -5993,6 +6476,7 @@
     <!-- Workspace Dashboard (shown when a workspace is selected) -->
     <div id="workspace-dashboard" class="workspace-dashboard" style="display: none;">
       <div class="ws-dashboard-header">
+        <button class="ws-dashboard-back-btn" onclick="ChatApp.closeWorkspaceDashboard()">&#8592; Back</button>
         <div class="ws-dashboard-title">
           <h2 id="ws-dashboard-name"></h2>
           <span id="ws-dashboard-role" class="ws-role-badge"></span>
@@ -6185,6 +6669,12 @@
                 <button class="vertex-save-btn" id="vertex-save-btn" onclick="ChatApp.saveVertexSettings()">Save</button>
               </div>
             </div>
+
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+              <h3>Workspaces <span class="admin-badge">Admin</span></h3>
+              <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px 0;">Create and manage workspaces for your organization.</p>
+              <button class="manage-workspaces-btn" onclick="ChatApp.openWorkspaceAdmin()">Manage Workspaces</button>
+            </div>
           </div>
 
           <div class="modal-buttons">
@@ -6207,6 +6697,22 @@
             <button class="modal-button primary" onclick="ChatApp.saveApiKey()">Save Key</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Workspace Admin Modal -->
+    <div id="ws-admin-modal" class="modal-overlay" style="display: none;" onclick="ChatApp.closeWorkspaceAdmin(event)">
+      <div class="ws-admin-modal" onclick="event.stopPropagation()">
+        <div class="ws-admin-header">
+          <h2>Manage Workspaces</h2>
+          <button class="modal-close-btn" onclick="ChatApp.closeWorkspaceAdmin()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="ws-admin-body" id="ws-admin-body"></div>
       </div>
     </div>
 
@@ -6258,6 +6764,13 @@
 
         <div class="files-list" id="files-list">
           <!-- File cards will be dynamically added here -->
+        </div>
+
+        <div id="ws-collection-picker" class="ws-picker" style="display: none;">
+          <div class="ws-picker-divider">
+            <span>or use a workspace collection</span>
+          </div>
+          <div id="ws-picker-content"></div>
         </div>
       </div>
     </section>
@@ -6667,6 +7180,116 @@ PART 2: Immediately after the text overview, output a fenced JSON block:
 The "vendors" array should list every billing entity. The "categories" array should list every distinct matter code or billing category. The "periods" array should list every billing period in chronological order. The "timekeepers" array should list every named individual who billed time, with their rate and vendor ID.`,
         phase2: '', // Not used (has custom invoicePhase2)
         phase3: ''  // Not used (only 2 phases)
+      },
+      'fob-audit': {
+        phase1: `\n\nIMPORTANT CONTEXT: These documents are an Anthem FOB (Features of Benefits) Excel template and its corresponding Aggregate document returned by Anthem. This is an audit comparison to identify configuration errors.
+
+Your response must contain TWO parts:
+
+PART 1: A text overview (max 800 words) identifying:
+- Which file is the FOB template (the submission TO Anthem — a locked Excel with benefit deviations) and which is the Aggregate (Anthem's RETURNED document — their processed interpretation)
+- The FOB template variant: PPO ("JAA Model Plan - PPO") with label columns A-G merged, INN benefits in column D, OON in column I, deviations in columns L (INN) and M (OON); OR EPO/PAR-Only ("JAA Model Plan - PAR Only") with label columns A-C or A-F merged, INN benefits in column D, OON in column H (usually "Not Applicable"), deviations in columns J (INN) and K (OON)
+- Section boundaries in the FOB: Plan Information, Eligibility, Network Selections, Vendor/Contact Info, Deductible/Coinsurance/OOP, Benefits, Exclusions — with approximate row ranges
+- Section boundaries in the Aggregate with approximate row ranges
+- The column mapping between FOB and Aggregate (which FOB column maps to which Aggregate column for INN, OON, and deviations)
+- Aggregate version info from any Change Log section (version number, date, IMPL reference, status)
+- Any structural anomalies: page header artifact rows in the Aggregate, column offset issues, unexpected merge patterns, blank sections
+
+PART 2: Immediately after the overview, output a fenced JSON block:
+
+\`\`\`json
+{
+  "fob_file": "exact_filename.xlsx",
+  "aggregate_file": "exact_filename.xlsx_or_pdf",
+  "template_variant": "PPO or EPO",
+  "fob_columns": {
+    "labels": "A-G",
+    "inn_benefits": "D",
+    "oon_benefits": "I",
+    "inn_deviations": "L",
+    "oon_deviations": "M",
+    "notes": "N"
+  },
+  "aggregate_columns": {
+    "inn_benefits": "D",
+    "oon_benefits": "J",
+    "corrections": "L"
+  },
+  "sections": [
+    {"name": "Plan Information", "fob_rows": "3-27", "agg_rows": "1-27"},
+    {"name": "Benefits", "fob_rows": "154-500", "agg_rows": "162-500"}
+  ],
+  "aggregate_version": 1,
+  "anomalies": ["description of any structural issues found"]
+}
+\`\`\``,
+        phase2: `\n\nIMPORTANT CONTEXT: This is a FOB Audit comparison. The documents are an Anthem FOB template (what the TPA submitted to Anthem) and an Aggregate document (what Anthem returned after processing). You must compare EVERY benefit line, financial parameter, and plan info field between the two documents.
+
+REQUIRED TABLE COLUMNS — use exactly these column headers:
+| Section | Benefit / Field | Setting | FOB Standard | FOB Deviation | Expected Value | Aggregate Value | Status | Details |
+
+COLUMN DEFINITIONS:
+- **Section**: One of: Plan Info, Eligibility, Network, Financial, Benefits, Exclusions
+- **Benefit / Field**: The benefit category or field name (e.g., "Urgent Care - Outpatient Professional", "Individual Deductible - INN")
+- **Setting**: For benefits with multi-line structured cell data, specify which parameter: Coverage, Covered At, Deductible, Copayment, or Limit. For plan info fields or single-value cells, use "Value".
+- **FOB Standard**: The standard/default value from the FOB's locked columns (the baseline Anthem provides)
+- **FOB Deviation**: The deviation entered by the TPA in the editable deviation columns. Leave blank if no deviation was entered.
+- **Expected Value**: If a deviation exists, this equals the deviation value. If no deviation, this equals the FOB standard value.
+- **Aggregate Value**: The actual value Anthem placed in the Aggregate document for this field.
+- **Status**: One of: Match, Mismatch, Uncertain, Missing, Blank-OON
+- **Details**: For Mismatch: describe what differs. For Uncertain: explain why. For Missing: which document is missing the entry. For Blank-OON: note that EPO OON cells should explicitly say "Not Applicable". For Match: leave blank.
+
+COMPARISON PROCEDURE:
+1. For each benefit line in the FOB, read the standard value from the locked benefit columns (INN and OON).
+2. Read the deviation from the editable deviation columns (if any exists).
+3. Determine Expected Value: if a deviation was entered, Expected = the deviation; if no deviation, Expected = the standard value.
+4. Read the corresponding value from the Aggregate document.
+5. Compare Expected Value vs. Aggregate Value.
+6. For multi-line structured cells, parse EACH field independently:
+   - Coverage status (Covered / Not Covered)
+   - Covered At (percentage, e.g., 80%)
+   - Deductible (Yes / No)
+   - Copayment (dollar amount / N/A)
+   - Limit (description / N/A)
+   Create a SEPARATE ROW for each field that differs within a benefit line.
+
+TERMINOLOGY EQUIVALENCE — do NOT flag these as mismatches:
+- "Not Covered" = "Excluded" = "Benefit Not Available"
+- "N/A" = "Not Applicable" (especially in OON columns for EPO/PAR-Only plans)
+- Percentage formatting: "80%" = "80 %" = "80.00%"
+- Dollar formatting: "$35" = "$35.00"
+- "Covered" with any coinsurance percentage = covered (do not flag formatting differences)
+- Whitespace, capitalization, and minor punctuation differences are not mismatches
+
+STATUS CLASSIFICATION RULES:
+- **Match**: Expected Value and Aggregate Value are semantically equivalent (accounting for terminology equivalence above)
+- **Mismatch**: Expected Value and Aggregate Value clearly differ in meaning or amount
+- **Uncertain**: Values are semantically similar but phrasing differs enough that human review is warranted
+- **Missing**: A benefit line exists in the FOB but has no corresponding entry in the Aggregate (or vice versa)
+- **Blank-OON**: For EPO/PAR-Only plans, any OON cell in the Aggregate that is blank/empty when it should explicitly state "Not Applicable"
+
+CRITICAL INSTRUCTIONS:
+- Report ALL lines including matches. Do NOT skip, summarize, or condense matching lines. Every benefit line from the FOB must appear in the output table.
+- Do NOT reorder benefit lines. Maintain the order they appear in the FOB document.
+- For EPO/PAR-Only plans: every OON cell in the Aggregate should explicitly say "Not Applicable". Blank OON cells are errors (Status: Blank-OON).
+- Include Plan Information fields (plan name, account prefix, dates, etc.) and Financial parameters (deductibles, coinsurance, OOP maximums) — not just benefit lines.
+- Include Exclusions section: verify each exclusion confirmation matches between FOB and Aggregate.
+
+Return ONLY the comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`,
+        phase3: `\n\nIMPORTANT CONTEXT: This is a FOB Audit. For every row with Status of Mismatch, Uncertain, Missing, or Blank-OON in the comparison table above, extract the EXACT source text from both documents with precise cell-level citations.
+
+Maintain the EXACT SAME row structure and order as the comparison table above. For Match rows, include only the benefit name with "Match confirmed" — no full language extraction needed for matches.
+
+For each non-match row, provide these additional details:
+- **FOB Source**: The exact quoted text from the FOB cell. Citation format: (filename.xlsx, Sheet: "Benefit Template", Row N, Col X)
+- **Aggregate Source**: The exact quoted text from the Aggregate cell. Citation format: (filename.xlsx, Sheet: "Table 1", Row N, Col X) or (filename.pdf, page N)
+- **Suggested Correction**: Draft the correction text for Column L of the Aggregate, matching the TPA's standard feedback format: "FOB states [expected value]. Aggregate shows [actual value]. Please correct to [expected value]."
+
+CITATION FORMAT:
+- For Excel files: (filename.xlsx, Sheet: "Sheet Name", Row N, Col X)
+- For PDF files: (filename.pdf, page N)
+
+Return ONLY the detailed comparison table with no preamble, introduction, or footnotes. Do not oversimplify. Do not condense. Complete this task as comprehensively and completely as possible.`
       }
     };
 
@@ -6696,11 +7319,22 @@ ${fileList}
 
 I want you to return a detailed and comprehensive table comparing elements across all plans. Columns should represent identified plans, and rows should represent identified procedural elements within the plans. The purpose of this table is to compare procedural elements across all plan documents at a glance — including both benefit mechanics (eligibility, vesting, accruals) and administrative/legal procedures (claims processes, appeal rights, deadlines, dispute resolution, and venue).
 
-COLUMN HEADER RULES (critical for readability):
-- Use SHORT, single-line column headers — ideally 1-3 words (e.g. "San Diego", "Vegas", "Plan 4", "Original SPD", "Amendment 1", "v1", "v2").
+COLUMN STRUCTURE (read the Phase 1 summary above carefully to decide this):
+
+Columns represent the ENTITIES being compared, not the raw files uploaded. Use the Phase 1 summary to infer the right structure:
+
+- DEFAULT CASE — multiple plan units, each possibly spanning multiple files: If the documents describe two or more distinct plan units (and a single plan unit is often spread across an SPD plus its SMMs/amendments all describing the same unit), use ONE column per plan unit. Collapse all files that belong to the same plan unit into that plan's single column — cell content should draw from whichever of that plan's files is most authoritative or relevant for each row. Do NOT give each file its own column just because it was uploaded separately.
+
+- VERSIONS CASE — documents are versions of the same plan (e.g. "v1" vs "v2", or an original plus named amendments uploaded for side-by-side version comparison): use ONE column per version.
+
+- FALLBACK CASE — documents do NOT form a discernible plan-unit or version structure (each file is independently distinct, documents are unrelated to each other, or the docs aren't plan documents at all): use ONE column per uploaded document.
+
+In all cases, pick whichever structure Phase 1's analysis best supports. When in doubt between "multiple plan units" and "one-column-per-file", prefer the plan-unit interpretation — collapsing related files under one plan is almost always what the user wants.
+
+COLUMN HEADERS (formatting rules):
+- Headers must be SHORT and single-line — ideally 1-3 words (e.g. "San Diego", "Vegas", "Plan 4", "v1", "v2").
 - Do NOT put full filenames in column headers. Long filenames bloat the header row and make the table unreadable.
-- Each distinct uploaded document gets its OWN column — including different versions of the same plan (e.g. a "v1" and a "v2" of the same SPD are two separate columns). Do NOT merge or consolidate different documents into a single column.
-- Choose a label that fits on a single line at typical column width (~160px). Prefer plan name, version label, location, or a short descriptor that distinguishes this document from the others.
+- Choose a label that fits on a single line at typical column width (~160px). Prefer plan unit name, version label, location, or a short descriptor.
 
 When referencing specific documents inside table CELLS or anywhere else, you may use the exact filenames as provided above.
 
@@ -6946,6 +7580,45 @@ CRITICAL RULES:
       ]
     };
 
+    const FOB_PHASE_MESSAGES = {
+      1: [
+        "Reading FOB template structure",
+        "Identifying template variant",
+        "Mapping column layouts",
+        "Detecting merge patterns",
+        "Analyzing section boundaries",
+        "Locating deviation columns",
+        "Parsing benefit categories",
+        "Reading Aggregate structure",
+        "Building column crosswalk",
+        "Identifying structural anomalies"
+      ],
+      2: [
+        "Comparing benefit values",
+        "Checking deviation applications",
+        "Verifying copayment amounts",
+        "Auditing deductible settings",
+        "Validating coinsurance rates",
+        "Checking OON column population",
+        "Cross-referencing plan info",
+        "Scanning exclusion confirmations",
+        "Identifying mismatches",
+        "Building audit results"
+      ],
+      3: [
+        "Extracting exact cell values",
+        "Locating source references",
+        "Building correction language",
+        "Verifying citations",
+        "Documenting mismatches",
+        "Drafting suggested corrections",
+        "Cross-checking sources",
+        "Finalizing audit report",
+        "Validating row references",
+        "Completing detailed analysis"
+      ]
+    };
+
     // Chat Application
     const ChatApp = {
       state: {
@@ -6964,7 +7637,13 @@ CRITICAL RULES:
         languageResponse: null, // Phase 3 result
         activeTab: 'summary', // Current active tab
         isComparisonRequest: false, // Track if this is a comparison vs. regular chat
-        analysisMode: 'cross-plan', // 'cross-plan' | 'amendment-tracking' | 'minutes-analysis' | 'invoice-analysis'
+        analysisMode: 'cross-plan', // 'cross-plan' | 'amendment-tracking' | 'minutes-analysis' | 'invoice-analysis' | 'fob-audit'
+        // FOB Audit state
+        fobMatchesHidden: false,
+        fobCorrectionsPhase: 'review',
+        fobConfirmedMismatches: {},
+        fobCorrectionTexts: {},
+        fobOntology: null,
         // Chat-specific state
         chatMessages: [], // [{role, content, timestamp}]
         isChatStreaming: false, // Separate from main isStreaming
@@ -7069,6 +7748,10 @@ CRITICAL RULES:
         isWorkspaceAdmin: false,                // Current user's role in active workspace
         workspaceDashboardView: 'collections',  // 'collections' | 'analyses' | 'members'
         expandedCollectionId: null,             // Currently expanded collection card
+        adminWorkspaceList: [],                 // All workspaces from /api/admin/workspaces (admin view)
+        pickerExpandedWorkspaceIds: [],         // Which workspaces are expanded in Plan Docs picker
+        workspaceDetailCache: {},               // { wsId: {collections, ...} } — lazy-loaded
+        historyExpandedWorkspaceIds: [],        // Which workspace groups are expanded in History
         // Inactivity timeout state
         inactivityTimer: null,
         warningTimer: null,
@@ -7296,7 +7979,7 @@ CRITICAL RULES:
           if (!res.ok) return;
           const data = await res.json();
           this.state.workspaceList = data.workspaces || [];
-          this.renderWorkspaceSwitcher();
+          this.renderCollectionPicker();
         } catch (e) {
           // Silently fail — workspaces are optional
         }
@@ -7473,7 +8156,8 @@ CRITICAL RULES:
           'cross-plan': 'Cross-Plan',
           'amendment-tracking': 'Amendment Tracking',
           'minutes-analysis': 'Meeting Minutes',
-          'invoice-analysis': 'Invoice Analysis'
+          'invoice-analysis': 'Invoice Analysis',
+          'fob-audit': 'FOB Audit'
         };
 
         html += '<div class="ws-collections-grid">';
@@ -7512,6 +8196,7 @@ CRITICAL RULES:
               <option value="amendment-tracking">Amendment Tracking</option>
               <option value="minutes-analysis">Meeting Minutes</option>
               <option value="invoice-analysis">Invoice Analysis</option>
+              <option value="fob-audit">FOB Audit</option>
             </select>
             <div class="ws-form-actions">
               <button class="ws-btn ws-btn-secondary" onclick="ChatApp.hideNewCollectionForm()">Cancel</button>
@@ -8100,6 +8785,348 @@ CRITICAL RULES:
         }
       },
 
+      // ===== Workspace Admin Modal =====
+
+      async openWorkspaceAdmin() {
+        document.getElementById('api-key-modal').style.display = 'none';
+        document.getElementById('ws-admin-modal').style.display = 'flex';
+        await this.loadAdminWorkspaces();
+        this.renderWorkspaceAdmin();
+      },
+
+      closeWorkspaceAdmin(event) {
+        if (event && event.target && event.target.id !== 'ws-admin-modal') return;
+        document.getElementById('ws-admin-modal').style.display = 'none';
+        this.state._wsAdminEditId = null;
+      },
+
+      async loadAdminWorkspaces() {
+        try {
+          const res = await fetch('/api/admin/workspaces');
+          if (!res.ok) throw new Error('Failed to load workspaces');
+          const data = await res.json();
+          this.state.adminWorkspaceList = data.workspaces || [];
+        } catch (e) {
+          console.error('Error loading admin workspaces:', e);
+          this.state.adminWorkspaceList = [];
+        }
+      },
+
+      renderWorkspaceAdmin() {
+        const body = document.getElementById('ws-admin-body');
+        if (!body) return;
+
+        const workspaces = this.state.adminWorkspaceList;
+        let html = '';
+
+        html += `<button class="ws-admin-create-btn" onclick="ChatApp.toggleCreateWorkspaceForm()">+ Create Workspace</button>`;
+
+        html += `<div id="ws-admin-create-form" class="ws-admin-create-form" style="display:none">
+          <div>
+            <label for="ws-admin-new-name">Workspace Name</label>
+            <input type="text" id="ws-admin-new-name" placeholder="e.g., Western Pension Fund">
+          </div>
+          <div>
+            <label for="ws-admin-new-desc">Description (optional)</label>
+            <textarea id="ws-admin-new-desc" placeholder="Brief description of this workspace" rows="2"></textarea>
+          </div>
+          <div>
+            <label for="ws-admin-new-email">Workspace Admin Email</label>
+            <input type="text" id="ws-admin-new-email" placeholder="admin@example.com">
+          </div>
+          <div id="ws-admin-create-status"></div>
+          <div class="ws-admin-form-actions">
+            <button class="ws-admin-item-btn" onclick="ChatApp.toggleCreateWorkspaceForm()">Cancel</button>
+            <button class="ws-admin-create-btn" style="margin:0" onclick="ChatApp.createWorkspaceAdmin()">Create</button>
+          </div>
+        </div>`;
+
+        if (workspaces.length === 0) {
+          html += `<div class="ws-admin-empty">No workspaces yet. Create one to get started.</div>`;
+        } else {
+          html += `<div class="ws-admin-list">`;
+          for (const ws of workspaces) {
+            if (this.state._wsAdminEditId === ws.id) {
+              html += `<div class="ws-admin-item">
+                <span class="ws-admin-status-badge ${ws.is_active ? 'active' : 'inactive'}">${ws.is_active ? 'Active' : 'Inactive'}</span>
+                <div class="ws-admin-edit-form">
+                  <input type="text" id="ws-admin-edit-name" value="${this.escapeHtml(ws.name)}">
+                  <textarea id="ws-admin-edit-desc" rows="2">${this.escapeHtml(ws.description || '')}</textarea>
+                  <div class="ws-admin-form-actions">
+                    <button class="ws-admin-item-btn" onclick="ChatApp.cancelEditWorkspace()">Cancel</button>
+                    <button class="ws-admin-create-btn" style="margin:0;padding:4px 12px;font-size:12px" onclick="ChatApp.saveEditWorkspace('${ws.id}')">Save</button>
+                  </div>
+                </div>
+              </div>`;
+            } else {
+              html += `<div class="ws-admin-item">
+                <span class="ws-admin-status-badge ${ws.is_active ? 'active' : 'inactive'}">${ws.is_active ? 'Active' : 'Inactive'}</span>
+                <div class="ws-admin-item-info">
+                  <div class="ws-admin-item-name">${this.escapeHtml(ws.name)}</div>
+                  ${ws.description ? `<div class="ws-admin-item-desc">${this.escapeHtml(ws.description)}</div>` : ''}
+                </div>
+                <div class="ws-admin-item-stats">
+                  <span>${ws.member_count || 0} members</span>
+                  <span>${ws.collection_count || 0} collections</span>
+                  <span>${ws.analysis_count || 0} analyses</span>
+                </div>
+                <div class="ws-admin-item-actions">
+                  <button class="ws-admin-item-btn" onclick="ChatApp.startEditWorkspace('${ws.id}')">Edit</button>
+                  ${ws.is_active
+                    ? `<button class="ws-admin-item-btn danger" onclick="ChatApp.toggleWorkspaceActive('${ws.id}', true)">Deactivate</button>`
+                    : `<button class="ws-admin-item-btn success" onclick="ChatApp.toggleWorkspaceActive('${ws.id}', false)">Reactivate</button>`
+                  }
+                </div>
+              </div>`;
+            }
+          }
+          html += `</div>`;
+        }
+
+        body.innerHTML = html;
+      },
+
+      toggleCreateWorkspaceForm() {
+        const form = document.getElementById('ws-admin-create-form');
+        if (!form) return;
+        const isHidden = form.style.display === 'none';
+        form.style.display = isHidden ? 'flex' : 'none';
+        if (isHidden) {
+          const nameInput = document.getElementById('ws-admin-new-name');
+          if (nameInput) nameInput.focus();
+        }
+      },
+
+      async createWorkspaceAdmin() {
+        const name = document.getElementById('ws-admin-new-name')?.value?.trim();
+        const description = document.getElementById('ws-admin-new-desc')?.value?.trim();
+        const admin_email = document.getElementById('ws-admin-new-email')?.value?.trim();
+        const statusEl = document.getElementById('ws-admin-create-status');
+
+        if (!name || !admin_email) {
+          if (statusEl) statusEl.innerHTML = '<div class="ws-admin-status-msg error">Name and admin email are required.</div>';
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/workspaces', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description: description || null, admin_email })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            if (statusEl) statusEl.innerHTML = `<div class="ws-admin-status-msg error">${this.escapeHtml(data.error || 'Failed to create workspace')}</div>`;
+            return;
+          }
+
+          document.getElementById('ws-admin-new-name').value = '';
+          document.getElementById('ws-admin-new-desc').value = '';
+          document.getElementById('ws-admin-new-email').value = '';
+          const form = document.getElementById('ws-admin-create-form');
+          if (form) form.style.display = 'none';
+
+          await this.loadAdminWorkspaces();
+          this.renderWorkspaceAdmin();
+          await this.loadWorkspaceList();
+        } catch (e) {
+          console.error('Error creating workspace:', e);
+          if (statusEl) statusEl.innerHTML = '<div class="ws-admin-status-msg error">Network error. Please try again.</div>';
+        }
+      },
+
+      startEditWorkspace(workspaceId) {
+        this.state._wsAdminEditId = workspaceId;
+        this.renderWorkspaceAdmin();
+      },
+
+      cancelEditWorkspace() {
+        this.state._wsAdminEditId = null;
+        this.renderWorkspaceAdmin();
+      },
+
+      async saveEditWorkspace(workspaceId) {
+        const name = document.getElementById('ws-admin-edit-name')?.value?.trim();
+        const description = document.getElementById('ws-admin-edit-desc')?.value?.trim();
+
+        if (!name) return;
+
+        try {
+          const res = await fetch(`/api/admin/workspaces/${workspaceId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description: description || null })
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            console.error('Failed to update workspace:', data.error);
+            return;
+          }
+
+          this.state._wsAdminEditId = null;
+          await this.loadAdminWorkspaces();
+          this.renderWorkspaceAdmin();
+          await this.loadWorkspaceList();
+        } catch (e) {
+          console.error('Error updating workspace:', e);
+        }
+      },
+
+      async toggleWorkspaceActive(workspaceId, currentlyActive) {
+        if (currentlyActive && !confirm('Deactivate this workspace? Members will lose access until it is reactivated.')) {
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/admin/workspaces/${workspaceId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: !currentlyActive })
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            console.error('Failed to toggle workspace:', data.error);
+            return;
+          }
+
+          await this.loadAdminWorkspaces();
+          this.renderWorkspaceAdmin();
+          await this.loadWorkspaceList();
+        } catch (e) {
+          console.error('Error toggling workspace:', e);
+        }
+      },
+
+      // --- Workspace Collection Picker (Plan Docs area) ---
+
+      renderCollectionPicker() {
+        const picker = document.getElementById('ws-collection-picker');
+        if (!picker) return;
+
+        if (this.state.workspaceList.length === 0) {
+          picker.style.display = 'none';
+          return;
+        }
+
+        picker.style.display = '';
+        const content = document.getElementById('ws-picker-content');
+        let html = '';
+
+        for (const ws of this.state.workspaceList) {
+          const isExpanded = this.state.pickerExpandedWorkspaceIds.includes(ws.id);
+          const collCount = ws.collection_count || 0;
+
+          html += `<div class="ws-picker-workspace">
+            <div class="ws-picker-workspace-header">
+              <span class="chevron ${isExpanded ? 'expanded' : ''}" onclick="ChatApp.togglePickerWorkspace('${ws.id}')" style="cursor:pointer">&#9654;</span>
+              <span onclick="ChatApp.togglePickerWorkspace('${ws.id}')" style="cursor:pointer;flex:1">${this.escapeHtml(ws.name)}</span>
+              <span class="ws-picker-count" onclick="ChatApp.togglePickerWorkspace('${ws.id}')" style="cursor:pointer">${collCount} collection${collCount !== 1 ? 's' : ''}</span>
+              <button class="ws-picker-manage-btn" onclick="event.stopPropagation(); ChatApp.openWorkspaceManage('${ws.id}')" title="Manage workspace">Manage</button>
+            </div>`;
+
+          if (isExpanded) {
+            const cached = this.state.workspaceDetailCache[ws.id];
+            if (!cached) {
+              html += `<div class="ws-picker-collections"><div class="ws-picker-loading">Loading collections...</div></div>`;
+            } else {
+              const collections = cached.collections || [];
+              if (collections.length === 0) {
+                html += `<div class="ws-picker-collections"><div class="ws-picker-empty">No collections yet</div></div>`;
+              } else {
+                html += `<div class="ws-picker-collections">`;
+                for (const coll of collections) {
+                  const docCount = coll.document_count || 0;
+                  const mode = coll.analysis_mode || 'cross-plan';
+                  const modeLabel = { 'cross-plan': 'Cross-Plan', 'amendment-tracking': 'Amendment', 'minutes-analysis': 'Minutes', 'invoice-analysis': 'Invoice', 'fob-audit': 'FOB Audit' }[mode] || mode;
+                  html += `<div class="ws-picker-collection">
+                    <div class="ws-picker-collection-info">
+                      <div class="ws-picker-collection-name">${this.escapeHtml(coll.name)}</div>
+                      <div class="ws-picker-collection-meta">
+                        <span>${docCount} document${docCount !== 1 ? 's' : ''}</span>
+                        <span class="ws-picker-mode-badge">${modeLabel}</span>
+                      </div>
+                    </div>
+                    <button class="ws-picker-use-btn" onclick="ChatApp.useWorkspaceCollection('${ws.id}', '${coll.id}')" ${docCount === 0 ? 'disabled title="No documents in collection"' : ''}>Use</button>
+                  </div>`;
+                }
+                html += `</div>`;
+              }
+            }
+          }
+
+          html += `</div>`;
+        }
+
+        content.innerHTML = html;
+      },
+
+      togglePickerWorkspace(wsId) {
+        const idx = this.state.pickerExpandedWorkspaceIds.indexOf(wsId);
+        if (idx >= 0) {
+          this.state.pickerExpandedWorkspaceIds.splice(idx, 1);
+        } else {
+          this.state.pickerExpandedWorkspaceIds.push(wsId);
+          if (!this.state.workspaceDetailCache[wsId]) {
+            this.loadPickerWorkspaceDetail(wsId);
+          }
+        }
+        this.renderCollectionPicker();
+      },
+
+      async loadPickerWorkspaceDetail(wsId) {
+        try {
+          const res = await fetch(`/api/workspaces/${wsId}`);
+          if (!res.ok) throw new Error('Failed to load workspace');
+          const data = await res.json();
+          this.state.workspaceDetailCache[wsId] = data;
+          this.renderCollectionPicker();
+        } catch (e) {
+          console.error('Error loading workspace detail:', e);
+        }
+      },
+
+      async useWorkspaceCollection(wsId, collectionId) {
+        const cached = this.state.workspaceDetailCache[wsId];
+        if (!cached) return;
+
+        this.state.activeWorkspaceId = wsId;
+        this.state.activeWorkspace = cached;
+        this.state.workspaceCollections = cached.collections || [];
+        this.state.isWorkspaceAdmin = cached.role === 'admin';
+
+        await this.createWorkspaceAnalysis(collectionId);
+      },
+
+      async openWorkspaceManage(wsId) {
+        this.state.activeWorkspaceId = wsId;
+        this.state.expandedCollectionId = null;
+        this.state.workspaceDashboardView = 'collections';
+
+        const cached = this.state.workspaceDetailCache[wsId];
+        if (cached) {
+          this.state.activeWorkspace = cached;
+          this.state.workspaceCollections = cached.collections || [];
+          this.state.isWorkspaceAdmin = cached.role === 'admin';
+        } else {
+          await this.loadWorkspaceDetail(wsId);
+        }
+
+        const dashboard = document.getElementById('workspace-dashboard');
+        dashboard.style.display = 'block';
+        this.renderWorkspaceDashboard();
+      },
+
+      closeWorkspaceDashboard() {
+        const dashboard = document.getElementById('workspace-dashboard');
+        dashboard.style.display = 'none';
+        const wsId = this.state.activeWorkspaceId;
+        this.state.workspaceDetailCache[wsId] = null;
+        this.loadPickerWorkspaceDetail(wsId);
+        this.loadWorkspaceList();
+      },
+
+      // --- End Workspace Collection Picker ---
+
       getApiKey() {
         // Use session key if available, otherwise fall back to config.js
         return this.state.sessionApiKey || CONFIG.GEMINI_API_KEY;
@@ -8150,7 +9177,8 @@ CRITICAL RULES:
               'cross-plan': 'Upload plan documents above to begin comparison',
               'amendment-tracking': 'Upload plan documents above to begin comparison',
               'minutes-analysis': 'Upload meeting minutes above to begin analysis',
-              'invoice-analysis': 'Upload invoices above to begin analysis'
+              'invoice-analysis': 'Upload invoices above to begin analysis',
+              'fob-audit': 'Upload FOB template and Aggregate document to begin audit'
             };
             helperText = uploadHints[this.state.analysisMode] || uploadHints['cross-plan'];
             helperClass = '';
@@ -8160,7 +9188,8 @@ CRITICAL RULES:
               'cross-plan': 'Click to compare uploaded plan documents',
               'amendment-tracking': 'Click to compare uploaded plan documents',
               'minutes-analysis': 'Click to analyze uploaded meeting minutes',
-              'invoice-analysis': 'Click to analyze uploaded invoices'
+              'invoice-analysis': 'Click to analyze uploaded invoices',
+              'fob-audit': 'Click to audit FOB against Aggregate'
             };
             helperText = readyHints[this.state.analysisMode] || readyHints['cross-plan'];
             helperClass = '';
@@ -8171,13 +9200,15 @@ CRITICAL RULES:
             'cross-plan': 'Cross-Plan Comparison',
             'amendment-tracking': 'Amendment Tracking',
             'minutes-analysis': 'Minutes Analysis',
-            'invoice-analysis': 'Invoice Analysis'
+            'invoice-analysis': 'Invoice Analysis',
+            'fob-audit': 'FOB Audit'
           };
           const buttonLabels = {
             'cross-plan': 'Compare Documents',
             'amendment-tracking': 'Compare Documents',
             'minutes-analysis': 'Compare Documents',
-            'invoice-analysis': 'Analyze Invoices'
+            'invoice-analysis': 'Analyze Invoices',
+            'fob-audit': 'Audit Documents'
           };
           const currentMode = this.state.analysisMode;
 
@@ -8227,6 +9258,13 @@ CRITICAL RULES:
                     <span class="mode-info">
                       <span class="mode-name">Invoice Analysis</span>
                       <span class="mode-desc">Extract and compare costs from billing invoices</span>
+                    </span>
+                  </div>
+                  <div class="mode-dropdown-item${currentMode === 'fob-audit' ? ' active' : ''}" data-mode="fob-audit">
+                    <span class="mode-check">${currentMode === 'fob-audit' ? '✓' : ''}</span>
+                    <span class="mode-info">
+                      <span class="mode-name">FOB Audit</span>
+                      <span class="mode-desc">Compare FOB submission against Anthem Aggregate</span>
                     </span>
                   </div>
                 </div>
@@ -8387,45 +9425,84 @@ CRITICAL RULES:
        */
       async validateModelAccess() {
         const model = CONFIG.MODEL || 'gemini-3.1-pro-preview';
-        console.log(`🔍 Pre-flight: validating model access for ${model}...`);
+        const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504]);
+        const MAX_ATTEMPTS = 3;
+        const BACKOFF_MS = [1000, 3000, 9000];
 
         const requestBody = {
           contents: [{ role: 'user', parts: [{ text: 'Say "ok"' }] }],
           generationConfig: { maxOutputTokens: 10 }
         };
 
-        const response = await fetch(this.getApiUrl(model), {
-          method: 'POST',
-          headers: this.getApiHeaders(),
-          body: JSON.stringify(requestBody)
-        });
+        let lastError = null;
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let message = `Model "${model}" is not accessible (HTTP ${response.status})`;
-          try {
-            const parsed = JSON.parse(errorText);
-            if (parsed?.error?.message) message = parsed.error.message;
-          } catch { /* use default message */ }
-          throw new Error(message);
-        }
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+          console.log(`🔍 Pre-flight: validating model access for ${model} (attempt ${attempt}/${MAX_ATTEMPTS})...`);
 
-        // For proxy mode (SSE stream), check for error events in response
-        const text = await response.text();
-        const errorMatch = text.match(/data: (\{.*"error".*\})/);
-        if (errorMatch) {
           try {
-            const errData = JSON.parse(errorMatch[1]);
-            if (errData.error) {
-              const upstream = errData.error.upstream ? ` (${errData.error.upstream})` : '';
-              throw new Error(`Model "${model}" returned an error: ${errData.error.message}${upstream}`);
+            const response = await fetch(this.getApiUrl(model), {
+              method: 'POST',
+              headers: this.getApiHeaders(),
+              body: JSON.stringify(requestBody)
+            });
+
+            // HTTP-level error (direct, non-proxy path)
+            if (!response.ok) {
+              const errorText = await response.text();
+              let message = `Model "${model}" is not accessible (HTTP ${response.status})`;
+              try {
+                const parsed = JSON.parse(errorText);
+                if (parsed?.error?.message) message = parsed.error.message;
+              } catch { /* use default message */ }
+
+              if (TRANSIENT_STATUSES.has(response.status) && attempt < MAX_ATTEMPTS) {
+                console.warn(`⚠️ Pre-flight transient ${response.status}: ${message} — retrying in ${BACKOFF_MS[attempt - 1]}ms`);
+                lastError = new Error(message);
+                await new Promise(r => setTimeout(r, BACKOFF_MS[attempt - 1]));
+                continue;
+              }
+              throw new Error(message);
             }
+
+            // Proxy mode returns 200 with SSE events; inspect the body for error events
+            const text = await response.text();
+            const errorMatch = text.match(/data: (\{.*"error".*\})/);
+            if (errorMatch) {
+              try {
+                const errData = JSON.parse(errorMatch[1]);
+                if (errData.error) {
+                  const code = errData.error.code;
+                  const upstream = errData.error.upstream ? ` (${errData.error.upstream})` : '';
+                  const msg = `API error (${code}): ${errData.error.message}${upstream}`;
+
+                  if (TRANSIENT_STATUSES.has(code) && attempt < MAX_ATTEMPTS) {
+                    console.warn(`⚠️ Pre-flight transient ${code}: ${errData.error.message} — retrying in ${BACKOFF_MS[attempt - 1]}ms`);
+                    lastError = new Error(msg);
+                    await new Promise(r => setTimeout(r, BACKOFF_MS[attempt - 1]));
+                    continue;
+                  }
+                  throw new Error(msg);
+                }
+              } catch (e) {
+                if (e.message.startsWith('API error') || e.message.startsWith('Model')) throw e;
+              }
+            }
+
+            console.log(`✅ Pre-flight: model ${model} is accessible (attempt ${attempt})`);
+            return;
           } catch (e) {
-            if (e.message.startsWith('Model')) throw e;
+            // Network-level failure (fetch itself rejected) — retry if we have attempts left
+            if (e.name === 'TypeError' && attempt < MAX_ATTEMPTS) {
+              console.warn(`⚠️ Pre-flight network error: ${e.message} — retrying in ${BACKOFF_MS[attempt - 1]}ms`);
+              lastError = e;
+              await new Promise(r => setTimeout(r, BACKOFF_MS[attempt - 1]));
+              continue;
+            }
+            throw e;
           }
         }
 
-        console.log(`✅ Pre-flight: model ${model} is accessible`);
+        throw lastError || new Error(`Model "${model}" pre-flight failed after ${MAX_ATTEMPTS} attempts`);
       },
 
       async runThreePhaseComparison() {
@@ -8464,6 +9541,12 @@ CRITICAL RULES:
         this.state.draftContent = null;
         this.state.draftPhase = 'selection';
         this.state.currentAnalysisId = null;
+        // Reset FOB audit state
+        this.state.fobMatchesHidden = false;
+        this.state.fobCorrectionsPhase = 'review';
+        this.state.fobConfirmedMismatches = {};
+        this.state.fobCorrectionTexts = {};
+        this.state.fobOntology = null;
 
         // Clear rendered output divs
         document.getElementById('summary-output').innerHTML = '';
@@ -8498,6 +9581,16 @@ CRITICAL RULES:
 
           // Phase 1 complete - show download button
           document.getElementById('export-summary-btn').style.display = 'inline-flex';
+
+          // FOB Audit: parse ontology JSON from Phase 1 and customize tab labels
+          if (this.state.analysisMode === 'fob-audit') {
+            const ontology = parseTimelineJSON(this.state.summaryResponse);
+            if (ontology) {
+              this.state.fobOntology = ontology;
+              console.log(`📋 FOB: ${ontology.template_variant} template, aggregate v${ontology.aggregate_version}`);
+            }
+            this.applyFobTabLabels();
+          }
 
           // PHASE 2: Comparison Table - tab switches when first chunk arrives
           this.state.currentPhase = 2;
@@ -8931,7 +10024,8 @@ CRITICAL RULES:
 
       // Start rotating progress messages for a phase
       startProgressRotation(phase) {
-        const messageSet = (this.state.analysisMode === 'invoice-analysis') ? INVOICE_PHASE_MESSAGES : PHASE_MESSAGES;
+        const messageSet = (this.state.analysisMode === 'invoice-analysis') ? INVOICE_PHASE_MESSAGES
+          : (this.state.analysisMode === 'fob-audit') ? FOB_PHASE_MESSAGES : PHASE_MESSAGES;
         const messages = messageSet[phase];
         if (!messages) return;
 
@@ -10200,6 +11294,10 @@ CRITICAL RULES:
         if (this.state.analysisMode === 'invoice-analysis') {
           return this.buildInvoiceChatSystemInstruction();
         }
+        // FOB audit mode uses a benefits audit instruction
+        if (this.state.analysisMode === 'fob-audit') {
+          return this.buildFobChatSystemInstruction();
+        }
 
         const fileList = this.getUploadedFileList();
         let instruction = `You are analyzing pension plan documents. Here is the completed analysis:
@@ -10720,8 +11818,35 @@ ${conversationText}`;
           toolbarHtml += '</div>';
         }
 
+        // FOB Audit: add summary stats bar above the table
+        let fobStatusColIdx = -1;
+        if (this.state.analysisMode === 'fob-audit') {
+          fobStatusColIdx = headers.findIndex(h => h.toLowerCase().includes('status'));
+        }
+
         // Build table
         let html = toolbarHtml;
+
+        if (fobStatusColIdx >= 0 && tab === 'comparison') {
+          const counts = { match: 0, mismatch: 0, uncertain: 0, missing: 0, 'blank-oon': 0 };
+          const allRows = tableData.rows || [];
+          allRows.forEach(r => {
+            const s = (r.cells[fobStatusColIdx] || '').trim().toLowerCase();
+            if (counts[s] !== undefined) counts[s]++;
+          });
+          const total = allRows.length;
+          const matchPct = total > 0 ? Math.round(counts.match / total * 100) : 0;
+          html += `<div class="fob-stats-bar">
+            <span class="fob-stat">${total} total</span>
+            <span class="fob-stat fob-stat-match">${counts.match} match (${matchPct}%)</span>
+            <span class="fob-stat fob-stat-mismatch">${counts.mismatch} mismatch</span>
+            <span class="fob-stat fob-stat-uncertain">${counts.uncertain} uncertain</span>
+            ${counts.missing ? `<span class="fob-stat fob-stat-missing">${counts.missing} missing</span>` : ''}
+            ${counts['blank-oon'] ? `<span class="fob-stat fob-stat-blank">${counts['blank-oon']} blank OON</span>` : ''}
+            <button class="fob-toggle-matches" onclick="ChatApp.toggleFobMatches()">${this.state.fobMatchesHidden ? 'Show' : 'Hide'} matches</button>
+          </div>`;
+        }
+
         html += '<table class="comparison-table"><thead><tr>';
 
         // Header row with sort indicators and filter buttons
@@ -10749,7 +11874,18 @@ ${conversationText}`;
             continue;
           }
 
-          html += `<tr data-row-id="${item.id}" `;
+          // FOB Audit: determine row status class for color coding
+          let fobRowClass = '';
+          if (fobStatusColIdx >= 0) {
+            const statusVal = (item.cells[fobStatusColIdx] || '').trim().toLowerCase();
+            if (statusVal === 'match') fobRowClass = ' fob-match' + (this.state.fobMatchesHidden ? ' fob-hidden' : '');
+            else if (statusVal === 'mismatch') fobRowClass = ' fob-mismatch';
+            else if (statusVal === 'uncertain') fobRowClass = ' fob-uncertain';
+            else if (statusVal === 'missing') fobRowClass = ' fob-missing';
+            else if (statusVal === 'blank-oon') fobRowClass = ' fob-blank-oon';
+          }
+
+          html += `<tr data-row-id="${item.id}" class="${fobRowClass}" `;
           html += `ondragstart="ChatApp.onRowDragStart(event, '${tab}')" `;
           html += `ondragover="ChatApp.onRowDragOver(event)" `;
           html += `ondragleave="ChatApp.onRowDragLeave(event)" `;
@@ -11418,6 +12554,238 @@ ${conversationText}`;
         output.innerHTML = html;
       },
 
+      // ===== FOB Audit Methods =====
+
+      applyFobTabLabels() {
+        const compBtn = document.querySelector('.tab-button[data-tab="comparison"]');
+        if (compBtn) compBtn.textContent = 'Differences';
+        const langBtn = document.querySelector('.tab-button[data-tab="language"]');
+        if (langBtn) langBtn.textContent = 'Citations';
+        const draftBtn = document.querySelector('.tab-button[data-tab="draft"]');
+        if (draftBtn) draftBtn.textContent = 'Corrections';
+      },
+
+      toggleFobMatches() {
+        this.state.fobMatchesHidden = !this.state.fobMatchesHidden;
+        this.renderInteractiveTable('comparison');
+      },
+
+      buildFobChatSystemInstruction() {
+        const fileList = this.getUploadedFileList();
+        let instruction = `You are a benefits administration specialist auditing an Anthem FOB (Features of Benefits) document. Here is the completed audit analysis:
+
+<document_summary>
+${this.state.summaryResponse}
+</document_summary>
+
+<audit_differences_table>
+${this.state.comparisonResponse}
+</audit_differences_table>
+
+<detailed_citations>
+${this.state.languageResponse}
+</detailed_citations>
+
+<uploaded_documents>
+${fileList}
+</uploaded_documents>
+
+You are helping the user review differences between the FOB template (what the TPA submitted to Anthem) and the Aggregate (what Anthem returned after processing). Your role is to:
+- Answer questions about specific benefit lines, mismatches, or error patterns
+- Help identify systematic errors (e.g., "all therapy lines have the wrong coinsurance")
+- Draft correction language for Column L of the Aggregate
+- Explain the significance of specific mismatches in the context of plan administration
+
+DOMAIN CONTEXT:
+- "Covered At 100%" with "Deductible: No" and a copay = first-dollar coverage with a flat copay
+- "Covered At 70%" with "Deductible: Yes" = deductible-applied coinsurance
+- FOB deviations in columns L-M (PPO) or J-K (EPO) override the standard values in columns D-K
+- The Aggregate should reflect deviations where entered, and standard values where no deviation exists
+- EPO/PAR-Only plans should have "Not Applicable" in all OON cells, never blank
+
+CITATION FORMAT:
+- For Excel: (filename.xlsx, Sheet: "Sheet Name", Row N, Col X)
+- For PDF: (filename.pdf, page N)
+
+${this.getTableRowReference()}`;
+
+        if (this.state.compactionSummary) {
+          instruction += `\n\nCONVERSATION CONTEXT:\n${this.state.compactionSummary}`;
+        }
+
+        return { parts: [{ text: instruction }] };
+      },
+
+      renderCorrectionsTab() {
+        const output = document.getElementById('draft-output');
+        if (!output) return;
+
+        const tableData = this.state.comparisonTableData;
+        if (!tableData) {
+          output.innerHTML = '<div class="empty-state"><p>Run the FOB audit to generate differences first.</p></div>';
+          return;
+        }
+
+        const headers = tableData.headers;
+        const statusColIdx = headers.findIndex(h => h.toLowerCase().includes('status'));
+        const benefitColIdx = headers.findIndex(h => h.toLowerCase().includes('benefit') || h.toLowerCase().includes('field'));
+        const sectionColIdx = headers.findIndex(h => h.toLowerCase().includes('section'));
+        const expectedColIdx = headers.findIndex(h => h.toLowerCase().includes('expected'));
+        const aggColIdx = headers.findIndex(h => h.toLowerCase().includes('aggregate'));
+        const detailsColIdx = headers.findIndex(h => h.toLowerCase().includes('details'));
+        const settingColIdx = headers.findIndex(h => h.toLowerCase().includes('setting'));
+
+        const nonMatchRows = tableData.rows.filter(r => {
+          const s = (r.cells[statusColIdx] || '').trim().toLowerCase();
+          return s !== 'match' && s !== '';
+        });
+
+        const phase = this.state.fobCorrectionsPhase || 'review';
+
+        let html = `<div class="fob-corrections-header">
+          <div class="fob-corrections-phase-nav">
+            <button class="${phase === 'review' ? 'active' : ''}" onclick="ChatApp.setFobCorrectionsPhase('review')">1. Review</button>
+            <button class="${phase === 'corrections' ? 'active' : ''}" onclick="ChatApp.setFobCorrectionsPhase('corrections')">2. Corrections</button>
+            <button class="${phase === 'export' ? 'active' : ''}" onclick="ChatApp.setFobCorrectionsPhase('export')">3. Export</button>
+          </div>
+        </div>`;
+
+        if (phase === 'review') {
+          html += `<p style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Review ${nonMatchRows.length} non-matching rows. Check items to confirm as real mismatches, uncheck to dismiss as false positives.</p>`;
+          for (const row of nonMatchRows) {
+            const status = (row.cells[statusColIdx] || '').trim().toLowerCase();
+            const isConfirmed = this.state.fobConfirmedMismatches[row.id] !== undefined
+              ? this.state.fobConfirmedMismatches[row.id]
+              : (status === 'mismatch' || status === 'missing' || status === 'blank-oon');
+            const benefit = row.cells[benefitColIdx] || '';
+            const section = row.cells[sectionColIdx] || '';
+            const setting = row.cells[settingColIdx] || '';
+            const expected = row.cells[expectedColIdx] || '';
+            const actual = row.cells[aggColIdx] || '';
+            const details = row.cells[detailsColIdx] || '';
+            const statusClass = status === 'mismatch' ? 'fob-mismatch-row' : 'fob-uncertain-row';
+
+            html += `<div class="fob-review-row ${statusClass}">
+              <input type="checkbox" ${isConfirmed ? 'checked' : ''} onchange="ChatApp.toggleFobConfirm(${row.id}, this.checked)" style="margin-top:3px;">
+              <div class="fob-review-details">
+                <div class="fob-review-label">${this.escapeHtml(benefit)}${setting ? ' - ' + this.escapeHtml(setting) : ''}</div>
+                <div class="fob-review-meta">${this.escapeHtml(section)} | Status: ${status} | Expected: ${this.escapeHtml(expected)} | Aggregate: ${this.escapeHtml(actual)}</div>
+                ${details ? `<div class="fob-review-meta" style="margin-top:2px;">${this.escapeHtml(details)}</div>` : ''}
+              </div>
+            </div>`;
+          }
+        } else if (phase === 'corrections') {
+          const confirmed = nonMatchRows.filter(r => {
+            const status = (r.cells[statusColIdx] || '').trim().toLowerCase();
+            const isConfirmed = this.state.fobConfirmedMismatches[r.id] !== undefined
+              ? this.state.fobConfirmedMismatches[r.id]
+              : (status === 'mismatch' || status === 'missing' || status === 'blank-oon');
+            return isConfirmed;
+          });
+          html += `<p style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">${confirmed.length} confirmed mismatches. Edit correction text below — this is the language that will appear in Column L of the Aggregate.</p>`;
+          for (const row of confirmed) {
+            const benefit = row.cells[benefitColIdx] || '';
+            const setting = row.cells[settingColIdx] || '';
+            const expected = row.cells[expectedColIdx] || '';
+            const actual = row.cells[aggColIdx] || '';
+            const defaultCorrection = this.state.fobCorrectionTexts[row.id]
+              || `FOB states: ${expected}. Aggregate shows: ${actual}. Please correct to match FOB.`;
+
+            html += `<div class="fob-review-row">
+              <div class="fob-review-details">
+                <div class="fob-review-label">${this.escapeHtml(benefit)}${setting ? ' - ' + this.escapeHtml(setting) : ''}</div>
+                <textarea class="fob-correction-text" onchange="ChatApp.updateFobCorrection(${row.id}, this.value)">${this.escapeHtml(defaultCorrection)}</textarea>
+              </div>
+            </div>`;
+            if (!this.state.fobCorrectionTexts[row.id]) {
+              this.state.fobCorrectionTexts[row.id] = defaultCorrection;
+            }
+          }
+        } else if (phase === 'export') {
+          const confirmedCount = nonMatchRows.filter(r => {
+            const status = (r.cells[statusColIdx] || '').trim().toLowerCase();
+            return this.state.fobConfirmedMismatches[r.id] !== undefined
+              ? this.state.fobConfirmedMismatches[r.id]
+              : (status === 'mismatch' || status === 'missing' || status === 'blank-oon');
+          }).length;
+          html += `<div style="text-align:center;padding:40px 20px;">
+            <p style="font-size:15px;margin-bottom:8px;">${confirmedCount} corrections ready for export</p>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Download an Excel file with a Corrections Summary sheet and a Full Audit sheet.</p>
+            <button class="compare-button" onclick="ChatApp.exportFobCorrections()" style="display:inline-block;width:auto;padding:10px 28px;">Export Corrections XLSX</button>
+          </div>`;
+        }
+
+        output.innerHTML = html;
+      },
+
+      setFobCorrectionsPhase(phase) {
+        this.state.fobCorrectionsPhase = phase;
+        this.renderCorrectionsTab();
+        this.saveDraftState();
+      },
+
+      toggleFobConfirm(rowId, checked) {
+        this.state.fobConfirmedMismatches[rowId] = checked;
+        this.saveDraftState();
+      },
+
+      updateFobCorrection(rowId, text) {
+        this.state.fobCorrectionTexts[rowId] = text;
+        this.saveDraftState();
+      },
+
+      exportFobCorrections() {
+        const tableData = this.state.comparisonTableData;
+        if (!tableData) return;
+
+        const headers = tableData.headers;
+        const statusColIdx = headers.findIndex(h => h.toLowerCase().includes('status'));
+        const benefitColIdx = headers.findIndex(h => h.toLowerCase().includes('benefit') || h.toLowerCase().includes('field'));
+        const sectionColIdx = headers.findIndex(h => h.toLowerCase().includes('section'));
+        const expectedColIdx = headers.findIndex(h => h.toLowerCase().includes('expected'));
+        const aggColIdx = headers.findIndex(h => h.toLowerCase().includes('aggregate'));
+        const settingColIdx = headers.findIndex(h => h.toLowerCase().includes('setting'));
+
+        const confirmed = tableData.rows.filter(r => {
+          const status = (r.cells[statusColIdx] || '').trim().toLowerCase();
+          return this.state.fobConfirmedMismatches[r.id] !== undefined
+            ? this.state.fobConfirmedMismatches[r.id]
+            : (status === 'mismatch' || status === 'missing' || status === 'blank-oon');
+        });
+
+        const summaryData = [
+          ['FOB Audit Corrections Summary'],
+          ['Generated by SyncroDoc', new Date().toLocaleDateString()],
+          ['DISCLAIMER: This document was generated by AI and requires human review before submission to Anthem.'],
+          [],
+          ['Section', 'Benefit / Field', 'Setting', 'Expected Value', 'Aggregate Value', 'Correction', 'Status']
+        ];
+        for (const row of confirmed) {
+          summaryData.push([
+            row.cells[sectionColIdx] || '',
+            row.cells[benefitColIdx] || '',
+            row.cells[settingColIdx] || '',
+            row.cells[expectedColIdx] || '',
+            row.cells[aggColIdx] || '',
+            this.state.fobCorrectionTexts[row.id] || '',
+            row.cells[statusColIdx] || ''
+          ]);
+        }
+
+        const fullData = [headers];
+        tableData.rows.forEach(r => fullData.push(r.cells));
+
+        const wb = XLSX.utils.book_new();
+        const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, ws1, 'Corrections Summary');
+        const ws2 = XLSX.utils.aoa_to_sheet(fullData);
+        XLSX.utils.book_append_sheet(wb, ws2, 'Full Audit');
+
+        const fobName = this.state.fobOntology?.fob_file || 'FOB';
+        const cleanName = fobName.replace(/\.xlsx$/i, '').substring(0, 40);
+        XLSX.writeFile(wb, `FOB-Audit-Corrections-${cleanName}.xlsx`);
+      },
+
       // ===== Draft Workspace Methods =====
 
       /**
@@ -11426,6 +12794,9 @@ ${conversationText}`;
       renderDraftTab() {
         if (this.state.analysisMode === 'amendment-tracking') {
           return this.renderRegenTab();
+        }
+        if (this.state.analysisMode === 'fob-audit') {
+          return this.renderCorrectionsTab();
         }
         switch (this.state.draftPhase) {
           case 'selection':
@@ -13078,21 +14449,76 @@ Return ONLY the section content (and optional definitions block). No preamble.`;
             this.state.timelineTopicColors[topic] = TIMELINE_TOPIC_COLORS[i % TIMELINE_TOPIC_COLORS.length];
           });
 
-          // PHASE 2: Detailed topic extraction
+          // PHASE 2: Detailed topic extraction — BATCHED to avoid output truncation on large uploads.
+          // Previously a single call asked for ALL meetings at once; with 20+ meetings the JSON
+          // output was routinely truncated at maxOutputTokens, breaking parseTimelineJSON and
+          // failing the whole analysis. We now split meetings into batches and merge results.
           this.state.currentPhase = 2;
           this.state.hasActivatedPhaseTab = false;
           this.state.currentResponse = '';
           this.state.currentThinking = '';
           this.startTimelineProgressRotation(2);
 
-          const prompt2 = PROMPT_TEMPLATES.timelinePhase2(JSON.stringify(ontology, null, 2), fileList);
-          this.state.comparisonResponse = await this.streamResponse(prompt2, true);
-
-          // Parse meetings JSON from Phase 2 response
-          const meetings = parseTimelineJSON(this.state.comparisonResponse);
-          if (!meetings || !Array.isArray(meetings)) {
-            throw new Error('Failed to parse meeting data from Phase 2 response. Please try again.');
+          const TIMELINE_BATCH_SIZE = 5;
+          const meetingsList = ontology.meetings || [];
+          const timelineBatches = [];
+          for (let i = 0; i < meetingsList.length; i += TIMELINE_BATCH_SIZE) {
+            timelineBatches.push(meetingsList.slice(i, i + TIMELINE_BATCH_SIZE));
           }
+          console.log(`📅 Timeline Phase 2: ${timelineBatches.length} batch(es) of up to ${TIMELINE_BATCH_SIZE} meetings`);
+
+          const allMeetings = [];
+          for (let batchIdx = 0; batchIdx < timelineBatches.length; batchIdx++) {
+            const batch = timelineBatches[batchIdx];
+            this.state.currentResponse = '';
+            this.state.currentThinking = '';
+
+            // Upload only the PDFs corresponding to this batch's meetings
+            const fileFilter = batch.map(m => m.file).filter(Boolean);
+            const streamOpts = { maxOutputTokens: 32768 };
+            if (fileFilter.length > 0) streamOpts.fileFilter = fileFilter;
+
+            // Scope the ontology to just this batch's meetings so the prompt only extracts these
+            const batchOntology = { ...ontology, meetings: batch };
+            const batchPrompt = PROMPT_TEMPLATES.timelinePhase2(JSON.stringify(batchOntology, null, 2), fileList);
+            const batchResponse = await this.streamResponse(batchPrompt, true, streamOpts);
+            console.log(`📅 Batch ${batchIdx + 1}/${timelineBatches.length} response: ${batchResponse.length} chars`);
+
+            let batchMeetings = parseTimelineJSON(batchResponse);
+
+            // Attempt JSON repair on truncated responses before giving up on the batch
+            if (!batchMeetings || !Array.isArray(batchMeetings)) {
+              console.warn(`📅 Batch ${batchIdx + 1} parse failed, attempting repair`);
+              window[`_timelineBatch${batchIdx}Debug`] = batchResponse;
+              const fenceMatch = batchResponse.match(/```json\s*([\s\S]*?)(?:```|$)/);
+              if (fenceMatch) {
+                let jsonStr = fenceMatch[1].trim();
+                if (!jsonStr.endsWith(']')) {
+                  const lastObj = jsonStr.lastIndexOf('\n  }');
+                  if (lastObj > 0) {
+                    jsonStr = jsonStr.substring(0, lastObj + 4).replace(/,\s*$/, '') + '\n]';
+                    try { batchMeetings = JSON.parse(jsonStr); } catch (e) { /* continue */ }
+                  }
+                }
+              }
+              if (!batchMeetings || !Array.isArray(batchMeetings)) {
+                console.error(`📅 Batch ${batchIdx + 1} failed — skipping meetings:`, batch.map(m => m.id).join(','));
+                continue;
+              }
+            }
+
+            console.log(`📅 Batch ${batchIdx + 1}: parsed ${batchMeetings.length} meetings`);
+            allMeetings.push(...batchMeetings);
+          }
+
+          if (allMeetings.length === 0) {
+            throw new Error('All meeting extraction batches failed. Could not parse any meeting data. Please try again.');
+          }
+          console.log(`📅 Timeline Phase 2 complete: ${allMeetings.length} meetings extracted across ${timelineBatches.length} batch(es)`);
+
+          // Store merged JSON as a string (session restore reads this via parseTimelineJSON's raw-parse path)
+          this.state.comparisonResponse = JSON.stringify(allMeetings);
+          const meetings = allMeetings;
           this.state.timelineMeetings = meetings;
 
           // Assign colors to any topics found in meetings that weren't in ontology
@@ -15290,7 +16716,15 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this._draftSaveTimer = setTimeout(() => {
           let draftState;
 
-          if (this.state.analysisMode === 'amendment-tracking' && (this.state.regenOutline || this.state.regenPhase !== 'outline')) {
+          if (this.state.analysisMode === 'fob-audit') {
+            draftState = {
+              fobMode: true,
+              fobCorrectionsPhase: this.state.fobCorrectionsPhase,
+              fobConfirmedMismatches: this.state.fobConfirmedMismatches,
+              fobCorrectionTexts: this.state.fobCorrectionTexts,
+              fobMatchesHidden: this.state.fobMatchesHidden
+            };
+          } else if (this.state.analysisMode === 'amendment-tracking' && (this.state.regenOutline || this.state.regenPhase !== 'outline')) {
             // Save regen state for amendment-tracking mode
             draftState = {
               regenMode: true,
@@ -16489,7 +17923,12 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             try { ds = JSON.parse(ds); } catch (e) { ds = null; }
           }
           if (ds) {
-            if (ds.regenMode) {
+            if (ds.fobMode) {
+              this.state.fobCorrectionsPhase = ds.fobCorrectionsPhase || 'review';
+              this.state.fobConfirmedMismatches = ds.fobConfirmedMismatches || {};
+              this.state.fobCorrectionTexts = ds.fobCorrectionTexts || {};
+              this.state.fobMatchesHidden = ds.fobMatchesHidden || false;
+            } else if (ds.regenMode) {
               // Restore regen state (amendment-tracking mode)
               this.state.regenOutline = ds.regenOutline || null;
               this.state.regenStyleGuide = ds.regenStyleGuide || null;
@@ -16512,6 +17951,15 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             }
           }
           this.state._savedDraftState = null;
+        }
+
+        // FOB Audit: apply tab labels and parse ontology on restore
+        if (this.state.analysisMode === 'fob-audit') {
+          this.applyFobTabLabels();
+          if (this.state.summaryResponse && !this.state.fobOntology) {
+            const ontology = parseTimelineJSON(this.state.summaryResponse);
+            if (ontology) this.state.fobOntology = ontology;
+          }
         }
 
         // Show split view (chat sidebar)
@@ -16617,10 +18065,26 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           newAnalysisBtn.style.display = this.state.currentAnalysisId ? 'flex' : 'none';
         }
 
-        const hasOwned = this.state.historyList.length > 0;
+        // Partition owned analyses into workspace vs personal
+        const personalAnalyses = [];
+        const workspaceGroups = {};
+
+        for (const item of this.state.historyList) {
+          if (item.workspace_id) {
+            if (!workspaceGroups[item.workspace_id]) {
+              workspaceGroups[item.workspace_id] = { name: item.workspace_name || 'Workspace', items: [] };
+            }
+            workspaceGroups[item.workspace_id].items.push(item);
+          } else {
+            personalAnalyses.push(item);
+          }
+        }
+
+        const hasWorkspace = Object.keys(workspaceGroups).length > 0;
+        const hasPersonal = personalAnalyses.length > 0;
         const hasShared = this.state.sharedAnalysesList.length > 0;
 
-        if (!hasOwned && !hasShared) {
+        if (!hasWorkspace && !hasPersonal && !hasShared) {
           content.innerHTML = `
             <div class="history-empty">
               <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5">
@@ -16636,12 +18100,33 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
 
         let html = '';
 
-        // Render owned analyses
-        if (hasOwned) {
-          if (hasShared) {
+        // Render workspace groups first
+        if (hasWorkspace) {
+          for (const [wsId, group] of Object.entries(workspaceGroups)) {
+            const isExpanded = this.state.historyExpandedWorkspaceIds.includes(wsId);
+            const count = group.items.length;
+            html += `<div class="history-ws-group">
+              <div class="history-ws-header" onclick="ChatApp.toggleHistoryWorkspace('${wsId}')">
+                <span class="chevron ${isExpanded ? 'expanded' : ''}">&#9654;</span>
+                ${this.escapeHtml(group.name)}
+                <span class="history-ws-count">${count}</span>
+              </div>`;
+            if (isExpanded) {
+              html += `<div class="history-ws-items">`;
+              const grouped = this.groupHistoryByDate(group.items);
+              html += this.renderHistoryCards(grouped, true);
+              html += `</div>`;
+            }
+            html += `</div>`;
+          }
+        }
+
+        // Render personal analyses
+        if (hasPersonal) {
+          if (hasWorkspace || hasShared) {
             html += '<div class="history-section-label">My Analyses</div>';
           }
-          const grouped = this.groupHistoryByDate(this.state.historyList);
+          const grouped = this.groupHistoryByDate(personalAnalyses);
           html += this.renderHistoryCards(grouped, true);
         }
 
@@ -16653,6 +18138,16 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         }
 
         content.innerHTML = html;
+      },
+
+      toggleHistoryWorkspace(wsId) {
+        const idx = this.state.historyExpandedWorkspaceIds.indexOf(wsId);
+        if (idx >= 0) {
+          this.state.historyExpandedWorkspaceIds.splice(idx, 1);
+        } else {
+          this.state.historyExpandedWorkspaceIds.push(wsId);
+        }
+        this.renderHistoryPanel();
       },
 
       /**
@@ -16976,6 +18471,13 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         this.state.isRegenStreaming = false;
         this.state.currentRegenResponse = '';
 
+        // Reset FOB audit state
+        this.state.fobMatchesHidden = false;
+        this.state.fobCorrectionsPhase = 'review';
+        this.state.fobConfirmedMismatches = {};
+        this.state.fobCorrectionTexts = {};
+        this.state.fobOntology = null;
+
         // Reset timeline state
         this.stopTimelineProgressRotation();
         this._timelineEventsInitialized = false;
@@ -17017,12 +18519,10 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         const wsBadge = document.getElementById('ws-collection-badge');
         if (wsBadge) wsBadge.style.display = 'none';
 
-        // If workspace is active, show dashboard instead of empty state
-        if (this.state.activeWorkspaceId) {
-          const dashboard = document.getElementById('workspace-dashboard');
-          if (dashboard) dashboard.style.display = 'block';
-          this.renderWorkspaceDashboard();
-        }
+        // Clear active workspace context and re-show collection picker
+        this.state.activeWorkspaceId = null;
+        this.state.activeWorkspace = null;
+        this.renderCollectionPicker();
 
         // Hide output tabs, split view, timeline workspace, and invoice workspace
         const outputTabs = document.getElementById('output-tabs');
