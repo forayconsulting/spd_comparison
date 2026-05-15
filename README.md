@@ -6,9 +6,10 @@
 
 **Key Features:**
 - **Three-phase analysis:** Document summary → Comparison matrix → Detailed language extraction with citations
-- **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking, Minutes Analysis, or Invoice Analysis — each mode appends context-specific addenda to prompts
+- **Analysis mode selector:** Split-button dropdown on the Compare button lets users choose Cross-Plan Comparison, Amendment Tracking, Minutes Analysis, Invoice Analysis, or FOB Audit — each mode appends context-specific addenda to prompts
 - **Timeline visualization (Minutes Analysis):** Meeting notes are analyzed via a 2-phase AI workflow producing structured JSON, then rendered as an interactive horizontal timeline with topic filtering, thread tracing, detail panels with citations, custom AI search, and an integrated chat sidebar — exportable as topic-centric DOCX/PDF reports with a Decision Register and per-topic chronological analysis
 - **Invoice analysis:** Invoices and billing statements analyzed via batched 2-phase AI extraction with Chart.js visualization, vendor/category breakdowns, and an integrated billing-analyst chat
+- **FOB Audit:** Compare Anthem FOB (Features of Benefits) Excel submissions against returned Aggregate documents to identify configuration errors — auto-detects PPO vs EPO template variants, produces color-coded match/mismatch differences table with inline cell references, and exports an annotated copy of the Aggregate with corrections pre-populated in Column L
 - **Interactive tables:** Sort columns, filter by value, drag-reorder rows via visible handles, and ask AI to group related provisions
 - **Multi-turn chat with compaction:** Ask follow-up questions with full conversation history; long sessions auto-summarize to stay within context limits
 - **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend

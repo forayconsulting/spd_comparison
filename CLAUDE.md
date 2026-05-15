@@ -871,14 +871,56 @@ When an analysis is deleted, all associated R2 objects are deleted automatically
 
 ## Database Migrations
 
-**CRITICAL:** This project has no automated migration system. When code changes reference new database columns, constraints, or tables, the corresponding SQL must be applied manually to Railway PostgreSQL before or at the time of deployment. Failure to do so causes 500 errors on all affected endpoints.
+**CRITICAL:** This project has no automated migration system. When code changes reference new database columns, constraints, or tables, the corresponding SQL **must be applied manually to every instance's Railway PostgreSQL before or alongside the deployment that references it.** Failure to do so causes 500 errors on all affected endpoints, which in turn makes features appear silently broken in the UI (see "Silent breakage symptom" below).
 
-**Connection:** Use `railway variables` to get the current `DATABASE_PUBLIC_URL`, then connect with `psql`. Or use `railway connect postgres` for an interactive shell.
+### Multi-tenant fan-out (the common footgun)
 
-**Checklist for code that touches DB queries:**
-1. If you add a column to a `SELECT`, `INSERT`, or `WHERE` clause — run `ALTER TABLE ... ADD COLUMN` on Railway
-2. If you change a `CHECK` constraint — drop and recreate it on Railway
-3. Document the migration in the README's "Database Migrations" table
+Each deployed instance (production `wpf`, `demo`, and any future tenants) has its **own separate Railway Postgres database**. Adding a migration to `schema.sql` and deploying the code does **not** migrate any of those DBs — the schema file is only ever read by hand. **A new migration must be applied N times, once per live instance.**
+
+Railway service ↔ instance mapping (as of 2026-04-16):
+
+| Instance | Railway Service | Proxy Host | Hyperdrive ID |
+|---|---|---|---|
+| Production (`wpf`) | `Postgres` | `interchange.proxy.rlwy.net:15429` | `158d316aa903469cb2034df36a03b32a` |
+| `demo` | `Postgres-LtR0` | `yamabiko.proxy.rlwy.net:33835` | `3521c5675de449f8b6728a52a83ecd1f` |
+| `leadingedge` | `spd-matrix-leadingedge` | `yamanote.proxy.rlwy.net:35014` | `e457cae1b8b645349ace83a954e6dac3` |
+
+All services live under the `spd-matrix-backend` Railway project. To list them: `railway link --project spd-matrix-backend && railway status --json`.
+
+### Workflow: adding a migration
+
+1. **Add the idempotent SQL** to `schema.sql` — always use `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS`, `DROP TRIGGER IF EXISTS … CREATE TRIGGER`, etc., so the same block can be replayed safely on any instance.
+2. **Apply to every instance in the Railway service mapping above** — before the code referencing the change ships to that instance. For each:
+   ```bash
+   DB_URL=$(railway variables --service "<ServiceName>" --kv | grep '^DATABASE_PUBLIC_URL=' | cut -d= -f2-)
+   psql "$DB_URL" -f schema.sql   # or a trimmed file with just the new block, wrapped in BEGIN/COMMIT
+   ```
+3. **Verify** by running the exact query your new code will run (a failing `SELECT … LEFT JOIN new_table` is the fastest reproduction).
+4. **Document** the migration in README's "Database Migrations" table.
+5. **If you add a new instance**, update the Railway service mapping above so future migrations hit it.
+
+### Silent breakage symptom (and diagnosis)
+
+If a user reports that **"history is empty"**, **"chats don't persist"**, **"notes disappear"**, or similar — before suspecting auth, session, or R2, **check for schema drift**. The pattern is:
+
+- The endpoint's SQL references a table/column not present on that instance's DB
+- Postgres returns an error; the Pages Function catches it, logs, and returns a 500
+- The frontend catches the 500 and falls back to its empty state (e.g. "No saved analyses yet")
+- No user-visible error; the data is actually in the DB, just unreachable
+
+**Diagnostic steps:**
+1. Compare the instance DB schema to `schema.sql`:
+   ```bash
+   psql "$DB_URL" -c "\dt"           # tables present?
+   psql "$DB_URL" -c "\d analyses"   # columns present?
+   ```
+2. Run the exact failing query from the endpoint source. If it errors, that's the drift.
+3. Apply the missing section of `schema.sql` (idempotent — safe to replay the whole file).
+4. Count what was recovered (`SELECT COUNT(*) …`) so you can tell the user how much was unreachable and for how long.
+
+### Incident log (recent, for reference)
+
+- **2026-04-16** — Workspace migration (lines 195-272 of `schema.sql`, dated 2026-04-13) was merged and deployed to both production and demo but never applied to either database. Symptom: every instance reported "No saved analyses yet" in the UI. Fix: applied the workspace block to both DBs. Recovered 2 analyses on demo, 59 analyses across ~10 users on production (oldest unreachable analysis had been stuck for ~3 days).
 
 ## Git Workflow
 
@@ -1151,6 +1193,7 @@ SPD Matrix supports per-client isolation via separate Cloudflare Pages deploymen
 | Slug | Pages Project | Domain(s) | Client |
 |------|--------------|-----------|--------|
 | `wpf` | `spd-matrix` | `wpf.syncrodocsystems.com`, `spd-matrix.foray-consulting.com` | Western Pension Fund (Foray) |
+| `leadingedge` | `spd-matrix-leadingedge` | `leadingedge.syncrodocsystems.com` | Leading Edge Administrators (FOB Audit pilot) |
 
 **Deploying a New Instance:**
 See `INSTANCE-DEPLOY.md` for the Claude Code runbook that automates CLI steps and guides through manual dashboard steps for any new instance.
