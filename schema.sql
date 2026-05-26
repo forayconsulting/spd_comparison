@@ -161,8 +161,8 @@ ALTER TABLE analyses ADD COLUMN IF NOT EXISTS analysis_mode VARCHAR(50) DEFAULT 
 -- Admin flag on users table
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;
 
--- Set initial admin
-UPDATE users SET is_admin = true WHERE email = 'clayton@foray-consulting.com';
+-- Set initial admin (replace placeholder with the bootstrap admin email for this instance)
+-- UPDATE users SET is_admin = true WHERE email = 'admin@example.com';
 
 -- App-wide settings (key-value store for admin-configurable settings)
 CREATE TABLE IF NOT EXISTS app_settings (

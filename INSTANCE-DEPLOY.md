@@ -37,7 +37,7 @@ Ask the user for the following before proceeding. Use AskUserQuestion where appr
 | Parameter | Example | Description |
 |-----------|---------|-------------|
 | `SLUG` | `demo` | Workspace slug — becomes `{SLUG}.syncrodocsystems.com`. Lowercase alphanumeric + hyphens only. |
-| `ADMIN_EMAIL` | `clayton@foray-consulting.com` | Initial admin user email. |
+| `ADMIN_EMAIL` | `admin@example.com` | Initial admin user email. |
 | `ACCESS_EMAILS` | (list) | Email addresses for Cloudflare Access allowlist. Must include `ADMIN_EMAIL`. |
 
 Validate that `SLUG` matches `/^[a-z0-9][a-z0-9-]*[a-z0-9]$/` (no leading/trailing hyphens, lowercase only).
