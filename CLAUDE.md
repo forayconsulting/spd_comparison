@@ -1,5 +1,30 @@
 # CLAUDE.md
 
+> **!! TEMPORARY API KEY IN USE — READ BEFORE MAKING CHANGES !!**
+>
+> **What happened:** On May 15-24, 2026 a leaked Gemini API key was exploited for ~$9,500 in
+> fraudulent charges. The billing account (010509-E1A0D8-851535) is past due and the Gemini API
+> is disabled on the original project (gen-lang-client-0148571552).
+>
+> **Current workaround (as of May 28, 2026):** All 3 deployments (spd-matrix, spd-matrix-leadingedge,
+> spd-matrix-demo) plus local dev (config.js, .dev.vars) are using a **paid-tier prepay** API key
+> ("BackupGemini", ends in `...UbDs`) from cchancey1@gmail.com's personal GCP project
+> (gen-lang-client-0908406240, project# 1027142948717), billed to Amex •••• 1000 with $25
+> prepaid credits (Cloud Prepay 018AAE-156B9F-83C54F). Tier 1 Prepay, no rate limit issues.
+>
+> **Cost per run:** ~$0.19 for a full FOB Audit (3-phase analysis + 1 chat message).
+> $25 in credits covers ~130 full runs.
+>
+> **Next steps (after PTO, week of June 1):**
+> 1. Update GCP billing with new Chase Ink card number (old card cancelled due to fraud)
+> 2. Wait for Google billing dispute resolution (case #71681690, ETA ~June 6-9)
+> 3. Once billing is restored: switch all deployments back to a key on the original project
+>    (which has Vertex AI configured and no rate limits)
+> 4. Delete the temporary BackupGemini key
+> 5. Verify SyncroDoc is fully working, then notify LeadingEdge (Tia Pitt, Vanessa Delgado)
+>
+> **Do NOT:** commit config.js or .dev.vars (they contain the API key and are gitignored).
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview

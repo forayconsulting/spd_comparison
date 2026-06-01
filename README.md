@@ -12,7 +12,7 @@
 - **FOB Audit:** Compare Anthem FOB (Features of Benefits) Excel submissions against returned Aggregate documents to identify configuration errors — auto-detects PPO vs EPO template variants, produces color-coded match/mismatch differences table with inline cell references, and exports an annotated copy of the Aggregate with corrections pre-populated in Column L
 - **Interactive tables:** Sort columns, filter by value, drag-reorder rows via visible handles, and ask AI to group related provisions
 - **Multi-turn chat with compaction:** Ask follow-up questions with full conversation history; long sessions auto-summarize to stay within context limits
-- **Session history:** Save, reload, and duplicate analyses with Railway PostgreSQL backend
+- **Session history:** Save, reload, duplicate, and delete analyses with Railway PostgreSQL backend
 - **Persistent document storage:** PDFs stored in Cloudflare R2 for seamless session reload and clickable citations
 - **Merge workspace:** Select provisions from the comparison table, generate an AI-synthesized integrated column, then produce a formatted SPD draft — all editable with inline AI rework
 - **Action-flagged notes:** Mark annotations as "actionable" to pass them as instructions to the AI during draft generation; toggle note types inline from the Merge selection view
@@ -379,6 +379,12 @@ gitGraph TB:
 - **Chat message role validation:** Added server-side allowlist check (`user`, `assistant`, `system`) before database insert, preventing invalid roles from hitting the DB constraint and triggering 500 errors
 - **SSE proxy error sanitization:** Replaced raw exception messages in SSE error events with generic "Upstream connection failed" message
 - **Test suite scaffolding:** Added Vitest with 37 unit tests covering auth boundaries (`getUserEmail` JWT parsing, localhost fallback), admin gates, response helpers, file upload validation (MIME allowlist, filename sanitization), chat role validation, share token validation (expiry, revocation, max uses), note type validation, and admin settings key allowlist. Run via `npm test`
+
+**June 1, 2026 — Delete Session**
+- Delete button (trash icon) on owned history cards, with confirmation dialog
+- Calls existing `DELETE /api/history/analyses/:id` endpoint (R2 cascade cleanup, DB cascade for notes/chat/shares)
+- Deleting the currently-loaded session resets the app to blank state
+- Added `confirm` mode to `showAppDialog()` for OK/Cancel dialogs without input field
 
 ## Database Migrations
 

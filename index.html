@@ -444,6 +444,30 @@
       color: white;
     }
 
+    .history-delete-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .history-card:hover .history-delete-btn {
+      opacity: 1;
+    }
+
+    .history-delete-btn:hover {
+      background: rgba(255, 80, 80, 0.15);
+      color: #ff6b6b;
+    }
+
     .history-duplicate-btn .spinner {
       width: 14px;
       height: 14px;
@@ -16980,6 +17004,9 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
             inputEl.placeholder = placeholder;
             inputEl.value = defaultValue;
             cancelBtn.style.display = '';
+          } else if (mode === 'confirm') {
+            inputEl.style.display = 'none';
+            cancelBtn.style.display = '';
           } else {
             inputEl.style.display = 'none';
             cancelBtn.style.display = 'none';
@@ -17005,7 +17032,7 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
           };
           const onKey = (e) => {
             if (e.key === 'Escape') onCancel();
-            if (e.key === 'Enter' && (mode === 'alert' || (mode === 'prompt' && !e.shiftKey))) {
+            if (e.key === 'Enter' && (mode === 'alert' || mode === 'confirm' || (mode === 'prompt' && !e.shiftKey))) {
               e.preventDefault();
               onOk();
             }
@@ -18249,6 +18276,12 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </button>
+                  <button class="history-delete-btn" onclick="event.stopPropagation(); ChatApp.deleteAnalysis('${item.id}', '${this.escapeHtml(fullTitle).replace(/'/g, "\\'")}');" title="Delete">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
                   ` : ''}
                 </div>
                 ${!isOwned && item.owner_email ? `
@@ -18390,6 +18423,34 @@ Rewrite ONLY this section following the instruction. Return the rewritten text o
         } catch (error) {
           console.error('Error renaming analysis:', error);
           alert('Failed to rename analysis');
+        }
+      },
+
+      async deleteAnalysis(analysisId, title) {
+        const confirmed = await this.showAppDialog({
+          title: 'Delete Session',
+          message: `Delete "${title}"? This cannot be undone.`,
+          mode: 'confirm'
+        });
+        if (!confirmed) return;
+
+        try {
+          const res = await fetch(`/api/history/analyses/${analysisId}`, {
+            method: 'DELETE'
+          });
+
+          if (res.ok) {
+            this.state.historyList = this.state.historyList.filter(a => a.id !== analysisId);
+            if (analysisId === this.state.currentAnalysisId) {
+              this.startNewAnalysis();
+            }
+            this.renderHistoryPanel();
+          } else {
+            this.showAppDialog({ title: 'Error', message: 'Failed to delete session.' });
+          }
+        } catch (error) {
+          console.error('Error deleting analysis:', error);
+          this.showAppDialog({ title: 'Error', message: 'Failed to delete session.' });
         }
       },
 
