@@ -7310,7 +7310,7 @@ TERMINOLOGY EQUIVALENCE — do NOT flag these as mismatches:
 - Whitespace, capitalization, and minor punctuation differences are not mismatches
 
 STATUS CLASSIFICATION RULES — FOB audits require LITERAL text comparison, not semantic equivalence:
-- **Match**: The Expected Value and Aggregate Value contain the same text (after applying ONLY the terminology equivalence normalizations listed above — formatting like "80%" vs "80.00%", "$35" vs "$35.00", and the explicit equivalences like "Not Covered" = "Excluded"). If the actual words or numbers differ in ANY other way, it is NOT a match.
+- **Match**: The Expected Value and Aggregate Value contain the same text (after applying ONLY the terminology equivalence normalizations listed above — formatting like "80%" vs "80.00%", "$35" vs "$35.00", and the explicit equivalences like "Not Covered" = "Excluded"). If the actual words, numbers, word order, sentence structure, or qualifying context differ in ANY other way, it is NOT a match. In particular: if one document uses a structured format like "$35/ per PCP visit $70/ per Specialist visit" and the other reformats it as "$35 Per Visit / $70 Per Visit", this is a Mismatch because the provider-type qualifiers are lost. Similarly, rephrased sentences with the same meaning but different word order are Mismatches.
 - **Mismatch**: The Expected Value and Aggregate Value differ in wording, values, conditions, qualifiers, limits, notes, or any other textual content — even if they are logically or semantically equivalent. Examples: "12 Months" vs "365 Days" = Mismatch (different text). "Covered" vs "Covered – Conditionally" = Mismatch. "80%" vs "50%" = Mismatch.
 - **Uncertain**: Values appear similar but contain subtle differences that could be formatting artifacts or genuine mismatches — flag for human review. Use sparingly.
 - **Missing**: A benefit line exists in one document but has no corresponding entry in the other.
@@ -7323,6 +7323,8 @@ EXAMPLES — study these carefully:
 - FOB: "Not Covered" vs Aggregate: "Excluded" → Status: **Match** (explicit terminology equivalence)
 - FOB: "$35.00" vs Aggregate: "$35" → Status: **Match** (formatting normalization)
 - FOB: "Emergency Room" with note "Limit combined Institutional/Professional." vs Aggregate: "Emergency Room" without that note → Status: **Mismatch** (qualifier text differs)
+- FOB: "$35/ per PCP visit $70/ per Specialist visit" vs Aggregate: "$35 Per Visit / $70 Per Visit" → Status: **Mismatch** (provider-type distinction "PCP" vs "Specialist" is lost in the Aggregate's reformatted text — the dollar amounts match but the qualifying context differs)
+- FOB: "Sleep Studies in the home are covered" vs Aggregate: "Sleep studies are covered in the patients home" → Status: **Mismatch** (different sentence structure — even when the meaning is identical, any difference in phrasing or word order is a Mismatch)
 
 CRITICAL INSTRUCTIONS:
 - Report ALL lines including matches. Do NOT skip, summarize, or condense matching lines. Every benefit line from the FOB must appear in the output table.
@@ -9665,16 +9667,70 @@ CRITICAL RULES:
           const phase2Opts = (analysisMode === 'fob-audit') ? { maxOutputTokens: 65536, temperature: 0.2, topP: 0.9, seed: 42 } : {};
           this.state.comparisonResponse = await this.streamResponse(prompt2, true, phase2Opts);
 
+          // FOB Audit: continuation loop for truncated output
+          if (analysisMode === 'fob-audit' && this.state.lastFinishReason === 'MAX_TOKENS') {
+            const MAX_CONTINUATIONS = 4;
+            for (let cont = 1; cont <= MAX_CONTINUATIONS; cont++) {
+              console.log(`🔄 FOB Phase 2 continuation ${cont}/${MAX_CONTINUATIONS} (${this.state.comparisonResponse.length} chars so far)`);
+              this.updatePhaseProgress(2, `Continuation ${cont} — extending audit coverage...`);
+
+              const contPrompt = this.buildFobContinuationPrompt(
+                phase2Summary, fileList, this.state.fobOntology, this.state.comparisonResponse
+              );
+              this.state.currentResponse = '';
+              this.state.currentThinking = '';
+
+              const contResponse = await this.streamResponse(contPrompt, true, phase2Opts);
+              const cleanCont = this.stripFobTableHeader(contResponse);
+              this.state.comparisonResponse += '\n' + cleanCont;
+
+              this.state.comparisonTableData = this.parseTableData(this.state.comparisonResponse);
+              this.renderInteractiveTable('comparison');
+
+              console.log(`✅ Continuation ${cont}: ${this.state.comparisonTableData?.rows?.length || '?'} rows, finishReason: ${this.state.lastFinishReason}`);
+              if (this.state.lastFinishReason === 'STOP') break;
+            }
+            if (this.state.lastFinishReason === 'MAX_TOKENS') {
+              console.warn(`⚠️ FOB Phase 2 still truncated after ${MAX_CONTINUATIONS} continuations`);
+            }
+          }
+
+          // FOB Audit: dedicated Blank-OON pass for EPO plans
+          if (analysisMode === 'fob-audit' && this.state.fobOntology) {
+            const variant = (this.state.fobOntology.template_variant || '').toLowerCase();
+            const isEpo = variant.includes('epo') || variant.includes('par');
+            if (isEpo) {
+              const tempTable = this.parseTableData(this.state.comparisonResponse);
+              const statusIdx = (tempTable?.headers || []).findIndex(h => h.toLowerCase().includes('status'));
+              const blankOonCount = statusIdx >= 0
+                ? (tempTable?.rows || []).filter(r => (r.cells[statusIdx] || '').toLowerCase().includes('blank')).length
+                : 0;
+              if (blankOonCount === 0) {
+                console.log('🔍 EPO plan with 0 Blank-OON rows — running dedicated pass');
+                this.updatePhaseProgress(2, 'Scanning for blank OON cells...');
+                this.state.currentResponse = '';
+                this.state.currentThinking = '';
+
+                const oonPrompt = this.buildBlankOonPrompt(phase2Summary, fileList, this.state.fobOntology);
+                const oonResponse = await this.streamResponse(oonPrompt, true, { maxOutputTokens: 32768, temperature: 0.2, topP: 0.9, seed: 42 });
+                const cleanOon = this.stripFobTableHeader(oonResponse);
+                if (cleanOon.trim()) {
+                  this.state.comparisonResponse += '\n' + cleanOon;
+                  console.log('✅ Blank-OON pass added rows');
+                } else {
+                  console.log('ℹ️ Blank-OON pass returned no rows');
+                }
+              }
+            }
+          }
+
           // Phase 2 complete - parse into interactive table and show download button
           this.state.comparisonTableData = this.parseTableData(this.state.comparisonResponse);
           this.renderInteractiveTable('comparison');
           document.getElementById('export-comparison-btn').style.display = 'inline-flex';
 
-          // FOB Audit: check for truncation and run validation
-          if (this.state.analysisMode === 'fob-audit') {
-            if (this.state.lastFinishReason === 'MAX_TOKENS') {
-              console.warn('⚠️ FOB Phase 2 output was truncated at token limit');
-            }
+          // FOB Audit: run validation
+          if (analysisMode === 'fob-audit') {
             this.state.fobValidationWarnings = this.validateFobOutput(this.state.comparisonTableData, this.state.fobOntology);
             if (this.state.fobValidationWarnings.length > 0) {
               this.renderInteractiveTable('comparison');
@@ -12725,6 +12781,119 @@ ${conversationText}`;
         }
 
         return warnings;
+      },
+
+      findFobContinuationPoint(markdown) {
+        const lines = markdown.split('\n').filter(l => l.trim().startsWith('|'));
+        if (lines.length < 3) return null;
+
+        const parseRow = line => line.split('|').slice(1, -1).map(c => c.trim());
+        const headers = parseRow(lines[0]);
+        const sectionIdx = headers.findIndex(h => h.toLowerCase().includes('section'));
+        if (sectionIdx < 0) return null;
+
+        const sectionsPresent = new Set();
+        let lastSection = 'unknown';
+        for (let i = 2; i < lines.length; i++) {
+          const cells = parseRow(lines[i]);
+          const s = (cells[sectionIdx] || '').trim();
+          if (s) { sectionsPresent.add(s); lastSection = s; }
+        }
+
+        return {
+          lastSection,
+          sectionsPresent: [...sectionsPresent],
+          totalRows: lines.length - 2,
+        };
+      },
+
+      buildFobContinuationPrompt(summary, fileList, ontology, existingOutput) {
+        const contPoint = this.findFobContinuationPoint(existingOutput);
+
+        let remainingSections = '- All remaining sections not yet covered';
+        if (ontology && ontology.sections && contPoint) {
+          const presentLower = contPoint.sectionsPresent.map(s => s.toLowerCase());
+          const remaining = ontology.sections.filter(s => {
+            const name = s.name.toLowerCase();
+            return !presentLower.some(p => p.includes(name) || name.includes(p));
+          });
+          if (remaining.length > 0) {
+            remainingSections = remaining.map(s => `- ${s.name} (FOB rows ${s.fob_rows})`).join('\n');
+          }
+        }
+
+        const addendum = MODE_ADDENDA['fob-audit'].phase2;
+
+        return `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
+
+<summary>
+${summary}
+</summary>
+
+The uploaded documents are (in order):
+${fileList}
+
+You are CONTINUING a FOB audit comparison table that was truncated. Here is what has been generated so far (${contPoint ? contPoint.totalRows : '?'} rows covering sections: ${contPoint ? contPoint.sectionsPresent.join(', ') : 'unknown'}):
+
+<existing_output_tail>
+${existingOutput.split('\n').slice(-30).join('\n')}
+</existing_output_tail>
+
+CONTINUATION INSTRUCTIONS:
+1. Do NOT output the table header row or separator row. Start IMMEDIATELY with data rows.
+2. Continue from where the existing output left off. The last section covered was "${contPoint ? contPoint.lastSection : 'unknown'}".
+3. Cover these remaining sections:
+${remainingSections}
+4. Use the EXACT SAME column format: | Section | Benefit / Field | Setting | FOB Standard | FOB Deviation | Expected Value | Aggregate Value | Status | Details | FOB Ref | Agg Ref |
+5. Maintain FOB document order. Do not repeat rows already in the existing output.
+${addendum}`;
+      },
+
+      stripFobTableHeader(markdown) {
+        return markdown.split('\n').filter(line => {
+          const t = line.trim();
+          if (t.startsWith('|') && t.toLowerCase().includes('section') && t.toLowerCase().includes('benefit') && t.toLowerCase().includes('status')) {
+            return false;
+          }
+          if (t.startsWith('|') && /^\|[\s|:-]+$/.test(t)) {
+            return false;
+          }
+          return true;
+        }).join('\n');
+      },
+
+      buildBlankOonPrompt(summary, fileList, ontology) {
+        return `Comprehensively read the attached documents. Here is a summary:
+
+<summary>
+${summary}
+</summary>
+
+The uploaded documents are (in order):
+${fileList}
+
+This is an EPO/PAR-Only plan. Perform ONLY the Blank-OON audit:
+
+For EVERY benefit line in the Aggregate document, check the OON (Out-of-Network) column:
+- If the OON cell contains "Not Applicable", "N/A", or "Not Covered" → this is CORRECT, skip it
+- If the OON cell is BLANK or EMPTY (no text at all) → create a row
+
+Output format — use this EXACT table structure with NO header row (this will be appended to an existing table):
+| Section | Benefit / Field | Setting | FOB Standard | FOB Deviation | Expected Value | Aggregate Value | Status | Details | FOB Ref | Agg Ref |
+
+For each blank OON cell, output a row with:
+- Section: the appropriate section (Benefits, Financial, etc.)
+- Benefit / Field: the benefit name
+- Setting: OON
+- FOB Standard, FOB Deviation, Expected Value: leave blank or N/A
+- Aggregate Value: (blank)
+- Status: Blank-OON
+- Details: OON cell is blank — should explicitly state "Not Applicable" for EPO plan
+- Agg Ref: the Aggregate cell reference (e.g., "R165 C-J")
+
+Do NOT include rows that already have "Not Applicable" or "N/A" — those are correct.
+Do NOT include a table header or separator. Start immediately with data rows.
+Return ONLY the table rows with no preamble or footnotes.`;
       },
 
       buildFobChatSystemInstruction() {
