@@ -9664,64 +9664,13 @@ CRITICAL RULES:
             phase2Summary += `\n\nFOB ONTOLOGY (from Phase 1): Template variant: ${this.state.fobOntology.template_variant}. FOB columns: ${JSON.stringify(this.state.fobOntology.fob_columns)}. Aggregate columns: ${JSON.stringify(this.state.fobOntology.aggregate_columns)}.`;
           }
           const prompt2 = PROMPT_TEMPLATES.phase2(phase2Summary, fileList, analysisMode);
-          const phase2Opts = (analysisMode === 'fob-audit') ? { maxOutputTokens: 65536, temperature: 0.2, topP: 0.9, seed: 42 } : {};
-          this.state.comparisonResponse = await this.streamResponse(prompt2, true, phase2Opts);
+          const phase2Opts = (analysisMode === 'fob-audit') ? { maxOutputTokens: 65536, temperature: 0.2, topP: 0.9, seed: 42, thinkingLevel: 'medium' } : {};
 
-          // FOB Audit: continuation loop for truncated output
-          if (analysisMode === 'fob-audit' && this.state.lastFinishReason === 'MAX_TOKENS') {
-            const MAX_CONTINUATIONS = 4;
-            for (let cont = 1; cont <= MAX_CONTINUATIONS; cont++) {
-              console.log(`🔄 FOB Phase 2 continuation ${cont}/${MAX_CONTINUATIONS} (${this.state.comparisonResponse.length} chars so far)`);
-              this.updatePhaseProgress(2, `Continuation ${cont} — extending audit coverage...`);
-
-              const contPrompt = this.buildFobContinuationPrompt(
-                phase2Summary, fileList, this.state.fobOntology, this.state.comparisonResponse
-              );
-              this.state.currentResponse = '';
-              this.state.currentThinking = '';
-
-              const contResponse = await this.streamResponse(contPrompt, true, phase2Opts);
-              const cleanCont = this.stripFobTableHeader(contResponse);
-              this.state.comparisonResponse += '\n' + cleanCont;
-
-              this.state.comparisonTableData = this.parseTableData(this.state.comparisonResponse);
-              this.renderInteractiveTable('comparison');
-
-              console.log(`✅ Continuation ${cont}: ${this.state.comparisonTableData?.rows?.length || '?'} rows, finishReason: ${this.state.lastFinishReason}`);
-              if (this.state.lastFinishReason === 'STOP') break;
-            }
-            if (this.state.lastFinishReason === 'MAX_TOKENS') {
-              console.warn(`⚠️ FOB Phase 2 still truncated after ${MAX_CONTINUATIONS} continuations`);
-            }
-          }
-
-          // FOB Audit: dedicated Blank-OON pass for EPO plans
-          if (analysisMode === 'fob-audit' && this.state.fobOntology) {
-            const variant = (this.state.fobOntology.template_variant || '').toLowerCase();
-            const isEpo = variant.includes('epo') || variant.includes('par');
-            if (isEpo) {
-              const tempTable = this.parseTableData(this.state.comparisonResponse);
-              const statusIdx = (tempTable?.headers || []).findIndex(h => h.toLowerCase().includes('status'));
-              const blankOonCount = statusIdx >= 0
-                ? (tempTable?.rows || []).filter(r => (r.cells[statusIdx] || '').toLowerCase().includes('blank')).length
-                : 0;
-              if (blankOonCount === 0) {
-                console.log('🔍 EPO plan with 0 Blank-OON rows — running dedicated pass');
-                this.updatePhaseProgress(2, 'Scanning for blank OON cells...');
-                this.state.currentResponse = '';
-                this.state.currentThinking = '';
-
-                const oonPrompt = this.buildBlankOonPrompt(phase2Summary, fileList, this.state.fobOntology);
-                const oonResponse = await this.streamResponse(oonPrompt, true, { maxOutputTokens: 32768, temperature: 0.2, topP: 0.9, seed: 42 });
-                const cleanOon = this.stripFobTableHeader(oonResponse);
-                if (cleanOon.trim()) {
-                  this.state.comparisonResponse += '\n' + cleanOon;
-                  console.log('✅ Blank-OON pass added rows');
-                } else {
-                  console.log('ℹ️ Blank-OON pass returned no rows');
-                }
-              }
-            }
+          // FOB Audit: proactively split Phase 2 into section batches to avoid proxy timeout
+          if (analysisMode === 'fob-audit' && this.state.fobOntology?.sections?.length > 0) {
+            this.state.comparisonResponse = await this.runFobPhase2Batched(phase2Summary, fileList, phase2Opts);
+          } else {
+            this.state.comparisonResponse = await this.streamResponse(prompt2, true, phase2Opts);
           }
 
           // Phase 2 complete - parse into interactive table and show download button
@@ -9886,23 +9835,23 @@ CRITICAL RULES:
             ...(options.topP !== undefined && { topP: options.topP }),
             ...(options.seed !== undefined && { seed: options.seed }),
             thinkingConfig: {
-              thinkingLevel: CONFIG.THINKING_LEVEL || 'high'
+              thinkingLevel: options.thinkingLevel || CONFIG.THINKING_LEVEL || 'high'
             }
           }
         };
 
-        console.log(`📤 API Request: Phase ${this.state.currentPhase} to ${model} (maxTokens: ${requestBody.generationConfig.maxOutputTokens})`);
+        console.log(`📤 API Request: Phase ${this.state.currentPhase} to ${model} (maxTokens: ${requestBody.generationConfig.maxOutputTokens}, thinking: ${requestBody.generationConfig.thinkingConfig.thinkingLevel})`);
         console.log(`📝 Prompt (first 200 chars): ${userPrompt.substring(0, 200)}...`);
 
-        const response = await this.fetchWithRetry(
-          this.getApiUrl(model),
-          {
-            method: 'POST',
-            headers: this.getApiHeaders(),
-            body: JSON.stringify(requestBody),
-            signal: this.state.abortController.signal
-          }
-        );
+        const fetchOpts = {
+          method: 'POST',
+          headers: this.getApiHeaders(),
+          body: JSON.stringify(requestBody),
+          signal: this.state.abortController.signal
+        };
+        const fetchUrl = this.getApiUrl(model);
+
+        let response = await this.fetchWithRetry(fetchUrl, fetchOpts);
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -9921,50 +9870,78 @@ CRITICAL RULES:
           }
         }
 
-        const reader = response.body
-          .pipeThrough(new TextDecoderStream())
-          .getReader();
+        const RETRYABLE_CODES = [524, 502, 503, 429];
+        const MAX_RETRIES = 2;
 
-        let buffer = '';
-        let chunkCount = 0;
-        this.state.streamError = null;
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          if (attempt > 0) {
+            const waitSec = attempt * 5;
+            console.log(`🔄 Retry ${attempt}/${MAX_RETRIES} after ${waitSec}s...`);
+            this.setPhaseStatus(`Connection interrupted — retrying in ${waitSec}s...`);
+            await new Promise(r => setTimeout(r, waitSec * 1000));
+            this.state.currentResponse = '';
+            this.state.currentThinking = '';
+            this.state.lastFinishReason = null;
+            response = await this.fetchWithRetry(fetchUrl, fetchOpts);
+            if (!response.ok) {
+              throw new Error(`API request failed (${response.status}): error code: ${response.status}`);
+            }
+          }
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+          const reader = response.body
+            .pipeThrough(new TextDecoderStream())
+            .getReader();
 
-          buffer += value;
-          const events = buffer.split(/\r?\n\r?\n/);
-          buffer = events.pop() || '';
+          let buffer = '';
+          let chunkCount = 0;
+          this.state.streamError = null;
 
-          for (const event of events) {
-            if (!event.trim()) continue;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-            const lines = event.split(/\r?\n/);
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                try {
-                  const jsonData = line.slice(6);
-                  const chunk = JSON.parse(jsonData);
-                  this.handleStreamChunk(chunk);
-                  chunkCount++;
-                } catch (e) {
-                  console.error('Parse error:', e, line);
+            buffer += value;
+            const events = buffer.split(/\r?\n\r?\n/);
+            buffer = events.pop() || '';
+
+            for (const event of events) {
+              if (!event.trim()) continue;
+
+              const lines = event.split(/\r?\n/);
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const jsonData = line.slice(6);
+                    const chunk = JSON.parse(jsonData);
+                    this.handleStreamChunk(chunk);
+                    chunkCount++;
+                  } catch (e) {
+                    console.error('Parse error:', e, line);
+                  }
                 }
               }
             }
           }
-        }
 
-        // Surface API errors that arrived as SSE events (e.g. from proxy)
-        if (this.state.streamError) {
-          const err = this.state.streamError;
-          this.state.streamError = null;
-          throw new Error(`API error (${err.code}): ${err.message}`);
+          // Check for retryable SSE errors
+          if (this.state.streamError && RETRYABLE_CODES.includes(this.state.streamError.code) && attempt < MAX_RETRIES) {
+            console.warn(`⚠️ Retryable error (${this.state.streamError.code}): ${this.state.streamError.message}`);
+            continue;
+          }
+
+          // Surface non-retryable API errors
+          if (this.state.streamError) {
+            const err = this.state.streamError;
+            this.state.streamError = null;
+            throw new Error(`API error (${err.code}): ${err.message}`);
+          }
+
+          // Success
+          break;
         }
 
         const responseLength = this.state.currentResponse.length;
-        console.log(`✅ API Response Complete: Phase ${this.state.currentPhase}/3 - ${chunkCount} chunks, ${responseLength} chars`);
+        console.log(`✅ API Response Complete: Phase ${this.state.currentPhase}/3 - ${responseLength} chars`);
 
         // Return the accumulated response
         return this.state.currentResponse;
@@ -12781,6 +12758,109 @@ ${conversationText}`;
         }
 
         return warnings;
+      },
+
+      async runFobPhase2Batched(phase2Summary, fileList, phase2Opts) {
+        const ontology = this.state.fobOntology;
+        const sections = ontology.sections || [];
+        const addendum = MODE_ADDENDA['fob-audit'].phase2;
+
+        // Split sections: "Benefits" (large) vs everything else (small)
+        const benefitsSections = sections.filter(s => s.name.toLowerCase().includes('benefit') && !s.name.toLowerCase().includes('pre-cert'));
+        const otherSections = sections.filter(s => !s.name.toLowerCase().includes('benefit') || s.name.toLowerCase().includes('pre-cert'));
+
+        // Build batches: non-Benefits first, then Benefits (may split if >200 rows)
+        const batches = [];
+        if (otherSections.length > 0) {
+          batches.push({ label: 'Plan structure', sections: otherSections });
+        }
+
+        for (const bs of benefitsSections) {
+          const rowMatch = (bs.fob_rows || '').match(/(\d+)\s*-\s*(\d+)/);
+          if (rowMatch) {
+            const start = parseInt(rowMatch[1]);
+            const end = parseInt(rowMatch[2]);
+            const span = end - start;
+            if (span > 150) {
+              const mid = Math.floor((start + end) / 2);
+              batches.push({ label: `${bs.name} (rows ${start}-${mid})`, sections: [{ ...bs, fob_rows: `${start}-${mid}` }] });
+              batches.push({ label: `${bs.name} (rows ${mid + 1}-${end})`, sections: [{ ...bs, fob_rows: `${mid + 1}-${end}` }] });
+            } else {
+              batches.push({ label: bs.name, sections: [bs] });
+            }
+          } else {
+            batches.push({ label: bs.name, sections: [bs] });
+          }
+        }
+
+        console.log(`📋 FOB Phase 2: ${batches.length} batches — ${batches.map(b => b.label).join(', ')}`);
+        let accumulated = '';
+
+        for (let i = 0; i < batches.length; i++) {
+          const batch = batches[i];
+          this.updatePhaseProgress(2, `Batch ${i + 1}/${batches.length}: ${batch.label}...`);
+          console.log(`📦 Batch ${i + 1}/${batches.length}: ${batch.label}`);
+
+          this.state.currentResponse = '';
+          this.state.currentThinking = '';
+
+          const sectionList = batch.sections.map(s => `- ${s.name} (FOB rows ${s.fob_rows}, Aggregate rows ${s.agg_rows || 'corresponding'})`).join('\n');
+          const isFirst = (i === 0);
+          const scopeInstruction = isFirst
+            ? `\n\nSCOPE: In this call, compare ONLY the following section(s):\n${sectionList}\n\nDo NOT include rows from other sections. Include the table header row.`
+            : `\n\nSCOPE: In this call, compare ONLY the following section(s):\n${sectionList}\n\nDo NOT include rows from other sections. Do NOT include the table header row or separator — start immediately with data rows. Use the same column format as before.`;
+
+          const batchPrompt = `Comprehensively read and analyze all of the attached documents. Here is a summary of the documents' content and structure:
+
+<summary>
+${phase2Summary}
+</summary>
+
+The uploaded documents are (in order):
+${fileList}
+${scopeInstruction}
+${addendum}`;
+
+          const batchResponse = await this.streamResponse(batchPrompt, true, phase2Opts);
+
+          if (isFirst) {
+            accumulated = batchResponse;
+          } else {
+            accumulated += '\n' + this.stripFobTableHeader(batchResponse);
+          }
+
+          // Progressive render
+          this.state.comparisonTableData = this.parseTableData(accumulated);
+          this.renderInteractiveTable('comparison');
+          console.log(`✅ Batch ${i + 1}: ${this.state.comparisonTableData?.rows?.length || '?'} rows total`);
+        }
+
+        // Blank-OON pass for EPO plans
+        const variant = (ontology.template_variant || '').toLowerCase();
+        if (variant.includes('epo') || variant.includes('par')) {
+          const tempTable = this.parseTableData(accumulated);
+          const statusIdx = (tempTable?.headers || []).findIndex(h => h.toLowerCase().includes('status'));
+          const blankOonCount = statusIdx >= 0
+            ? (tempTable?.rows || []).filter(r => (r.cells[statusIdx] || '').toLowerCase().includes('blank')).length
+            : 0;
+          if (blankOonCount === 0) {
+            console.log('🔍 EPO: running Blank-OON pass');
+            this.updatePhaseProgress(2, 'Scanning for blank OON cells...');
+            this.state.currentResponse = '';
+            this.state.currentThinking = '';
+            const oonResponse = await this.streamResponse(
+              this.buildBlankOonPrompt(phase2Summary, fileList, ontology),
+              true, { maxOutputTokens: 32768, temperature: 0.2, topP: 0.9, seed: 42 }
+            );
+            const cleanOon = this.stripFobTableHeader(oonResponse);
+            if (cleanOon.trim()) {
+              accumulated += '\n' + cleanOon;
+              console.log('✅ Blank-OON pass added rows');
+            }
+          }
+        }
+
+        return accumulated;
       },
 
       findFobContinuationPoint(markdown) {
