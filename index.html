@@ -5735,6 +5735,18 @@
       font-size: 12px;
     }
     .fob-toggle-matches:hover { background: var(--bg-hover); }
+    .fob-validation-warnings {
+      margin-bottom: 8px;
+    }
+    .fob-warning {
+      padding: 6px 12px;
+      margin-bottom: 4px;
+      background: rgba(255, 152, 0, 0.12);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      border-radius: 4px;
+      color: #e68a00;
+      font-size: 13px;
+    }
 
     /* FOB Corrections tab */
     .fob-corrections-header {
@@ -7213,7 +7225,7 @@ Your response must contain TWO parts:
 PART 1: A text overview (max 800 words) identifying:
 - Which file is the FOB template (the submission TO Anthem — a locked Excel with benefit deviations) and which is the Aggregate (Anthem's RETURNED document — their processed interpretation)
 - The FOB template variant: PPO ("JAA Model Plan - PPO") with label columns A-G merged, INN benefits in column D, OON in column I, deviations in columns L (INN) and M (OON); OR EPO/PAR-Only ("JAA Model Plan - PAR Only") with label columns A-C or A-F merged, INN benefits in column D, OON in column H (usually "Not Applicable"), deviations in columns J (INN) and K (OON)
-- Section boundaries in the FOB: Plan Information, Eligibility, Network Selections, Vendor/Contact Info, Deductible/Coinsurance/OOP, Benefits, Exclusions — with approximate row ranges
+- Section boundaries in the FOB: Plan Information, Eligibility, Network Selections, Vendor/Contact Info, Deductible/Coinsurance/OOP, Benefits, Pre-Certification/Pre-Cert Lists, Exclusions — with approximate row ranges
 - Section boundaries in the Aggregate with approximate row ranges
 - The column mapping between FOB and Aggregate (which FOB column maps to which Aggregate column for INN, OON, and deviations)
 - Aggregate version info from any Change Log section (version number, date, IMPL reference, status)
@@ -7241,7 +7253,8 @@ PART 2: Immediately after the overview, output a fenced JSON block:
   },
   "sections": [
     {"name": "Plan Information", "fob_rows": "3-27", "agg_rows": "1-27"},
-    {"name": "Benefits", "fob_rows": "154-500", "agg_rows": "162-500"}
+    {"name": "Benefits", "fob_rows": "154-500", "agg_rows": "162-500"},
+    {"name": "Pre-Certification", "fob_rows": "...", "agg_rows": "..."}
   ],
   "aggregate_version": 1,
   "anomalies": ["description of any structural issues found"]
@@ -7253,7 +7266,7 @@ REQUIRED TABLE COLUMNS — use exactly these column headers:
 | Section | Benefit / Field | Setting | FOB Standard | FOB Deviation | Expected Value | Aggregate Value | Status | Details | FOB Ref | Agg Ref |
 
 COLUMN DEFINITIONS:
-- **Section**: One of: Plan Info, Eligibility, Network, Financial, Benefits, Exclusions
+- **Section**: One of: Plan Info, Eligibility, Network, Financial, Benefits, Pre-Cert, Exclusions
 - **Benefit / Field**: The benefit category or field name (e.g., "Urgent Care - Outpatient Professional", "Individual Deductible - INN")
 - **Setting**: For benefits with multi-line structured cell data, specify which parameter: Coverage, Covered At, Deductible, Copayment, or Limit. For plan info fields or single-value cells, use "Value".
 - **FOB Standard**: The standard/default value from the FOB's locked columns (the baseline Anthem provides)
@@ -7271,13 +7284,22 @@ COMPARISON PROCEDURE:
 3. Determine Expected Value: if a deviation was entered, Expected = the deviation; if no deviation, Expected = the standard value.
 4. Read the corresponding value from the Aggregate document.
 5. Compare Expected Value vs. Aggregate Value.
+5a. CRITICAL — Compare ALL text content within the cell, not just the primary value. This includes:
+    - Qualifier text (e.g., "Limit combined Institutional/Professional")
+    - Conditions (e.g., "Covered – Conditionally" vs "Covered")
+    - Limits and caps (e.g., "30 Visits Per Year", "Limited to 90 days per benefit period")
+    - Notes, restrictions, and sub-provisions (e.g., "Patient is required to be homebound")
+    - Sub-items like "All Other: Covered: No"
+    If ANY of this content is present in one document but absent from the other, or differs between documents, the status MUST be Mismatch — even if the primary coverage parameter (percentage, copay) matches.
 6. For multi-line structured cells, parse EACH field independently:
-   - Coverage status (Covered / Not Covered)
+   - Coverage status (Covered / Not Covered / Covered Conditionally)
    - Covered At (percentage, e.g., 80%)
    - Deductible (Yes / No)
    - Copayment (dollar amount / N/A)
    - Limit (description / N/A)
-   Create a SEPARATE ROW for each field that differs within a benefit line.
+   - Notes/Qualifiers (any additional text, conditions, or restrictions)
+   Create a SEPARATE ROW for each field within the benefit line, regardless of whether it matches or not. The Setting column distinguishes them (Coverage, Covered At, Deductible, Copayment, Limit, Notes). IMPORTANT: Do NOT create a single summary row for the benefit and only add sub-rows for differences. Every field gets its own row.
+7. BIDIRECTIONAL CHECK (MANDATORY): After completing the FOB-driven comparison above, perform a REVERSE SCAN of the Aggregate document. For every benefit line, field, or section that appears in the Aggregate but was NOT matched to any FOB row above, add a row with Status: Missing and Details: "Present in Aggregate but not found in FOB template." This ensures the comparison is symmetric — items unique to either document are surfaced.
 
 TERMINOLOGY EQUIVALENCE — do NOT flag these as mismatches:
 - "Not Covered" = "Excluded" = "Benefit Not Available"
@@ -7287,18 +7309,29 @@ TERMINOLOGY EQUIVALENCE — do NOT flag these as mismatches:
 - "Covered" with any coinsurance percentage = covered (do not flag formatting differences)
 - Whitespace, capitalization, and minor punctuation differences are not mismatches
 
-STATUS CLASSIFICATION RULES:
-- **Match**: Expected Value and Aggregate Value are semantically equivalent (accounting for terminology equivalence above)
-- **Mismatch**: Expected Value and Aggregate Value clearly differ in meaning or amount
-- **Uncertain**: Values are semantically similar but phrasing differs enough that human review is warranted
-- **Missing**: A benefit line exists in the FOB but has no corresponding entry in the Aggregate (or vice versa)
-- **Blank-OON**: For EPO/PAR-Only plans, any OON cell in the Aggregate that is blank/empty when it should explicitly state "Not Applicable"
+STATUS CLASSIFICATION RULES — FOB audits require LITERAL text comparison, not semantic equivalence:
+- **Match**: The Expected Value and Aggregate Value contain the same text (after applying ONLY the terminology equivalence normalizations listed above — formatting like "80%" vs "80.00%", "$35" vs "$35.00", and the explicit equivalences like "Not Covered" = "Excluded"). If the actual words or numbers differ in ANY other way, it is NOT a match.
+- **Mismatch**: The Expected Value and Aggregate Value differ in wording, values, conditions, qualifiers, limits, notes, or any other textual content — even if they are logically or semantically equivalent. Examples: "12 Months" vs "365 Days" = Mismatch (different text). "Covered" vs "Covered – Conditionally" = Mismatch. "80%" vs "50%" = Mismatch.
+- **Uncertain**: Values appear similar but contain subtle differences that could be formatting artifacts or genuine mismatches — flag for human review. Use sparingly.
+- **Missing**: A benefit line exists in one document but has no corresponding entry in the other.
+- **Blank-OON**: For EPO/PAR-Only plans, any OON cell in the Aggregate that is blank/empty when it should explicitly state "Not Applicable."
+
+EXAMPLES — study these carefully:
+- FOB: "12 Months" vs Aggregate: "365 Days" → Status: **Mismatch** (different text, even though semantically similar)
+- FOB: "Covered, 80%, Ded Yes, Copay N/A" vs Aggregate: "Covered – Conditionally, 80%, Ded Yes, Copay N/A" → Status: **Mismatch** (qualifier "Conditionally" added)
+- FOB: "Covered, 80%, Ded Yes" with limits "Limited to 90 days" vs Aggregate: "Covered, 80%, Ded Yes" with NO limits → Status: **Mismatch** (limit information missing)
+- FOB: "Not Covered" vs Aggregate: "Excluded" → Status: **Match** (explicit terminology equivalence)
+- FOB: "$35.00" vs Aggregate: "$35" → Status: **Match** (formatting normalization)
+- FOB: "Emergency Room" with note "Limit combined Institutional/Professional." vs Aggregate: "Emergency Room" without that note → Status: **Mismatch** (qualifier text differs)
 
 CRITICAL INSTRUCTIONS:
 - Report ALL lines including matches. Do NOT skip, summarize, or condense matching lines. Every benefit line from the FOB must appear in the output table.
 - Do NOT reorder benefit lines. Maintain the order they appear in the FOB document.
 - Include Plan Information fields (plan name, account prefix, dates, etc.) and Financial parameters (deductibles, coinsurance, OOP maximums) — not just benefit lines.
 - Include Exclusions section: verify each exclusion confirmation matches between FOB and Aggregate.
+- PRE-CERTIFICATION / PRE-CERT LISTS: Both the FOB template and Aggregate may contain Pre-Certification (Pre-Cert) listing sections with lists of services requiring pre-certification. Compare these lists item by item. For each service on either list: if present in both, mark as Match; if present in one but not the other, mark as Missing with Details indicating which document contains it. Use Section: "Pre-Cert" for these rows.
+- INN/OON PAIRS: When a benefit has both In-Network (INN) and Out-of-Network (OON) settings, BOTH must appear in the output. Never include only the INN row without its corresponding OON row. Check every benefit that has INN/OON variants and ensure both rows are present.
+- Every benefit that appears as a DISTINCT ROW in the source Excel must appear as its own row in the output. Do NOT concatenate, merge, or summarize multiple benefit sub-lines into a single row. For example, if the FOB lists "Cardiac Rehab - Outpatient Institutional", "Cardiac Rehab - Inpatient Professional", and "Chemotherapy - Outpatient Institutional" as separate rows, each MUST appear as a separate row in your output — never as a single "Therapies (Cardiac, Chemo Coverage)" summary row.
 
 EPO/PAR-ONLY OON AUDIT (MANDATORY when the template variant is EPO or PAR-Only):
 After completing the INN comparison above, perform a SECOND PASS on every benefit line's OON column in the Aggregate:
@@ -7664,6 +7697,8 @@ CRITICAL RULES:
         fobConfirmedMismatches: {},
         fobCorrectionTexts: {},
         fobOntology: null,
+        fobValidationWarnings: [],
+        lastFinishReason: null,
         // Chat-specific state
         chatMessages: [], // [{role, content, timestamp}]
         isChatStreaming: false, // Separate from main isStreaming
@@ -9598,7 +9633,8 @@ CRITICAL RULES:
 
           const analysisMode = this.state.analysisMode;
           const prompt1 = PROMPT_TEMPLATES.phase1(fileList, analysisMode);
-          this.state.summaryResponse = await this.streamResponse(prompt1, true); // true = upload files
+          const phase1Opts = (analysisMode === 'fob-audit') ? { temperature: 0.2, topP: 0.9, seed: 42 } : {};
+          this.state.summaryResponse = await this.streamResponse(prompt1, true, phase1Opts); // true = upload files
 
           // Phase 1 complete - show download button
           document.getElementById('export-summary-btn').style.display = 'inline-flex';
@@ -9626,13 +9662,24 @@ CRITICAL RULES:
             phase2Summary += `\n\nFOB ONTOLOGY (from Phase 1): Template variant: ${this.state.fobOntology.template_variant}. FOB columns: ${JSON.stringify(this.state.fobOntology.fob_columns)}. Aggregate columns: ${JSON.stringify(this.state.fobOntology.aggregate_columns)}.`;
           }
           const prompt2 = PROMPT_TEMPLATES.phase2(phase2Summary, fileList, analysisMode);
-          const phase2Opts = (analysisMode === 'fob-audit') ? { maxOutputTokens: 65536 } : {};
+          const phase2Opts = (analysisMode === 'fob-audit') ? { maxOutputTokens: 65536, temperature: 0.2, topP: 0.9, seed: 42 } : {};
           this.state.comparisonResponse = await this.streamResponse(prompt2, true, phase2Opts);
 
           // Phase 2 complete - parse into interactive table and show download button
           this.state.comparisonTableData = this.parseTableData(this.state.comparisonResponse);
           this.renderInteractiveTable('comparison');
           document.getElementById('export-comparison-btn').style.display = 'inline-flex';
+
+          // FOB Audit: check for truncation and run validation
+          if (this.state.analysisMode === 'fob-audit') {
+            if (this.state.lastFinishReason === 'MAX_TOKENS') {
+              console.warn('⚠️ FOB Phase 2 output was truncated at token limit');
+            }
+            this.state.fobValidationWarnings = this.validateFobOutput(this.state.comparisonTableData, this.state.fobOntology);
+            if (this.state.fobValidationWarnings.length > 0) {
+              this.renderInteractiveTable('comparison');
+            }
+          }
 
           // FOB Audit: skip Phase 3 — citations are inline in Phase 2
           if (this.state.analysisMode === 'fob-audit') {
@@ -9733,6 +9780,7 @@ CRITICAL RULES:
 
       async streamResponse(userPrompt, uploadFiles = false, options = {}) {
         this.state.abortController = new AbortController();
+        this.state.lastFinishReason = null;
 
         // Build message parts
         const parts = [];
@@ -9778,7 +9826,9 @@ CRITICAL RULES:
           contents: contents,
           generationConfig: {
             maxOutputTokens: options.maxOutputTokens || CONFIG.MAX_OUTPUT_TOKENS || 32768,
-            temperature: 1.0,
+            temperature: options.temperature !== undefined ? options.temperature : 1.0,
+            ...(options.topP !== undefined && { topP: options.topP }),
+            ...(options.seed !== undefined && { seed: options.seed }),
             thinkingConfig: {
               thinkingLevel: CONFIG.THINKING_LEVEL || 'high'
             }
@@ -9869,8 +9919,11 @@ CRITICAL RULES:
         const candidate = chunk.candidates?.[0];
 
         // Log metadata for debugging (finishReason, usage, errors)
-        if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
-          console.warn(`⚠️ Stream chunk finishReason: ${candidate.finishReason}`, chunk.usageMetadata || '');
+        if (candidate?.finishReason) {
+          this.state.lastFinishReason = candidate.finishReason;
+          if (candidate.finishReason !== 'STOP') {
+            console.warn(`⚠️ Stream chunk finishReason: ${candidate.finishReason}`, chunk.usageMetadata || '');
+          }
         }
         if (chunk.error) {
           console.error('❌ Stream chunk error:', JSON.stringify(chunk.error));
@@ -11883,6 +11936,13 @@ ${conversationText}`;
             ${counts['blank-oon'] ? `<span class="fob-stat fob-stat-blank">${counts['blank-oon']} blank OON</span>` : ''}
             <button class="fob-toggle-matches" onclick="ChatApp.toggleFobMatches()">${this.state.fobMatchesHidden ? 'Show' : 'Hide'} matches</button>
           </div>`;
+          if (this.state.fobValidationWarnings && this.state.fobValidationWarnings.length > 0) {
+            html += '<div class="fob-validation-warnings">';
+            for (const w of this.state.fobValidationWarnings) {
+              html += `<div class="fob-warning">⚠️ ${this.escapeHtml(w)}</div>`;
+            }
+            html += '</div>';
+          }
         }
 
         html += '<table class="comparison-table"><thead><tr>';
@@ -12608,6 +12668,63 @@ ${conversationText}`;
       toggleFobMatches() {
         this.state.fobMatchesHidden = !this.state.fobMatchesHidden;
         this.renderInteractiveTable('comparison');
+      },
+
+      validateFobOutput(tableData, ontology) {
+        const warnings = [];
+        if (!tableData || !tableData.headers || !tableData.rows) return warnings;
+
+        const headers = tableData.headers.map(h => h.toLowerCase());
+        const sectionIdx = headers.findIndex(h => h.includes('section'));
+        const benefitIdx = headers.findIndex(h => h.includes('benefit') || h.includes('field'));
+        const settingIdx = headers.findIndex(h => h.includes('setting'));
+        const statusIdx = headers.findIndex(h => h.includes('status'));
+
+        // Check for truncation
+        if (this.state.lastFinishReason === 'MAX_TOKENS') {
+          warnings.push('Output was truncated (hit maximum token limit). Rows near the end of the document may be missing. Consider re-running or splitting the analysis.');
+        }
+
+        // Section coverage check
+        if (sectionIdx >= 0 && ontology && ontology.sections) {
+          const outputSections = new Set();
+          tableData.rows.forEach(r => {
+            const s = (r.cells[sectionIdx] || '').trim().toLowerCase();
+            if (s) outputSections.add(s);
+          });
+          for (const section of ontology.sections) {
+            const name = section.name.toLowerCase();
+            const found = [...outputSections].some(s => s.includes(name) || name.includes(s));
+            if (!found) {
+              warnings.push(`Section "${section.name}" (rows ${section.fob_rows}) has no rows in the output.`);
+            }
+          }
+        }
+
+        // INN/OON pair check
+        if (benefitIdx >= 0 && settingIdx >= 0) {
+          const benefitSettings = {};
+          tableData.rows.forEach(r => {
+            const benefit = (r.cells[benefitIdx] || '').trim();
+            const setting = (r.cells[settingIdx] || '').trim().toLowerCase();
+            if (!benefit) return;
+            if (!benefitSettings[benefit]) benefitSettings[benefit] = new Set();
+            benefitSettings[benefit].add(setting);
+          });
+          const unpaired = [];
+          for (const [benefit, settings] of Object.entries(benefitSettings)) {
+            const hasInn = [...settings].some(s => s.includes('inn'));
+            const hasOon = [...settings].some(s => s.includes('oon'));
+            if (hasInn && !hasOon) unpaired.push(benefit);
+          }
+          if (unpaired.length > 0) {
+            const examples = unpaired.slice(0, 3).join(', ');
+            const more = unpaired.length > 3 ? ` and ${unpaired.length - 3} more` : '';
+            warnings.push(`${unpaired.length} benefit(s) have INN rows but no corresponding OON row: ${examples}${more}.`);
+          }
+        }
+
+        return warnings;
       },
 
       buildFobChatSystemInstruction() {
