@@ -9353,6 +9353,8 @@ CRITICAL RULES:
               this.state.isComparisonRequest = true;
               const autoMessage = this.state.analysisMode === 'invoice-analysis'
                 ? 'Analyze the attached invoices.'
+                : this.state.analysisMode === 'fob-audit'
+                ? 'Audit the attached plan documents.'
                 : 'Compare the attached plan documents.';
               this.sendMessage(autoMessage);
             }

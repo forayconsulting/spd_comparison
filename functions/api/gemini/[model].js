@@ -10,6 +10,15 @@
 import { createSqlClient, getAppSettings } from '../history/_db.js';
 import { mintAccessToken } from './_vertex.js';
 
+// Google's auth/permission errors echo the API key verbatim
+// (e.g. "Consumer 'api_key:AIza...' has been suspended"). Without this,
+// the proxy forwards that text to the browser and leaks the key to every
+// user on any error — the vector that got prior keys hijacked/suspended.
+// Strip anything matching a Google API key before it leaves the server.
+function redactSecrets(text) {
+  return String(text).replace(/AIza[0-9A-Za-z_\-]{35}/g, 'AIza…[redacted]');
+}
+
 export async function onRequestPost(context) {
   const { env, request } = context;
   // Extract model from URL path instead of params.model because
@@ -74,7 +83,12 @@ export async function onRequestPost(context) {
 
       headers = {
         'Content-Type': 'application/json',
-        'x-goog-api-key': env.GEMINI_API_KEY
+        'x-goog-api-key': env.GEMINI_API_KEY,
+        // Sent so the consumer key can be HTTP-referrer restricted. This value
+        // is set server-side only and is never exposed to the browser, so a
+        // leaked key string is unusable without also forging this referrer.
+        // Must match an allowed referrer on the key (see GEMINI_KEY_REFERER).
+        'Referer': env.GEMINI_KEY_REFERER || 'https://app.syncrodocsystems.com'
       };
     }
 
@@ -117,6 +131,8 @@ export async function onRequestPost(context) {
             const parsed = JSON.parse(errorText);
             if (parsed?.error?.message) displayMessage = parsed.error.message;
           } catch { /* use raw text */ }
+          // Never forward a key the upstream echoed back to the client.
+          displayMessage = redactSecrets(displayMessage);
           const errorEvent = `data: {"error": {"code": ${geminiResponse.status}, "message": ${JSON.stringify(displayMessage)}, "upstream": ${JSON.stringify(geminiUrl)}}}\n\n`;
           console.error(`Upstream error ${geminiResponse.status} from ${geminiUrl}: ${displayMessage}`);
           await writer.write(encoder.encode(errorEvent));
