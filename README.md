@@ -386,6 +386,13 @@ gitGraph TB:
 - Deleting the currently-loaded session resets the app to blank state
 - Added `confirm` mode to `showAppDialog()` for OK/Cancel dialogs without input field
 
+**July 1, 2026 — Fix All-Tenant 524 Timeouts (Proxy Request Ordering)**
+- All three deployments intermittently returned `API error (524)` on Compare Documents and other AI calls, despite two prior rounds of FOB-audit-specific 524 fixes (`77a1e2f`, `710eefb`) that reduced processing time only for `analysisMode === 'fob-audit'`
+- Root cause: `functions/api/gemini/[model].js` ran a Postgres settings lookup (`getAppSettings`, via a brand-new Hyperdrive connection with no query timeout) *before* creating the keepalive `TransformStream` that exists specifically to prevent Cloudflare's ~100s idle timeout — any slowness in that one-time DB check meant zero bytes reached the client during the stall, so Cloudflare returned 524 before Gemini was ever reached, regardless of tenant or analysis mode
+- Fixed by reordering `onRequestPost` so the keepalive stream starts immediately after model extraction, before the DB lookup, Vertex JWT minting, and the Gemini fetch — all of which now run inside the existing background async IIFE
+- Added a 5-second timeout wrapper around the settings lookup so a hung database call can no longer add unbounded latency
+- Deployed to `spd-matrix` and `spd-matrix-leadingedge`; see `docs/incident-2026-07-01-all-tenant-524-timeouts.md` for full details
+
 ## Database Migrations
 
 This project uses Railway PostgreSQL with no automated migration system. Schema changes must be applied manually when deploying code that references new columns or constraints.

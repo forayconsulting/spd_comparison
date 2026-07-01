@@ -322,6 +322,8 @@ The Cloudflare proxy returns `200 OK` immediately via `TransformStream` (to supp
 
 The proxy (`functions/api/gemini/[model].js`) includes the upstream URL and a parsed error message in error events, aiding diagnosis of Vertex AI vs Consumer API routing issues.
 
+**Keepalive ordering (fixed 2026-07-01):** The keepalive stream must be the very first thing `onRequestPost` does — before the Vertex AI settings DB lookup (`getAppSettings`), JWT minting, `request.text()`, and the Gemini `fetch()`. All of that work runs inside the background async IIFE, after the streaming `Response` is already returned. This exists because an earlier version ran the DB settings check *before* creating the keepalive stream, so a slow Postgres/Hyperdrive call could stall the response with zero bytes sent, letting Cloudflare's ~100s idle timeout fire (524) before Gemini was ever reached — see `docs/incident-2026-07-01-all-tenant-524-timeouts.md`. The settings lookup is also wrapped in a 5s `withTimeout()` so a hung DB call can't add unbounded latency. Do not reintroduce an `await` before the `TransformStream`/keepalive setup in this handler.
+
 **Internal Reasoning:**
 - Gemini 3.1 Pro has configurable internal reasoning via `thinkingConfig.thinkingLevel` parameter
 - Structure: `generationConfig: { thinkingConfig: { thinkingLevel: 'high' } }`
